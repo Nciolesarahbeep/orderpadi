@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Invoice — OrderPadi</title>
+  <style>
+    :root { --bg:#f6f6f3; --card:#ffffff; --ink:#141414; --muted:#6b6b66; --line:#e4e4de; --accent:#0a7d4f; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:#101010; --card:#1a1a1a; --ink:#f2f2ef; --muted:#a3a39d; --line:#2a2a28; --accent:#2fbf7f; }
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height:1.5; }
+    main { max-width:480px; margin:0 auto; padding:40px 16px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px; }
+    .label { color:var(--muted); font-size:14px; margin:0; }
+    h1 { font-size:24px; margin:4px 0 12px; word-break:break-all; font-family:ui-monospace, Menlo, monospace; }
+    p { color:var(--muted); margin:0; }
+    footer { text-align:center; margin-top:24px; font-size:13px; color:var(--muted); }
+    footer b { color:var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="card">
+      <p class="label">Invoice</p>
+      <h1 id="invoice-id">…</h1>
+      <p>Placeholder. The real invoice and receipt page comes in step 6.</p>
+    </div>
+    <footer>Made with Order<b>Padi</b></footer>
+  </main>
+  <script>
+    // URL looks like /i/<public_id>
+    const id = decodeURIComponent(location.pathname.split('/')[2] || '');
+    document.getElementById('invoice-id').textContent = id || '(no invoice id in the link)';
+  </script>
+</body>
+</html>
