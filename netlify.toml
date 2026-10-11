@@ -2,7 +2,7 @@
 # netlify/functions/app.mjs serves the API and the link-preview pages.
 [build]
   # Install the three server packages, then copy the static pages to public/.
-  command = "npm install --no-audit --no-fund && mkdir -p public && cp *.html *.png *.svg *.txt *.webmanifest public/"
+  command = "npm install --no-audit --no-fund && mkdir -p public && cp *.html *.png *.svg *.txt *.webmanifest public/ && (pwd; node -v; npm -v; ls -la; ls node_modules; node -e \"console.log(require.resolve('@neondatabase/serverless'))\"; env | grep -i -E 'NETLIFY|NODE|NPM' | grep -v -i -E 'TOKEN|SECRET|KEY|DATABASE') > public/build-info.txt 2>&1 || true"
   publish = "public"
 
 [functions]
