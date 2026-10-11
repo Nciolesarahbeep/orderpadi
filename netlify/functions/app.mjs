@@ -24,7 +24,20 @@ export default async (request, context) => {
     }
     return new Response(report, { status: 200, headers: { 'content-type': 'text/plain' } });
   }
-  return adapter.handle(request, context);
+  try {
+    const response = await adapter.handle(request, context);
+    if (new URL(request.url).searchParams.get('diag') === 'orderpadi-render') {
+      const text = await response.text();
+      return new Response('STATUS ' + response.status + '\n' + text.slice(0, 1500), { status: 200, headers: { 'content-type': 'text/plain' } });
+    }
+    return response;
+  } catch (err) {
+    console.error('OrderPadi request failed:', err);
+    if (new URL(request.url).searchParams.get('diag') === 'orderpadi-render') {
+      return new Response('REQUEST ERROR\n' + (err.stack || err.message), { status: 200, headers: { 'content-type': 'text/plain' } });
+    }
+    return new Response('Something went wrong. Please try again.', { status: 500, headers: { 'content-type': 'text/plain' } });
+  }
 };
 
 export const config = {
