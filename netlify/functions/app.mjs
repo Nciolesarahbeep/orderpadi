@@ -11,7 +11,10 @@ export default async (request, context) => {
   if (!adapter) {
     // Temporary: show why start-up failed at /?diag=orderpadi-check
     if (new URL(request.url).searchParams.get('diag') === 'orderpadi-check') {
-      return new Response('START-UP ERROR\n' + (loadError && (loadError.stack || loadError.message)), { status: 200, headers: { 'content-type': 'text/plain' } });
+      const fs = await import('node:fs');
+      const look = (dir) => { try { return dir + ': ' + fs.readdirSync(dir).join(', '); } catch (e) { return dir + ': (missing)'; } };
+      const listing = ['/var/task', '/var/task/node_modules', '/var/task/node_modules/@neondatabase', '/var/task/netlify/functions', '/var/task/netlify/functions/node_modules', process.cwd()].map(look).join('\n');
+      return new Response('START-UP ERROR\n' + (loadError && (loadError.stack || loadError.message)) + '\n\nFILES\n' + listing, { status: 200, headers: { 'content-type': 'text/plain' } });
     }
     return new Response('OrderPadi is starting up. Please try again in a minute.', { status: 503 });
   }
