@@ -60,13 +60,15 @@ CREATE TABLE email_otps (
   id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   email       TEXT NOT NULL,
   purpose     TEXT NOT NULL CHECK (purpose IN ('signup', 'reset')),
-  code_hash   TEXT NOT NULL,                 -- bcrypt hash of the 6-digit code
+  code_hash   TEXT NOT NULL,                 -- HMAC-SHA256 of the 6-digit code
   attempts    INTEGER NOT NULL DEFAULT 0,    -- lock out after 5 wrong tries
   expires_at  TIMESTAMPTZ NOT NULL,
   used_at     TIMESTAMPTZ,
+  ip          TEXT,                          -- limits codes per device (added in step 2)
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX email_otps_lookup ON email_otps (email, purpose, created_at DESC);
+CREATE INDEX email_otps_ip ON email_otps (ip, created_at DESC);
 
 CREATE TABLE user_sessions (
   jti         TEXT PRIMARY KEY,              -- JWT id, so sessions can be revoked

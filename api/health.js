@@ -1,5 +1,5 @@
-// Step 1 setup check: confirms the database connects, schema.sql ran,
-// and the environment variables are set. Opened by /app.
+// Setup check: confirms the database connects, schema.sql and each step's
+// database update ran, and the environment variables are set. Opened by /setup.
 // Delete this file before launch to free up a function slot.
 const { sql } = require('../lib/db');
 
@@ -35,8 +35,16 @@ module.exports = async function handler(req, res) {
     `;
     const found = new Set(rows.map((r) => r.table_name));
     const missing = EXPECTED.filter((name) => !found.has(name));
-    const ok = missing.length === 0 && env.JWT_SECRET && env.RESEND_API_KEY;
-    return res.status(200).json({ ok, db: true, missing, env });
+
+    // Database updates added after schema.sql, one entry per step.
+    const otpIp = await sql`
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'email_otps' AND column_name = 'ip'
+    `;
+    const migrations = { step2: otpIp.length > 0 };
+
+    const ok = missing.length === 0 && migrations.step2 && env.JWT_SECRET && env.RESEND_API_KEY;
+    return res.status(200).json({ ok, db: true, missing, migrations, env });
   } catch (err) {
     console.error('Health check failed:', err);
     return res.status(500).json({ ok: false, db: false, missing: EXPECTED, env, error: 'Could not connect to the database' });

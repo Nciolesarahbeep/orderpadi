@@ -2,90 +2,490 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex">
-  <title>OrderPadi — Setup check</title>
+  <title>OrderPadi</title>
   <style>
-    :root { --bg:#f6f6f3; --card:#ffffff; --ink:#141414; --muted:#6b6b66; --line:#e4e4de; --accent:#0a7d4f; --good:#0a7d4f; --bad:#c0392b; }
-    @media (prefers-color-scheme: dark) {
-      :root { --bg:#101010; --card:#1a1a1a; --ink:#f2f2ef; --muted:#a3a39d; --line:#2a2a28; --accent:#2fbf7f; --good:#2fbf7f; --bad:#ff6b5b; }
+    :root {
+      --bg:#f6f6f3; --card:#ffffff; --ink:#141414; --muted:#6b6b66; --line:#e4e4de;
+      --accent:#0a7d4f; --accent-ink:#ffffff; --accent-soft:#e7f4ee; --bad:#b42318; --bad-soft:#fdecea;
     }
-    * { box-sizing: border-box; }
-    body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height:1.5; }
-    main { max-width:480px; margin:0 auto; padding:40px 16px; }
-    .logo { font-weight:700; font-size:20px; letter-spacing:-0.02em; }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:#101010; --card:#1a1a1a; --ink:#f2f2ef; --muted:#a3a39d; --line:#2a2a28;
+        --accent:#2fbf7f; --accent-ink:#0b1f15; --accent-soft:#14291f; --bad:#ff7a6b; --bad-soft:#2c1714;
+      }
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height:1.5; -webkit-text-size-adjust:100%; }
+    main { max-width:440px; margin:0 auto; padding:28px 16px calc(40px + env(safe-area-inset-bottom)); }
+    .logo { font-weight:700; font-size:20px; letter-spacing:-0.02em; color:var(--ink); text-decoration:none; }
     .logo span { color:var(--accent); }
-    h1 { font-size:24px; margin:28px 0 4px; }
+
+    .view { display:none; }
+    .view.active { display:block; }
+    h1 { font-size:26px; line-height:1.2; letter-spacing:-0.02em; margin:28px 0 6px; }
     .sub { color:var(--muted); margin:0 0 20px; }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden; }
-    .row { display:flex; gap:12px; padding:14px 16px; border-top:1px solid var(--line); }
-    .row:first-child { border-top:0; }
-    .icon { width:22px; flex:none; font-weight:700; }
-    .ok .icon { color:var(--good); }
-    .fail .icon { color:var(--bad); }
-    .detail { display:block; color:var(--muted); font-size:14px; }
-    h2 { font-size:16px; margin:28px 0 8px; }
-    a { color:var(--accent); }
-    ul { margin:0; padding-left:20px; }
-    li { margin:6px 0; }
+    .sub b { color:var(--ink); overflow-wrap:anywhere; }
+
+    label { display:block; font-size:14px; font-weight:600; margin:16px 0 6px; }
+    input { width:100%; font:inherit; font-size:16px; color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:12px; padding:13px 14px; outline:none; -webkit-appearance:none; }
+    input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+    input.invalid { border-color:var(--bad); }
+    .with-toggle { position:relative; }
+    .with-toggle input { padding-right:64px; }
+    .toggle { position:absolute; right:6px; top:50%; transform:translateY(-50%); background:none; border:0; color:var(--muted); font:inherit; font-size:14px; padding:8px; cursor:pointer; }
+    .hint { font-size:13px; color:var(--muted); margin:6px 0 0; overflow-wrap:anywhere; }
+    .hint.good { color:var(--accent); }
+    .hint.bad { color:var(--bad); }
+    .code-input { letter-spacing:0.45em; text-align:center; font-size:26px; font-weight:600; font-variant-numeric:tabular-nums; padding:14px 8px 14px calc(8px + 0.45em); }
+
+    .btn { display:block; width:100%; margin-top:22px; padding:15px; border:0; border-radius:14px; background:var(--accent); color:var(--accent-ink); font:inherit; font-size:16px; font-weight:600; cursor:pointer; }
+    .btn[disabled] { opacity:0.6; cursor:default; }
+    .btn.secondary { background:var(--card); color:var(--ink); border:1px solid var(--line); }
+    .link { background:none; border:0; padding:4px 0; font:inherit; color:var(--accent); font-weight:600; cursor:pointer; }
+    .link[disabled] { color:var(--muted); font-weight:500; cursor:default; }
+    .center { text-align:center; margin:18px 0 0; color:var(--muted); }
+
+    .error { display:none; margin:16px 0 0; padding:12px 14px; border-radius:12px; background:var(--bad-soft); color:var(--bad); font-size:14px; }
+    .error.show { display:block; }
+    .banner { display:none; margin:20px 0 0; padding:12px 14px; border-radius:12px; background:var(--bad-soft); color:var(--bad); font-size:14px; }
+    .banner.show { display:block; }
+    .banner a { color:inherit; font-weight:600; }
+
+    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; margin-top:16px; }
+    .card-label { font-size:13px; color:var(--muted); margin:0 0 4px; }
+    .store-link { font-size:17px; font-weight:600; color:var(--ink); overflow-wrap:anywhere; text-decoration:none; }
+    .actions { display:flex; gap:10px; margin-top:14px; }
+    .actions .btn { margin-top:0; padding:12px; font-size:15px; }
+    .card p { margin:0; }
+    .loading { padding:80px 0; text-align:center; color:var(--muted); }
+    footer { margin-top:48px; text-align:center; font-size:13px; color:var(--muted); }
+    footer a { color:var(--muted); }
   </style>
 </head>
 <body>
   <main>
-    <div class="logo">Order<span>Padi</span></div>
-    <h1>Setup check</h1>
-    <p class="sub">Every row should show a tick before you start step 2.</p>
+    <a class="logo" href="/">Order<span>Padi</span></a>
+    <div class="banner" id="banner"></div>
 
-    <div class="card" id="checks">
-      <div class="row"><span class="icon">…</span><span>Checking…</span></div>
-    </div>
+    <!-- Loading -->
+    <section class="view active" id="view-loading">
+      <p class="loading">Loading…</p>
+    </section>
 
-    <h2>Test the links</h2>
-    <ul>
-      <li><a href="/s/test-store">/s/test-store</a> should open the store page</li>
-      <li><a href="/i/abc123">/i/abc123</a> should open the invoice page</li>
-      <li><a href="/admin">/admin</a> should open the admin page</li>
-    </ul>
+    <!-- Log in -->
+    <section class="view" id="view-login">
+      <h1>Log in</h1>
+      <p class="sub">Welcome back. Log in to see your orders.</p>
+      <form id="login-form" novalidate>
+        <label for="login-email">Email</label>
+        <input id="login-email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false">
+        <label for="login-password">Password</label>
+        <div class="with-toggle">
+          <input id="login-password" type="password" autocomplete="current-password">
+          <button type="button" class="toggle" data-toggle="login-password">Show</button>
+        </div>
+        <p class="error" id="login-error"></p>
+        <button class="btn" type="submit" id="login-submit">Log in</button>
+      </form>
+      <p class="center"><button class="link" type="button" data-go="forgot">Forgot password?</button></p>
+      <p class="center">New to OrderPadi? <button class="link" type="button" data-go="signup">Create your store</button></p>
+    </section>
+
+    <!-- Sign up -->
+    <section class="view" id="view-signup">
+      <h1>Create your store</h1>
+      <p class="sub">Free to start. Your customers order from your own link.</p>
+      <form id="signup-form" novalidate>
+        <label for="signup-name">Business name</label>
+        <input id="signup-name" type="text" autocomplete="organization" maxlength="60" placeholder="e.g. Ada's Wigs">
+        <label for="signup-slug">Store link</label>
+        <input id="signup-slug" type="text" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="40" placeholder="adas-wigs">
+        <p class="hint" id="slug-hint">Letters, numbers and dashes. You'll share this link with customers.</p>
+        <label for="signup-email">Email</label>
+        <input id="signup-email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false">
+        <label for="signup-password">Password</label>
+        <div class="with-toggle">
+          <input id="signup-password" type="password" autocomplete="new-password" minlength="8">
+          <button type="button" class="toggle" data-toggle="signup-password">Show</button>
+        </div>
+        <p class="hint">At least 8 characters.</p>
+        <p class="error" id="signup-error"></p>
+        <button class="btn" type="submit" id="signup-submit">Create my store</button>
+      </form>
+      <p class="center">Already have a store? <button class="link" type="button" data-go="login">Log in</button></p>
+    </section>
+
+    <!-- Confirm email with a code -->
+    <section class="view" id="view-verify">
+      <h1>Check your email</h1>
+      <p class="sub">We sent a 6-digit code to <b id="verify-email"></b>. It expires in 10 minutes.</p>
+      <form id="verify-form" novalidate>
+        <label for="verify-code">Code</label>
+        <input id="verify-code" class="code-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*">
+        <p class="error" id="verify-error"></p>
+        <button class="btn" type="submit" id="verify-submit">Confirm</button>
+      </form>
+      <p class="center"><button class="link" type="button" id="verify-resend">Send a new code</button></p>
+      <p class="center">Can't find it? Check your spam folder. <button class="link" type="button" data-go="signup">Use a different email</button></p>
+    </section>
+
+    <!-- Forgot password -->
+    <section class="view" id="view-forgot">
+      <h1>Reset your password</h1>
+      <p class="sub">Enter your email and we'll send you a code.</p>
+      <form id="forgot-form" novalidate>
+        <label for="forgot-email">Email</label>
+        <input id="forgot-email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false">
+        <p class="error" id="forgot-error"></p>
+        <button class="btn" type="submit" id="forgot-submit">Send code</button>
+      </form>
+      <p class="center"><button class="link" type="button" data-go="login">Back to log in</button></p>
+    </section>
+
+    <!-- Reset password with the code -->
+    <section class="view" id="view-reset">
+      <h1>Choose a new password</h1>
+      <p class="sub">If <b id="reset-email"></b> has an OrderPadi account, we've sent it a 6-digit code.</p>
+      <form id="reset-form" novalidate>
+        <label for="reset-code">Code</label>
+        <input id="reset-code" class="code-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*">
+        <label for="reset-password">New password</label>
+        <div class="with-toggle">
+          <input id="reset-password" type="password" autocomplete="new-password" minlength="8">
+          <button type="button" class="toggle" data-toggle="reset-password">Show</button>
+        </div>
+        <p class="hint">At least 8 characters. This logs you out on your other devices.</p>
+        <p class="error" id="reset-error"></p>
+        <button class="btn" type="submit" id="reset-submit">Save new password</button>
+      </form>
+      <p class="center"><button class="link" type="button" id="reset-resend">Send a new code</button></p>
+      <p class="center"><button class="link" type="button" data-go="login">Back to log in</button></p>
+    </section>
+
+    <!-- Logged in -->
+    <section class="view" id="view-home">
+      <h1 id="home-title">Hi</h1>
+      <p class="sub">Your store is live. Share your link so customers can order.</p>
+      <div class="card">
+        <p class="card-label">Your store link</p>
+        <a class="store-link" id="home-link" href="#" target="_blank" rel="noopener"></a>
+        <div class="actions">
+          <button class="btn secondary" type="button" id="copy-link">Copy link</button>
+          <button class="btn" type="button" id="share-link">Share</button>
+        </div>
+      </div>
+      <div class="card">
+        <p class="card-label">Next up</p>
+        <p>Add your products and bank details so customers can order and pay. Coming in step 3.</p>
+      </div>
+      <button class="btn secondary" type="button" id="logout">Log out</button>
+    </section>
+
+    <footer><a href="/setup">Setup check</a></footer>
   </main>
 
   <script>
-    const box = document.getElementById('checks');
+    const $ = (id) => document.getElementById(id);
+    const state = { email: '', purpose: 'signup', vendor: null, slugTouched: false, slugTimer: null, slugRequest: 0, countdown: null };
 
-    function addRow(label, ok, detail) {
-      const row = document.createElement('div');
-      row.className = 'row ' + (ok ? 'ok' : 'fail');
-      const icon = document.createElement('span');
-      icon.className = 'icon';
-      icon.textContent = ok ? '✓' : '✗';
-      const text = document.createElement('span');
-      text.textContent = label;
-      if (detail) {
-        const small = document.createElement('span');
-        small.className = 'detail';
-        small.textContent = detail;
-        text.appendChild(small);
-      }
-      row.append(icon, text);
-      box.appendChild(row);
+    // ---------- helpers ----------
+    function switchView(name) {
+      document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === 'view-' + name));
+      document.querySelectorAll('.error').forEach((e) => { e.textContent = ''; e.classList.remove('show'); });
+      document.querySelectorAll('input.invalid').forEach((i) => i.classList.remove('invalid'));
+      window.scrollTo(0, 0);
     }
 
-    fetch('/api/health', { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((d) => {
-        box.innerHTML = '';
-        const env = d.env || {};
-        const missing = d.missing || [];
-        addRow('DATABASE_URL set', !!env.DATABASE_URL, env.DATABASE_URL ? '' : 'Add it in Vercel → Settings → Environment Variables, then redeploy.');
-        addRow('Database connected', d.db === true, d.db ? '' : (d.error || ''));
-        addRow('All 11 tables and 2 views created', d.db === true && missing.length === 0,
-          missing.length ? 'Missing: ' + missing.join(', ') + '. Run schema.sql in the Neon SQL Editor.' : '');
-        addRow('JWT_SECRET set', !!env.JWT_SECRET, env.JWT_SECRET ? '' : 'Add a long random string, then redeploy.');
-        addRow('RESEND_API_KEY set', !!env.RESEND_API_KEY, env.RESEND_API_KEY ? '' : 'Add your Resend key, then redeploy.');
-      })
-      .catch(() => {
-        box.innerHTML = '';
-        addRow('API reachable', false, 'Could not reach /api/health. Check the latest deployment in Vercel.');
-      });
+    function showError(view, message, field) {
+      const box = $(view + '-error');
+      box.textContent = message;
+      box.classList.add('show');
+      const input = field && $(view + '-' + field);
+      if (input) { input.classList.add('invalid'); input.focus(); }
+    }
+
+    function busy(button, isBusy, label) {
+      if (isBusy) { button.dataset.label = button.textContent; button.textContent = label; button.disabled = true; }
+      else { button.textContent = button.dataset.label || button.textContent; button.disabled = false; }
+    }
+
+    async function api(path, body) {
+      try {
+        const res = await fetch(path, body
+          ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), credentials: 'same-origin' }
+          : { credentials: 'same-origin', cache: 'no-store' });
+        let data = {};
+        try { data = await res.json(); } catch (e) { data = {}; }
+        return { ok: res.ok, status: res.status, data };
+      } catch (err) {
+        return { ok: false, status: 0, data: { error: "Can't reach OrderPadi. Check your internet connection and try again." } };
+      }
+    }
+
+    function remember(email) { try { localStorage.setItem('op_email', email); } catch (e) {} }
+    function remembered() { try { return localStorage.getItem('op_email') || ''; } catch (e) { return ''; } }
+
+    // Same rules as the server: "Ada's Wigs & More!" -> "adas-wigs-and-more"
+    function toSlug(text) {
+      return String(text || '').toLowerCase()
+        .normalize('NFKD').replace(/[̀-ͯ]/g, '')
+        .replace(/&/g, ' and ').replace(/['’]/g, '')
+        .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+        .slice(0, 40).replace(/-+$/g, '');
+    }
+
+    function storeUrl(slug) { return location.origin + '/s/' + slug; }
+
+    // ---------- navigation ----------
+    document.querySelectorAll('[data-go]').forEach((el) => el.addEventListener('click', () => {
+      const target = el.dataset.go;
+      if (target === 'login' && !$('login-email').value) $('login-email').value = state.email || remembered();
+      if (target === 'forgot') $('forgot-email').value = $('login-email').value || state.email || remembered();
+      switchView(target);
+    }));
+
+    document.querySelectorAll('[data-toggle]').forEach((btn) => btn.addEventListener('click', () => {
+      const input = $(btn.dataset.toggle);
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.textContent = show ? 'Hide' : 'Show';
+    }));
+
+    // ---------- log in ----------
+    $('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = $('login-email').value.trim();
+      const password = $('login-password').value;
+      if (!email || !password) return showError('login', 'Enter your email and password.', !email ? 'email' : 'password');
+      const btn = $('login-submit');
+      busy(btn, true, 'Logging in…');
+      const { ok, data } = await api('/api/auth', { action: 'login', email, password });
+      busy(btn, false);
+      if (!ok) return showError('login', data.error || 'Could not log in.');
+      remember(email);
+      $('login-password').value = '';
+      if (data.verify) return openCodeStep(data);
+      showHome(data.vendor);
+    });
+
+    // ---------- sign up ----------
+    function setSlugHint(text, tone) {
+      const hint = $('slug-hint');
+      hint.textContent = text;
+      hint.className = 'hint' + (tone ? ' ' + tone : '');
+    }
+
+    function queueSlugCheck() {
+      clearTimeout(state.slugTimer);
+      const slug = toSlug($('signup-slug').value);
+      if (!slug) return setSlugHint("Letters, numbers and dashes. You'll share this link with customers.");
+      if (slug.length < 3) return setSlugHint('Your store link needs at least 3 letters or numbers.', 'bad');
+      setSlugHint('Checking ' + location.host + '/s/' + slug + '…');
+      state.slugTimer = setTimeout(async () => {
+        const ticket = ++state.slugRequest;
+        const { ok, data } = await api('/api/auth', { action: 'check-slug', slug });
+        if (ticket !== state.slugRequest) return; // a newer check is on its way
+        if (!ok) return setSlugHint(location.host + '/s/' + slug);
+        if (data.available) setSlugHint('✓ ' + location.host + '/s/' + data.slug + ' is free', 'good');
+        else setSlugHint(data.message || 'That store link is taken.', 'bad');
+      }, 400);
+    }
+
+    $('signup-name').addEventListener('input', () => {
+      if (state.slugTouched) return;
+      $('signup-slug').value = toSlug($('signup-name').value);
+      queueSlugCheck();
+    });
+    $('signup-slug').addEventListener('input', () => {
+      state.slugTouched = $('signup-slug').value.trim() !== '';
+      queueSlugCheck();
+    });
+    $('signup-slug').addEventListener('blur', () => {
+      $('signup-slug').value = toSlug($('signup-slug').value);
+    });
+
+    $('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const businessName = $('signup-name').value.trim();
+      const slug = toSlug($('signup-slug').value || businessName);
+      const email = $('signup-email').value.trim();
+      const password = $('signup-password').value;
+      if (businessName.length < 2) return showError('signup', 'Enter your business name.', 'name');
+      if (slug.length < 3) return showError('signup', 'Your store link needs at least 3 letters or numbers.', 'slug');
+      if (!email) return showError('signup', 'Enter your email.', 'email');
+      if (password.length < 8) return showError('signup', 'Use a password of at least 8 characters.', 'password');
+      $('signup-slug').value = slug;
+
+      const btn = $('signup-submit');
+      busy(btn, true, 'Creating your store…');
+      const { ok, data } = await api('/api/auth', { action: 'signup', businessName, slug, email, password });
+      busy(btn, false);
+      if (!ok) {
+        const fieldMap = { businessName: 'name', slug: 'slug', email: 'email', password: 'password' };
+        return showError('signup', data.error || 'Could not create your store.', fieldMap[data.field]);
+      }
+      remember(email);
+      openCodeStep(data);
+    });
+
+    // ---------- email codes ----------
+    function startCountdown(buttonId, seconds) {
+      clearInterval(state.countdown);
+      const btn = $(buttonId);
+      let left = Math.max(0, Math.round(seconds || 0));
+      const tick = () => {
+        if (left > 0) { btn.disabled = true; btn.textContent = 'Send a new code in ' + left + 's'; left -= 1; }
+        else { btn.disabled = false; btn.textContent = 'Send a new code'; clearInterval(state.countdown); }
+      };
+      tick();
+      state.countdown = setInterval(tick, 1000);
+    }
+
+    // After sign-up, login with an unconfirmed email, or "forgot password".
+    function openCodeStep(data) {
+      state.email = data.email;
+      state.purpose = data.purpose;
+      if (data.purpose === 'reset') {
+        $('reset-email').textContent = data.email;
+        $('reset-code').value = '';
+        $('reset-password').value = '';
+        switchView('reset');
+        startCountdown('reset-resend', data.resendAfterSeconds);
+        $('reset-code').focus();
+      } else {
+        $('verify-email').textContent = data.email;
+        $('verify-code').value = '';
+        switchView('verify');
+        startCountdown('verify-resend', data.resendAfterSeconds);
+        $('verify-code').focus();
+      }
+    }
+
+    async function resendCode(view) {
+      const btn = $(view + '-resend');
+      btn.disabled = true;
+      const { ok, data } = await api('/api/auth', { action: 'resend', email: state.email, purpose: state.purpose });
+      if (!ok) { btn.disabled = false; return showError(view, data.error || 'Could not send a new code.'); }
+      startCountdown(view + '-resend', data.resendAfterSeconds);
+      $(view + '-code').value = '';
+      $(view + '-code').focus();
+    }
+    $('verify-resend').addEventListener('click', () => resendCode('verify'));
+    $('reset-resend').addEventListener('click', () => resendCode('reset'));
+
+    function digitsOnly(input) { input.value = input.value.replace(/\D/g, '').slice(0, 6); }
+
+    $('verify-code').addEventListener('input', () => {
+      digitsOnly($('verify-code'));
+      if ($('verify-code').value.length === 6) $('verify-form').requestSubmit();
+    });
+    $('reset-code').addEventListener('input', () => digitsOnly($('reset-code')));
+
+    $('verify-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const code = $('verify-code').value;
+      if (code.length !== 6) return showError('verify', 'Enter the 6-digit code from your email.', 'code');
+      const btn = $('verify-submit');
+      if (btn.disabled) return;
+      busy(btn, true, 'Checking…');
+      const { ok, data } = await api('/api/auth', { action: 'verify', email: state.email, code });
+      busy(btn, false);
+      if (!ok) {
+        $('verify-code').value = '';
+        if (data.restart) return switchView('signup');
+        return showError('verify', data.error || 'That code did not work.', 'code');
+      }
+      showHome(data.vendor);
+    });
+
+    // ---------- forgot / reset password ----------
+    $('forgot-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = $('forgot-email').value.trim();
+      if (!email) return showError('forgot', 'Enter your email.', 'email');
+      const btn = $('forgot-submit');
+      busy(btn, true, 'Sending…');
+      const { ok, data } = await api('/api/auth', { action: 'forgot', email });
+      busy(btn, false);
+      if (!ok) return showError('forgot', data.error || 'Could not send a code.', data.field);
+      remember(email);
+      openCodeStep(data);
+    });
+
+    $('reset-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const code = $('reset-code').value;
+      const password = $('reset-password').value;
+      if (code.length !== 6) return showError('reset', 'Enter the 6-digit code from your email.', 'code');
+      if (password.length < 8) return showError('reset', 'Use a password of at least 8 characters.', 'password');
+      const btn = $('reset-submit');
+      busy(btn, true, 'Saving…');
+      const { ok, data } = await api('/api/auth', { action: 'reset', email: state.email, code, password });
+      busy(btn, false);
+      if (!ok) return showError('reset', data.error || 'Could not reset your password.', data.field);
+      $('reset-password').value = '';
+      showHome(data.vendor);
+    });
+
+    // ---------- logged in ----------
+    function showHome(vendor) {
+      clearInterval(state.countdown);
+      state.vendor = vendor;
+      $('home-title').textContent = 'Hi, ' + vendor.businessName;
+      const url = storeUrl(vendor.slug);
+      $('home-link').href = url;
+      $('home-link').textContent = url.replace(/^https?:\/\//, '');
+      switchView('home');
+    }
+
+    $('copy-link').addEventListener('click', async () => {
+      const url = storeUrl(state.vendor.slug);
+      const btn = $('copy-link');
+      try { await navigator.clipboard.writeText(url); btn.textContent = 'Copied!'; }
+      catch (e) { btn.textContent = 'Press and hold the link to copy'; }
+      setTimeout(() => { btn.textContent = 'Copy link'; }, 2500);
+    });
+
+    $('share-link').addEventListener('click', async () => {
+      const url = storeUrl(state.vendor.slug);
+      const text = 'Order from ' + state.vendor.businessName + ' here: ' + url;
+      if (navigator.share) {
+        try { await navigator.share({ title: state.vendor.businessName, text: 'Order from ' + state.vendor.businessName, url }); } catch (e) {}
+      } else {
+        window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
+      }
+    });
+
+    $('logout').addEventListener('click', async () => {
+      const btn = $('logout');
+      busy(btn, true, 'Logging out…');
+      await api('/api/auth', { action: 'logout' });
+      busy(btn, false);
+      state.vendor = null;
+      $('login-email').value = remembered();
+      switchView('login');
+    });
+
+    // ---------- start ----------
+    (async function start() {
+      const { ok, status, data } = await api('/api/me');
+      if (ok && data.vendor) return showHome(data.vendor);
+      if (status !== 401) {
+        const banner = $('banner');
+        banner.textContent = (data.error || 'The server is not responding.') + ' ';
+        const link = document.createElement('a');
+        link.href = '/setup';
+        link.textContent = 'Open the setup check';
+        banner.appendChild(link);
+        banner.classList.add('show');
+      }
+      const params = new URLSearchParams(location.search);
+      const wantsSignup = params.get('start') === 'signup' || location.hash === '#signup';
+      $('login-email').value = remembered();
+      switchView(wantsSignup ? 'signup' : 'login');
+    })();
   </script>
 </body>
 </html>
