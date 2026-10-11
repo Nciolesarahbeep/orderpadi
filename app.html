@@ -15,7 +15,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="preload" href="/fredoka.woff" as="font" type="font/woff" crossorigin>
   <link rel="stylesheet" href="/ui.css">
-  <script>try{var m=localStorage.getItem('op_mode');if(m==='light'||m==='dark')document.documentElement.setAttribute('data-theme',m)}catch(e){}</script>
+  <script>try{var m=localStorage.getItem('op_mode');if(m==='light'||m==='dark')document.documentElement.setAttribute('data-theme',m)}catch(e){}
+  try{if(!sessionStorage.getItem('op_splash')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){sessionStorage.setItem('op_splash','1');document.documentElement.classList.add('splashing')}}catch(e){}</script>
   <script src="/ui.js"></script>
   <style>
     main { max-width: 480px; margin: 0 auto; padding: 16px 16px calc(40px + env(safe-area-inset-bottom)); }
@@ -254,6 +255,14 @@
   </style>
 </head>
 <body>
+  <div class="splash" id="splash" aria-hidden="true">
+    <span class="splash-blob b1"></span><span class="splash-blob b2"></span><span class="splash-blob b3"></span>
+    <div class="splash-center">
+      <span class="splash-mark"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" fill="#fff" stroke="#1B1530" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 8h6M9 12h4" stroke="#1B1530" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+      <div class="splash-word"><span style="--i:0">O</span><span style="--i:1">r</span><span style="--i:2">d</span><span style="--i:3">e</span><span style="--i:4">r</span><b><span style="--i:5">P</span><span style="--i:6">a</span><span style="--i:7">d</span><span style="--i:8">i</span></b></div>
+      <div class="splash-tag">Orders, invoices and who owes you</div>
+    </div>
+  </div>
   <main>
     <div class="topbar">
       <a class="logo" href="/"><span class="logo-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" fill="#fff" stroke="#1B1530" stroke-width="2" stroke-linejoin="round"/><path d="M9 8h6M9 12h4" stroke="#1B1530" stroke-width="2" stroke-linecap="round"/></svg></span><span>Order<b>Padi</b></span></a>
@@ -849,14 +858,138 @@
 
     // ---------- helpers ----------
     function switchView(name) {
+      const y = window.scrollY; // read before the screen changes height
       document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === 'view-' + name));
       document.querySelectorAll('.error').forEach((e) => { e.textContent = ''; e.classList.remove('show'); });
       document.querySelectorAll('.invalid').forEach((i) => i.classList.remove('invalid'));
       // The tab bar shows only on logged-in screens.
       document.body.classList.toggle('in-app', name in APP_VIEWS);
       document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === APP_VIEWS[name]));
+      syncUrl(name, y);
       window.scrollTo(0, 0);
     }
+
+    // ---------- an address for every screen ----------
+    // Each screen has its own address after /app#, like #orders or #order/12,
+    // so a refresh reopens the same screen and the phone's back button steps
+    // back like in an app. Tabs replace the address; screens opened from a tab
+    // (an order, a product, customers…) are added on top and remember the
+    // scroll position underneath.
+    const TOP_VIEWS = ['home', 'orders', 'products', 'settings', 'login', 'signup', 'forgot'];
+    const ORDER_FILTERS = ['all', 'new', 'unpaid', 'delivered'];
+    let navMode = 'auto'; // how the next screen change treats history: 'auto', 'replace' or 'none'
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+    function currentRoute() {
+      try { return decodeURIComponent(location.hash.replace(/^#\/?/, '')); } catch (e) { return ''; }
+    }
+    function routeFor(name) {
+      if (name === 'home') return '';
+      if (name === 'order') return state.order ? 'order/' + state.order.id : 'orders';
+      if (name === 'product') return state.editing ? 'product/' + state.editing.id : 'product/new';
+      if (name === 'neworder') return 'new-order';
+      if (name === 'orders') return state.filter && state.filter !== 'all' ? 'orders/' + state.filter : 'orders';
+      return name;
+    }
+    function syncUrl(name, y) {
+      if (name === 'loading') return;
+      const mode = navMode;
+      navMode = 'auto';
+      if (mode === 'none') return;
+      const route = routeFor(name);
+      const params = new URLSearchParams(location.search);
+      if (name !== 'signup') params.delete('start');
+      const search = params.toString() ? '?' + params.toString() : '';
+      const url = location.pathname + search + (route ? '#' + route : '');
+      const cur = history.state && history.state.op ? history.state : { op: true, depth: 0 };
+      if (route === currentRoute()) {
+        history.replaceState({ ...cur, view: name }, '', url);
+      } else if (mode === 'replace' || TOP_VIEWS.includes(name) || (cur.view === 'neworder' && name === 'order')) {
+        history.replaceState({ op: true, depth: cur.depth || 0, from: cur.from, view: name }, '', url);
+      } else {
+        history.replaceState({ ...cur, y: y == null ? window.scrollY : y }, '');
+        history.pushState({ op: true, depth: (cur.depth || 0) + 1, from: cur.view, view: name }, '', url);
+      }
+    }
+
+    // Back buttons inside the app: same as the phone's back when there's
+    // somewhere to go back to, otherwise open the given screen.
+    function goBack(fallback) {
+      if (history.state && history.state.op && history.state.depth > 0) return history.back();
+      navMode = 'replace';
+      return openRoute(fallback === 'home' ? '' : fallback);
+    }
+    // After saving: go back if we came from that screen, otherwise swap to it.
+    function goUp(target) {
+      const st = history.state;
+      if (st && st.op && st.depth > 0 && st.from === target) return history.back();
+      navMode = 'replace';
+      return openRoute(target === 'home' ? '' : target);
+    }
+
+    async function ensureProducts() {
+      if (state.products) return;
+      const { ok, status, data } = await api('/api/products');
+      if (status === 401) return sessionLost();
+      state.products = ok ? data.products : [];
+      if (ok) state.photoLimit = data.photoLimit || 1;
+    }
+
+    // Opens the screen for an address like "order/12".
+    async function openRoute(route) {
+      const [head, a] = String(route || '').split('/');
+      if (!state.vendor) {
+        if (head === 'signup' || head === 'forgot') return switchView(head);
+        if ((head === 'verify' || head === 'reset') && restoreCodeStep()) return;
+        return switchView('login');
+      }
+      switch (head) {
+        case '':
+        case 'home':
+          return goTab('home');
+        case 'orders':
+          state.filter = ORDER_FILTERS.includes(a) ? a : 'all';
+          state.orders = [];
+          return goTab('orders');
+        case 'order':
+          return openOrder(Number(a), { fallback: true });
+        case 'new-order':
+          return openNewOrder();
+        case 'products':
+          return goTab('products');
+        case 'product': {
+          await ensureProducts();
+          if (!state.vendor) return;
+          if (a === 'new') return openProduct(null);
+          const p = (state.products || []).find((x) => x.id === Number(a));
+          if (p) return openProduct(p);
+          navMode = 'replace';
+          return goTab('products');
+        }
+        case 'settings':
+          return goTab('settings');
+        case 'customers':
+          return loadCustomers();
+        case 'report':
+          return loadReport();
+        case 'notifications':
+          return openNotifications();
+        case 'status':
+          return openStatus();
+        default:
+          return goTab('home');
+      }
+    }
+
+    window.addEventListener('popstate', async (e) => {
+      if ($('view-loading').classList.contains('active')) return;
+      const y = e.state && e.state.y;
+      $('snack').classList.remove('show');
+      navMode = 'none';
+      await openRoute(currentRoute());
+      navMode = 'auto';
+      if (y) setTimeout(() => window.scrollTo(0, y), 60);
+    });
 
     function toast(text, tone) {
       const el = $('toast');
@@ -1048,9 +1181,11 @@
     }
 
     // After sign-up, login with an unconfirmed email, or "forgot password".
-    function openCodeStep(data) {
+    // Remembered for 15 minutes so a refresh stays on the code screen.
+    function openCodeStep(data, restoring) {
       state.email = data.email;
       state.purpose = data.purpose;
+      if (!restoring) { try { sessionStorage.setItem('op_code', JSON.stringify({ email: data.email, purpose: data.purpose, at: Date.now() })); } catch (e) {} }
       if (data.purpose === 'reset') {
         $('reset-email').textContent = data.email;
         $('reset-code').value = '';
@@ -1065,6 +1200,14 @@
         startCountdown('verify-resend', data.resendAfterSeconds);
         $('verify-code').focus();
       }
+    }
+    function restoreCodeStep() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('op_code') || 'null');
+        if (!saved || !saved.email || Date.now() - saved.at > 15 * 60000) return false;
+        openCodeStep({ email: saved.email, purpose: saved.purpose, resendAfterSeconds: 0 }, true);
+        return true;
+      } catch (e) { return false; }
     }
 
     async function resendCode(view) {
@@ -1134,15 +1277,18 @@
     });
 
     // ---------- logged in: Home ----------
-    async function enterApp(vendor, setup) {
+    async function enterApp(vendor, setup, route) {
       clearInterval(state.countdown);
+      try { sessionStorage.removeItem('op_code'); } catch (e) {}
       state.vendor = vendor;
       state.setup = setup || null;
       state.products = null;
       state.counts = null;
       state.filter = 'all';
       renderHome();
-      switchView('home');
+      navMode = 'replace';
+      if (route) await openRoute(route);
+      else switchView('home');
       startPolling();
       if (!setup) {
         const { ok, data } = await api('/api/me');
@@ -1257,6 +1403,7 @@
 
     document.addEventListener('click', (e) => {
       const tab = e.target.closest('[data-tab]');
+      if (tab && tab.classList.contains('back')) return goBack(tab.dataset.tab);
       if (tab) return goTab(tab.dataset.tab, tab.dataset.focus);
       if (e.target.closest('[data-new-product]')) return openProduct(null);
     });
@@ -1755,7 +1902,7 @@
       if (state.setup) state.setup.products = countActive();
       toast(photoProblem || (editing ? 'Saved' : 'Product added'), photoProblem ? '' : 'good');
       renderProducts();
-      switchView('products');
+      goUp('products');
     });
 
     $('product-delete').addEventListener('click', async () => {
@@ -1772,7 +1919,7 @@
       if (state.setup) state.setup.products = countActive();
       toast('Product deleted');
       renderProducts();
-      switchView('products');
+      goUp('products');
     });
 
     $('product-price').addEventListener('blur', () => {
@@ -2087,6 +2234,7 @@
 
     document.querySelectorAll('#order-filters .chip').forEach((chip) => chip.addEventListener('click', () => {
       state.filter = chip.dataset.filter;
+      syncUrl('orders');
       state.orders = [];
       loadOrders(true);
     }));
@@ -2097,10 +2245,14 @@
       loadOrders(true);
     });
 
-    async function openOrder(id) {
+    async function openOrder(id, opts = {}) {
       const { ok, status, data } = await api('/api/orders?id=' + id);
       if (status === 401) return sessionLost();
-      if (!ok) return toast(data.error || 'Could not open that order.');
+      if (!ok) {
+        toast(data.error || 'Could not open that order.');
+        if (opts.fallback) { navMode = 'replace'; return goTab('orders'); }
+        return;
+      }
       renderOrder(data.order);
       switchView('order');
     }
@@ -2418,9 +2570,11 @@
       $('bell-count').hidden = !state.unread;
     }
 
-    $('bell').addEventListener('click', async () => {
-      const current = document.querySelector('.view.active');
-      state.backTo = current && current.id !== 'view-notifications' ? current.id.replace('view-', '') : 'home';
+    $('bell').addEventListener('click', () => {
+      if ($('view-notifications').classList.contains('active')) return;
+      openNotifications();
+    });
+    async function openNotifications() {
       const box = $('notifications-list');
       box.innerHTML = '<p class="empty">Loading…</p>';
       switchView('notifications');
@@ -2447,8 +2601,8 @@
         await api('/api/orders', { action: 'notifications-read' });
         setUnread(0);
       }
-    });
-    $('notifications-back').addEventListener('click', () => goTab(state.backTo === 'order' || state.backTo === 'neworder' ? 'orders' : (APP_VIEWS[state.backTo] || 'home')));
+    }
+    $('notifications-back').addEventListener('click', () => goBack('home'));
 
     // Check for new orders every 30 seconds while the app is open.
     async function poll() {
@@ -2522,7 +2676,7 @@
 
     // Back from Paystack: /app?reference=… — confirm the payment, then tidy the URL.
     async function finishCheckout(reference) {
-      history.replaceState(null, '', '/app');
+      history.replaceState({ op: true, depth: 0, view: 'home' }, '', '/app');
       toast('Checking your payment…');
       const { ok, data } = await api('/api/billing', { action: 'verify', reference });
       if (ok && data.plan === 'pro') toast('You\'re on Pro. Enjoy unlimited orders!');
@@ -2977,9 +3131,15 @@
     (async function start() {
       const params0 = new URLSearchParams(location.search);
       const reference = params0.get('reference') || params0.get('trxref');
+      const route = currentRoute();
+      const savedY = history.state && history.state.op ? history.state.y : 0;
       const { ok, status, data } = await api('/api/me');
       if (ok && data.vendor) {
-        await enterApp(data.vendor, data.setup);
+        const logged = ['login', 'signup', 'forgot', 'verify', 'reset'].includes(route.split('/')[0]);
+        await enterApp(data.vendor, data.setup, reference || logged ? '' : route);
+        // Coming back to a list after a full reload: same scroll position.
+        if (savedY && route && !logged) setTimeout(() => window.scrollTo(0, savedY), 80);
+        OP.endSplash();
         if (reference) finishCheckout(reference);
         return;
       }
@@ -2993,9 +3153,12 @@
         banner.classList.add('show');
       }
       const params = new URLSearchParams(location.search);
-      const wantsSignup = params.get('start') === 'signup' || location.hash === '#signup';
+      const wantsSignup = params.get('start') === 'signup';
       $('login-email').value = remembered();
-      switchView(wantsSignup ? 'signup' : 'login');
+      navMode = 'replace';
+      if (wantsSignup) switchView('signup');
+      else await openRoute(route);
+      OP.endSplash();
     })();
   </script>
 </body>

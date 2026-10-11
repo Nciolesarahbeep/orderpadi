@@ -130,6 +130,33 @@
     else img.addEventListener('load', function () { img.classList.add('loaded'); }, { once: true });
   }
 
-  window.OP = { getMode: getMode, setMode: setMode, isDark: isDark, confetti: confetti, countUp: countUp, replay: replay, buzz: buzz, reveal: reveal, fadeImage: fadeImage, reducedMotion: reduced };
+  // Opening animation. The page's <head> adds html.splashing on the first
+  // open in a visit (not on refresh, not with reduced motion). The page
+  // calls OP.endSplash() once it's ready; it plays for at least ~1.3s,
+  // a tap skips it, and it never stays longer than 3.5s.
+  var splashStart = (window.performance && performance.now()) || 0;
+  var splashDone = false;
+  function endSplash(minMs) {
+    if (splashDone || !root.classList.contains('splashing')) return;
+    var left = Math.max(0, (minMs == null ? 1300 : minMs) - (performance.now() - splashStart));
+    setTimeout(function () {
+      if (splashDone) return;
+      splashDone = true;
+      var el = document.getElementById('splash');
+      if (!el) { root.classList.remove('splashing'); return; }
+      el.classList.add('out');
+      setTimeout(function () { root.classList.remove('splashing'); el.remove(); }, 460);
+    }, left);
+  }
+  if (root.classList.contains('splashing')) {
+    setTimeout(function () { endSplash(0); }, 3500);
+    document.addEventListener('DOMContentLoaded', function () {
+      var el = document.getElementById('splash');
+      if (el) el.addEventListener('click', function () { endSplash(0); });
+      else root.classList.remove('splashing');
+    });
+  }
+
+  window.OP = { getMode: getMode, setMode: setMode, isDark: isDark, confetti: confetti, countUp: countUp, replay: replay, buzz: buzz, reveal: reveal, fadeImage: fadeImage, endSplash: endSplash, reducedMotion: reduced };
   if (document.readyState !== 'loading') reveal(); else document.addEventListener('DOMContentLoaded', function () { reveal(); });
 })();

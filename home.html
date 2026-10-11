@@ -11,7 +11,8 @@
   <!--meta-->
   <link rel="preload" href="/fredoka.woff" as="font" type="font/woff" crossorigin>
   <link rel="stylesheet" href="/ui.css">
-  <script>try{var m=localStorage.getItem('op_mode');if(m==='light'||m==='dark')document.documentElement.setAttribute('data-theme',m)}catch(e){}</script>
+  <script>try{var m=localStorage.getItem('op_mode');if(m==='light'||m==='dark')document.documentElement.setAttribute('data-theme',m)}catch(e){}
+  try{if(!sessionStorage.getItem('op_splash')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){sessionStorage.setItem('op_splash','1');document.documentElement.classList.add('splashing')}}catch(e){}</script>
   <script src="/ui.js"></script>
   <style>
     body { font-size: 17px; }
@@ -140,6 +141,14 @@
   </style>
 </head>
 <body>
+  <div class="splash" id="splash" aria-hidden="true">
+    <span class="splash-blob b1"></span><span class="splash-blob b2"></span><span class="splash-blob b3"></span>
+    <div class="splash-center">
+      <span class="splash-mark"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" fill="#fff" stroke="#1B1530" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 8h6M9 12h4" stroke="#1B1530" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+      <div class="splash-word"><span style="--i:0">O</span><span style="--i:1">r</span><span style="--i:2">d</span><span style="--i:3">e</span><span style="--i:4">r</span><b><span style="--i:5">P</span><span style="--i:6">a</span><span style="--i:7">d</span><span style="--i:8">i</span></b></div>
+      <div class="splash-tag">Orders, invoices and who owes you</div>
+    </div>
+  </div>
   <div class="wrap">
     <header class="top">
       <a class="logo" href="/"><span class="logo-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" fill="#fff" stroke="#1B1530" stroke-width="2" stroke-linejoin="round"/><path d="M9 8h6M9 12h4" stroke="#1B1530" stroke-width="2" stroke-linecap="round"/></svg></span><span>Order<b>Padi</b></span></a>
@@ -327,6 +336,8 @@
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
+    // The opening animation ends once the page has loaded.
+    if (document.readyState === 'complete') OP.endSplash(); else window.addEventListener('load', () => OP.endSplash());
     // Contact details come from the server (SUPPORT_EMAIL / SUPPORT_WHATSAPP in Netlify).
     fetch('/api/public?site=contact').then((r) => (r.ok ? r.json() : null)).then((d) => {
       if (!d || !d.contact) return;

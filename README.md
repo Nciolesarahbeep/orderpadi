@@ -22,6 +22,8 @@ Orders, invoices and payment tracking for WhatsApp and Instagram sellers in Nige
 | `/p/<id>` | A product photo (cached for a year; a new photo gets a new address) |
 | `/setup` | Setup check. Delete `setup.html` after launch |
 
+The seller app gives every screen its own address (`/app#orders`, `/app#order/12`, `/app#product/5`, `/app#settings`…), so a refresh reopens the same screen and the phone's back button works like in an app. The store page does the same for the product sheet, checkout and "order placed" (`#product-12`, `#checkout`, `#done`), and the admin panel for `#sellers`, `#seller/12` and `#events`. The landing page and the seller app open with a short OrderPadi animation once per visit (skipped on refresh and for people who turn off motion).
+
 Shared look: `ui.css` (colours, buttons, cards, animations, light/dark), `ui.js` (light/dark choice, confetti, counting numbers, scroll reveal) and `fredoka.woff`, the heading font (SIL Open Font License, `FREDOKA-OFL.txt`).
 
 ## Environment variables (Netlify → Site configuration → Environment variables)

@@ -261,12 +261,56 @@
       return node;
     }
     function switchView(name) {
+      const leavingShop = $('view-shop').classList.contains('active') && name !== 'shop';
+      if (leavingShop) state.shopY = window.scrollY;
       document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === 'view-' + name));
       document.querySelectorAll('.error').forEach((e) => { e.textContent = ''; e.classList.remove('show'); });
       document.querySelectorAll('.invalid').forEach((i) => i.classList.remove('invalid'));
       renderCartBar(name);
-      window.scrollTo(0, 0);
+      // Back to the products: land where the customer was in the list.
+      window.scrollTo(0, name === 'shop' ? (state.shopY || 0) : 0);
     }
+
+    // ---------- addresses: #product-12, #checkout, #done ----------
+    // A refresh keeps the product sheet, checkout or "order placed" screen,
+    // and the phone's back button closes the sheet or leaves checkout.
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    const storeRoute = () => location.hash.replace(/^#/, '');
+    function setRoute(route, push) {
+      if (route === storeRoute()) return;
+      const url = location.pathname + location.search + (route ? '#' + route : '');
+      if (push) history.pushState({ op: true }, '', url);
+      else history.replaceState({ op: true, base: true }, '', url);
+    }
+    // Leaves a pushed screen with the back button if we can, else swaps.
+    function leaveRoute() {
+      if (history.state && history.state.op && !history.state.base) { history.back(); return true; }
+      setRoute('', false);
+      return false;
+    }
+    const DONE_KEY = 'op_done_' + slug;
+    function applyRoute() {
+      const route = storeRoute();
+      const viewing = !$('viewer').hidden;
+      if (route.startsWith('product-')) {
+        if (!$('view-shop').classList.contains('active')) { renderProducts(); switchView('shop'); }
+        return openViewer(Number(route.slice(8)), true);
+      }
+      if (viewing) closeViewer(true);
+      if (route === 'checkout') {
+        if (!cartTotals().count || !onlineOrdering()) { setRoute('', false); renderProducts(); return switchView('shop'); }
+        return openCheckout(true);
+      }
+      if (route === 'done') {
+        try {
+          const saved = JSON.parse(sessionStorage.getItem(DONE_KEY) || 'null');
+          if (saved) return renderDone(saved.order, saved.store, true);
+        } catch (e) { /* fall through to the shop */ }
+        setRoute('', false);
+      }
+      if (!$('view-shop').classList.contains('active')) { renderProducts(); switchView('shop'); }
+    }
+    window.addEventListener('popstate', () => { if (state.store) applyRoute(); });
     function showError(message, field) {
       const box = $('checkout-error');
       box.textContent = message;
@@ -589,9 +633,10 @@
     }
 
     // ---------- product sheet: photos, options, add ----------
-    function openViewer(id) {
+    function openViewer(id, fromRoute) {
       const p = productById(id);
-      if (!p) return;
+      if (!p) { if (fromRoute) setRoute('', false); return; }
+      if (!fromRoute) setRoute('product-' + id, true);
       state.viewing = id;
       // Pre-pick any option that has only one choice left.
       state.picks = {};
@@ -683,12 +728,13 @@
         lines.appendChild(row);
       });
     }
-    function closeViewer() {
+    function closeViewer(fromRoute) {
       $('viewer').hidden = true;
       state.viewing = null;
       document.body.style.overflow = '';
+      if (!fromRoute && storeRoute().startsWith('product-')) leaveRoute();
     }
-    $('viewer-close').addEventListener('click', closeViewer);
+    $('viewer-close').addEventListener('click', () => closeViewer());
     $('viewer').addEventListener('click', (e) => { if (e.target === $('viewer')) closeViewer(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('viewer').hidden) closeViewer(); });
     $('viewer-slides').addEventListener('scroll', () => {
@@ -714,23 +760,30 @@
       $('sum-delivery').textContent = formatNaira(t.delivery);
       $('sum-delivery-row').hidden = !t.delivery;
       $('sum-total').textContent = formatNaira(t.total);
-      if (!t.count) switchView('shop');
+      if (!t.count) { setRoute('', false); switchView('shop'); }
     }
 
+    function openCheckout(fromRoute) {
+      const c = savedCustomer();
+      if (!$('checkout-name').value) $('checkout-name').value = c.name || '';
+      if (!$('checkout-phone').value) $('checkout-phone').value = c.phone || '';
+      if (!$('checkout-address').value) $('checkout-address').value = c.address || '';
+      if (!fromRoute) setRoute('checkout', true);
+      renderCheckout();
+      switchView('checkout');
+    }
     $('cart-open').addEventListener('click', () => {
       if (!onlineOrdering()) {
         window.open('https://wa.me/' + state.store.whatsappPhone + '?text=' + encodeURIComponent(cartMessage()), '_blank', 'noopener');
         return;
       }
-      const c = savedCustomer();
-      if (!$('checkout-name').value) $('checkout-name').value = c.name || '';
-      if (!$('checkout-phone').value) $('checkout-phone').value = c.phone || '';
-      if (!$('checkout-address').value) $('checkout-address').value = c.address || '';
-      renderCheckout();
-      switchView('checkout');
+      openCheckout(false);
     });
 
+    // "Keep shopping" steps back; "Order something else" starts fresh.
     document.querySelectorAll('[data-go="shop"]').forEach((b) => b.addEventListener('click', () => {
+      if (storeRoute() === 'checkout' && leaveRoute()) return;
+      setRoute('', false);
       renderProducts();
       switchView('shop');
     }));
@@ -765,6 +818,7 @@
         if (status === 403 && data.capReached) {
           state.store.acceptingOrders = false;
           renderStore();
+          setRoute('', false);
           return switchView('shop');
         }
         if (status === 409 && (Array.isArray(data.unavailable) || Array.isArray(data.unavailableLines))) {
@@ -775,6 +829,7 @@
           await loadStore(true);
           if (cartTotals().count === 0) {
             // Everything in the order sold out: back to the products, with a note.
+            setRoute('', false);
             switchView('shop');
             $('shop-error').textContent = 'Sorry, what you picked is no longer available. Have a look at what else is in stock.';
             return $('shop-error').classList.add('show');
@@ -810,7 +865,11 @@
       return parts.filter((p) => p !== null).join('\n');
     }
 
-    function renderDone(order, store) {
+    function renderDone(order, store, restoring) {
+      if (!restoring) {
+        try { sessionStorage.setItem(DONE_KEY, JSON.stringify({ order, store })); } catch (e) {}
+        setRoute('done', false);
+      }
       const invoiceUrl = location.origin + '/i/' + order.publicId;
       $('done-title').textContent = 'Order #' + order.number + ' placed';
       $('done-text').textContent = store.whatsappPhone
@@ -872,7 +931,7 @@
       }
       $('done-invoice').href = invoiceUrl;
       switchView('done');
-      setTimeout(() => OP.confetti(document.querySelector('.done-icon'), 110), 150);
+      if (!restoring) setTimeout(() => OP.confetti(document.querySelector('.done-icon'), 110), 150);
     }
 
     // ---------- start ----------
@@ -892,7 +951,11 @@
       loadCart();
       saveCart();
       renderStore();
-      if (!quiet) switchView('shop');
+      if (!quiet) {
+        switchView('shop');
+        history.replaceState({ op: true, base: true }, '', location.href);
+        if (storeRoute()) applyRoute();
+      }
     }
 
     if (!slug) switchView('missing');

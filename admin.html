@@ -263,13 +263,50 @@
     }
 
     function show(name) {
+      const y = window.scrollY;
       document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === 'view-' + name));
       const tabbed = ['overview', 'sellers', 'seller', 'events'].includes(name);
       $('tabs').hidden = !tabbed;
       const tab = name === 'seller' ? 'sellers' : name;
       document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.view === tab));
+      syncUrl(name, y);
       window.scrollTo(0, 0);
     }
+
+    // Each view has an address (#sellers, #seller/12, #events) so a refresh
+    // stays put and the back button works. A seller opens on top of the list.
+    let navMode = 'auto';
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    const currentRoute = () => location.hash.replace(/^#/, '');
+    function syncUrl(name, y) {
+      const mode = navMode;
+      navMode = 'auto';
+      if (mode === 'none' || !['overview', 'sellers', 'seller', 'events'].includes(name)) return;
+      const route = name === 'overview' ? '' : name === 'seller' ? 'seller/' + (state.seller ? state.seller.id : '') : name;
+      if (route === currentRoute()) return;
+      const url = location.pathname + location.search + (route ? '#' + route : '');
+      const cur = history.state && history.state.op ? history.state : { op: true, depth: 0 };
+      if (name === 'seller' && mode !== 'replace') {
+        history.replaceState({ ...cur, y }, '');
+        history.pushState({ op: true, depth: (cur.depth || 0) + 1 }, '', url);
+      } else {
+        history.replaceState({ op: true, depth: cur.depth || 0 }, '', url);
+      }
+    }
+    function openRoute(route) {
+      const [head, id] = route.split('/');
+      if (head === 'sellers') return openSellers();
+      if (head === 'events') return loadEvents();
+      if (head === 'seller' && Number(id) > 0) return openSeller(Number(id));
+      return loadOverview();
+    }
+    window.addEventListener('popstate', async (e) => {
+      const y = e.state && e.state.y;
+      navMode = 'none';
+      await openRoute(currentRoute());
+      navMode = 'auto';
+      if (y) setTimeout(() => window.scrollTo(0, y), 60);
+    });
 
     // 401 -> log in, 404 -> not an admin. Returns true if the page should stop.
     function gate(status) {
@@ -525,7 +562,10 @@
       act({ action: 'suspend', reason }, e.currentTarget, 'Account suspended');
     });
     $('s-unsuspend').addEventListener('click', (e) => act({ action: 'unsuspend' }, e.currentTarget, 'Account unsuspended'));
-    $('seller-back').addEventListener('click', () => { show('sellers'); loadSellers(true); });
+    $('seller-back').addEventListener('click', () => {
+      if (history.state && history.state.op && history.state.depth > 0) return history.back();
+      openSellers();
+    });
 
     // ---------- payments ----------
     async function loadEvents() {
@@ -561,7 +601,8 @@
       else loadEvents();
     }));
 
-    loadOverview();
+    navMode = 'replace';
+    openRoute(currentRoute());
   </script>
 </body>
 </html>
