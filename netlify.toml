@@ -8,8 +8,6 @@
 [functions]
   node_bundler = "esbuild"
   included_files = ["*.html"]
-  # Ship these packages alongside the function instead of bundling them.
-  external_node_modules = ["@neondatabase/serverless", "bcryptjs", "jsonwebtoken"]
 
 [[redirects]]
   from = "/index"
