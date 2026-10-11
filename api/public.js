@@ -227,7 +227,7 @@ function param(req, name) {
 }
 
 // How customers reach the business behind OrderPadi (SUPPORT_EMAIL and
-// SUPPORT_WHATSAPP in Vercel). Shown on the home, terms and privacy pages.
+// SUPPORT_WHATSAPP in Netlify). Shown on the home, terms and privacy pages.
 function contact(res) {
   const email = String(process.env.SUPPORT_EMAIL || '').trim().toLowerCase();
   const whatsapp = normalizeNgPhone(process.env.SUPPORT_WHATSAPP || '');

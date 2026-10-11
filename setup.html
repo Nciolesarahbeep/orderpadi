@@ -77,7 +77,7 @@
         box.innerHTML = '';
         const env = d.env || {};
         const missing = d.missing || [];
-        addRow('DATABASE_URL set', !!env.DATABASE_URL, env.DATABASE_URL ? '' : 'Add it in Vercel → Settings → Environment Variables, then redeploy.');
+        addRow('DATABASE_URL set', !!env.DATABASE_URL, env.DATABASE_URL ? '' : 'Add it in Netlify → Site configuration → Environment variables, then redeploy.');
         addRow('Database connected', d.db === true, d.db ? '' : (d.error || ''));
         addRow('All 11 tables and 2 views created', d.db === true && missing.length === 0,
           missing.length ? 'Missing: ' + missing.join(', ') + '. Run schema.sql in the Neon SQL Editor.' : '');
@@ -97,7 +97,7 @@
       })
       .catch(() => {
         box.innerHTML = '';
-        addRow('API reachable', false, 'Could not reach /api/health. Check the latest deployment in Vercel.');
+        addRow('API reachable', false, 'Could not reach /api/health. Check the latest deploy in Netlify.');
       });
   </script>
 </body>

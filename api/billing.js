@@ -5,7 +5,7 @@
 //   POST /api/billing { action: "manage" }     -> { url } Paystack page to change card or cancel
 //
 // Needs PAYSTACK_SECRET_KEY and PAYSTACK_PLAN_CODE (a ₦2,500 monthly plan
-// created in the Paystack dashboard) in Vercel's environment variables.
+// created in the Paystack dashboard) in Netlify's environment variables.
 const { sql } = require('../lib/db');
 const { HttpError, getSessionVendor } = require('../lib/auth');
 const { usage, isPro, PRO_PRICE_KOBO, FREE_MONTHLY_ORDERS } = require('../lib/plan');
@@ -30,7 +30,7 @@ function siteOrigin(req) {
 }
 
 function requireConfigured() {
-  if (!configured()) throw new HttpError(503, "Payments aren't set up yet. Add PAYSTACK_SECRET_KEY and PAYSTACK_PLAN_CODE in Vercel.");
+  if (!configured()) throw new HttpError(503, "Payments aren't set up yet. Add PAYSTACK_SECRET_KEY and PAYSTACK_PLAN_CODE in Netlify.");
 }
 
 async function checkout(req, vendor) {

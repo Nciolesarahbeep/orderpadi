@@ -1,5 +1,5 @@
 // Admin panel API, used by /admin. Only admins can use it: anyone marked
-// is_admin in the database, or whose email is in ADMIN_EMAILS in Vercel.
+// is_admin in the database, or whose email is in ADMIN_EMAILS in Netlify.
 // Everyone else gets "Not found", so the panel's existence isn't advertised.
 //
 //   GET  /api/admin?view=overview                      -> numbers + system checks

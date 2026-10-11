@@ -40,6 +40,7 @@ module.exports = async function handler(req, res) {
   // Check the raw bytes first; fall back to the parsed body re-serialised,
   // which is what Paystack's own Node example does.
   const candidates = [];
+  if (typeof req.rawBody === 'string' && req.rawBody) candidates.push(req.rawBody); // Netlify (lib/webAdapter.js)
   if (raw) candidates.push(raw);
   if (typeof req.body === 'string') candidates.push(req.body);
   else if (Buffer.isBuffer(req.body)) candidates.push(req.body.toString('utf8'));

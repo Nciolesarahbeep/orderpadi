@@ -309,7 +309,7 @@
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
-    // Contact details come from the server (SUPPORT_EMAIL / SUPPORT_WHATSAPP in Vercel).
+    // Contact details come from the server (SUPPORT_EMAIL / SUPPORT_WHATSAPP in Netlify).
     fetch('/api/public?site=contact').then((r) => (r.ok ? r.json() : null)).then((d) => {
       if (!d || !d.contact) return;
       const before = document.getElementById('copyright');

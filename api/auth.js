@@ -1,7 +1,7 @@
 // Everything about getting in: sign up, confirm email, log in, log out,
 // forgot/reset password, and checking whether a store link is free.
 // One function routed by "action" (the same pattern as Apex's
-// auth-session.js), to stay well under Vercel's 12-function limit.
+// auth-session.js), to keep the number of server functions small.
 //
 // POST /api/auth  { action: "signup" | "verify" | "resend" | "login" | "logout"
 //                           | "forgot" | "reset" | "check-slug", ...fields }
