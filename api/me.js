@@ -1,12 +1,14 @@
 // The logged-in vendor and their store settings.
 //   GET   /api/me  -> { vendor, setup }
 //   PATCH /api/me  { businessName?, slug?, whatsappPhone?, bankName?,
-//                    bankAccountNumber?, bankAccountName?, deliveryFee?, deliveryNote? }
+//                    bankAccountNumber?, bankAccountName?, deliveryFee?, deliveryNote?,
+//                    storeTheme? }   storeTheme: green, coral, sun, sky, grape or night
 //                  -> { vendor, setup }
 // Only the fields sent are changed. "setup" drives the checklist on Home.
 const { sql } = require('../lib/db');
 const { HttpError, getSessionVendor, vendorForClient } = require('../lib/auth');
 const { cleanSlug, slugProblem, cleanText, nairaToKobo, normalizeNgPhone } = require('../lib/format');
+const { STORE_THEMES } = require('../lib/photos');
 
 async function setupStatus(vendor) {
   const [row] = await sql`SELECT count(*)::int AS n FROM products WHERE vendor_id = ${vendor.id} AND is_active = TRUE`;
@@ -30,7 +32,8 @@ async function updateSettings(vendor, body) {
     bank_account_number: vendor.bank_account_number,
     bank_account_name: vendor.bank_account_name,
     default_delivery_fee_kobo: Number(vendor.default_delivery_fee_kobo || 0),
-    delivery_note: vendor.delivery_note
+    delivery_note: vendor.delivery_note,
+    store_theme: vendor.store_theme || 'green'
   };
 
   if (has(body, 'businessName')) {
@@ -106,6 +109,14 @@ async function updateSettings(vendor, body) {
     next.delivery_note = note || null;
   }
 
+  if (has(body, 'storeTheme')) {
+    const theme = String(body.storeTheme || '');
+    if (!Object.prototype.hasOwnProperty.call(STORE_THEMES, theme)) {
+      throw new HttpError(400, 'Pick one of the store colours.', { field: 'storeTheme' });
+    }
+    next.store_theme = theme;
+  }
+
   const [row] = await sql`
     UPDATE vendors SET
       business_name = ${next.business_name},
@@ -116,6 +127,7 @@ async function updateSettings(vendor, body) {
       bank_account_name = ${next.bank_account_name},
       default_delivery_fee_kobo = ${next.default_delivery_fee_kobo},
       delivery_note = ${next.delivery_note},
+      store_theme = ${next.store_theme},
       updated_at = now()
     WHERE id = ${vendor.id}
     RETURNING *

@@ -57,7 +57,10 @@ async function overview() {
       (SELECT coalesce(sum(total_kobo), 0) FROM orders WHERE status <> 'cancelled' AND created_at >= b.month)::bigint AS value_month,
       (SELECT coalesce(sum(amount_kobo), 0) FROM billing_events
          WHERE event = 'charge.success' AND vendor_id IS NOT NULL AND payload->>'status' = 'success'
-           AND created_at >= now() - interval '30 days')::bigint AS collected_30d
+           AND created_at >= now() - interval '30 days')::bigint AS collected_30d,
+      (SELECT count(*) FROM product_photos)::int AS photos,
+      (SELECT coalesce(sum(size_bytes), 0) FROM product_photos)::bigint AS photo_bytes,
+      pg_database_size(current_database())::bigint AS db_bytes
     FROM b
   `;
   const days = await sql`
@@ -75,6 +78,7 @@ async function overview() {
     sellers: { total: num('sellers'), unverified: num('unverified'), today: num('new_today'), week: num('new_7d'), month: num('new_30d'), suspended: num('suspended'), activeWeek: num('active_7d'), atLimit: num('at_limit') },
     pro: { paying: num('pro_paying'), given: num('pro_given'), mrrKobo: num('pro_paying') * PRO_PRICE_KOBO, collected30dKobo: num('collected_30d') },
     orders: { today: num('orders_today'), week: num('orders_7d'), month: num('orders_month'), valueMonthKobo: num('value_month') },
+    storage: { photos: num('photos'), photoBytes: num('photo_bytes'), databaseBytes: num('db_bytes') },
     signups: days.map((d) => ({ day: d.day, count: Number(d.signups) })),
     health: await checkHealth()
   };

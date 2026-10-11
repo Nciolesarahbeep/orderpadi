@@ -20,5 +20,5 @@ export default async (request, context) => {
 };
 
 export const config = {
-  path: ['/api/*', '/', '/s/*', '/i/*']
+  path: ['/api/*', '/', '/s/*', '/i/*', '/p/*']
 };

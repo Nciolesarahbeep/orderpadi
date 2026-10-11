@@ -7,6 +7,7 @@
 //   POST /api/public { action: "paid", invoice } -> customer says they've paid
 //   GET  /api/public?site=contact              -> { contact: { email, whatsapp } }
 //   GET  /api/public?render=home|store|invoice -> the page itself, with link-preview tags
+//   GET  /api/public?photo=<publicId>          -> a product photo (also at /p/<publicId>)
 //
 // Prices always come from the database, never from the browser. The order,
 // its items, the customer record and the seller's notification are written
@@ -17,6 +18,7 @@ const { cleanSlug, cleanText, normalizeNgPhone, formatNaira } = require('../lib/
 const { createOrder, invoiceForCustomer } = require('../lib/orders');
 const { isPro, usage, noteUsage } = require('../lib/plan');
 const { renderPage } = require('../lib/pages');
+const { themeOf, photosByProduct, photoUrl, loadPhoto } = require('../lib/photos');
 
 const MAX_LINES = 50;
 const MAX_QUANTITY = 99;
@@ -41,6 +43,7 @@ function storeForCustomer(v, { withBank = false } = {}) {
     whatsappPhone: v.whatsapp_phone || null,
     deliveryFeeKobo: Number(v.default_delivery_fee_kobo || 0),
     deliveryNote: v.delivery_note || null,
+    theme: themeOf(v),
     branded: !isPro(v)
   };
   if (withBank) {
@@ -62,14 +65,15 @@ async function getStore(req, res) {
   `;
   // On the free plan, after 20 orders this month the store takes orders on
   // WhatsApp only (the page builds the message; nothing is saved).
-  const { capReached } = await usage(vendor);
+  const [{ capReached }, photos] = await Promise.all([usage(vendor), photosByProduct(vendor.id)]);
   return res.status(200).json({
     store: { ...storeForCustomer(vendor), acceptingOrders: !capReached },
     products: products.map((p) => ({
       id: Number(p.id),
       name: p.name,
       description: p.description || '',
-      priceKobo: Number(p.price_kobo)
+      priceKobo: Number(p.price_kobo),
+      photos: (photos.get(Number(p.id)) || []).map((ph) => ph.url)
     }))
   });
 }
@@ -166,7 +170,8 @@ async function loadInvoice(publicId) {
   if (!/^[0-9a-f]{16}$/.test(id)) return null;
   const rows = await sql`
     SELECT o.*, v.business_name, v.slug, v.whatsapp_phone, v.bank_name, v.bank_account_number,
-           v.bank_account_name, v.default_delivery_fee_kobo, v.delivery_note, v.plan, v.plan_renews_at
+           v.bank_account_name, v.default_delivery_fee_kobo, v.delivery_note, v.plan, v.plan_renews_at,
+           v.store_theme
     FROM orders o
     JOIN vendors v ON v.id = o.vendor_id
     WHERE o.public_id = ${id} AND v.is_suspended = FALSE
@@ -175,14 +180,21 @@ async function loadInvoice(publicId) {
   const order = rows[0];
   if (!order) return null;
   const [items, payments] = await Promise.all([
-    sql`SELECT * FROM order_items WHERE order_id = ${order.id} ORDER BY id`,
+    sql`
+      SELECT oi.*, (
+        SELECT ph.public_id FROM product_photos ph
+        WHERE ph.product_id = oi.product_id
+        ORDER BY ph.position, ph.id LIMIT 1
+      ) AS photo_id
+      FROM order_items oi WHERE oi.order_id = ${order.id} ORDER BY oi.id
+    `,
     sql`SELECT amount_kobo, paid_at FROM payments WHERE order_id = ${order.id} ORDER BY paid_at, id`
   ]);
   const vendorShape = {
     business_name: order.business_name, slug: order.slug, whatsapp_phone: order.whatsapp_phone,
     bank_name: order.bank_name, bank_account_number: order.bank_account_number, bank_account_name: order.bank_account_name,
     default_delivery_fee_kobo: order.default_delivery_fee_kobo, delivery_note: order.delivery_note, plan: order.plan,
-    plan_renews_at: order.plan_renews_at
+    plan_renews_at: order.plan_renews_at, store_theme: order.store_theme
   };
   return { order, items, payments, vendor: vendorShape };
 }
@@ -190,10 +202,11 @@ async function loadInvoice(publicId) {
 async function getInvoice(publicId, res) {
   const found = await loadInvoice(publicId);
   if (!found) throw new HttpError(404, "This invoice doesn't exist. Check the link with the seller.");
-  return res.status(200).json({
-    invoice: invoiceForCustomer(found.order, found.items, found.payments),
-    store: storeForCustomer(found.vendor, { withBank: true })
+  const invoice = invoiceForCustomer(found.order, found.items, found.payments);
+  invoice.items.forEach((item, i) => {
+    item.photo = found.items[i].photo_id ? photoUrl(found.items[i].photo_id) : null;
   });
+  return res.status(200).json({ invoice, store: storeForCustomer(found.vendor, { withBank: true }) });
 }
 
 // Customer taps "I've paid". Only the first tap notifies the seller.
@@ -218,6 +231,23 @@ async function markPaid(body, res) {
     `;
   }
   return getInvoice(body.invoice, res);
+}
+
+// A product photo. Its address changes whenever the photo does, so it can be
+// cached for a year by the phone and by Netlify's CDN.
+async function servePhoto(publicId, res) {
+  const photo = await loadPhoto(publicId);
+  if (!photo) {
+    res.setHeader('Cache-Control', 'public, max-age=60');
+    return res.status(404).json({ error: 'Photo not found' });
+  }
+  const forever = 'public, max-age=31536000, immutable';
+  res.setHeader('Content-Type', photo.mime);
+  res.setHeader('Content-Length', String(photo.bytes.length));
+  res.setHeader('Cache-Control', forever);
+  res.setHeader('Netlify-CDN-Cache-Control', forever);
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+  return res.status(200).send(photo.bytes);
 }
 
 // Query values, whether the platform parsed them (req.query) or not.
@@ -259,6 +289,8 @@ module.exports = async function handler(req, res) {
   try {
     if (!sql) throw new HttpError(500, 'The store is not connected to its database yet.');
     if (req.method === 'GET') {
+      const photo = param(req, 'photo');
+      if (photo !== null) return await servePhoto(photo, res);
       const invoice = param(req, 'invoice');
       return invoice !== null ? await getInvoice(invoice, res) : await getStore(req, res);
     }

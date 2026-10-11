@@ -6,34 +6,29 @@
   <meta name="robots" content="noindex">
   <title>OrderPadi — Setup check</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#F3EFFF" data-auto>
+  <link rel="preload" href="/fredoka.woff" as="font" type="font/woff" crossorigin>
+  <link rel="stylesheet" href="/ui.css">
+  <script>try{var m=localStorage.getItem('op_mode');if(m==='light'||m==='dark')document.documentElement.setAttribute('data-theme',m)}catch(e){}</script>
+  <script src="/ui.js"></script>
   <style>
-    :root { --bg:#f6f6f3; --card:#ffffff; --ink:#141414; --muted:#6b6b66; --line:#e4e4de; --accent:#0a7d4f; --good:#0a7d4f; --bad:#c0392b; }
-    @media (prefers-color-scheme: dark) {
-      :root { --bg:#101010; --card:#1a1a1a; --ink:#f2f2ef; --muted:#a3a39d; --line:#2a2a28; --accent:#2fbf7f; --good:#2fbf7f; --bad:#ff6b5b; }
-    }
-    * { box-sizing: border-box; }
-    body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height:1.5; }
-    main { max-width:480px; margin:0 auto; padding:40px 16px; }
-    .logo { font-weight:700; font-size:20px; letter-spacing:-0.02em; }
-    .logo span { color:var(--accent); }
-    h1 { font-size:24px; margin:28px 0 4px; }
-    .sub { color:var(--muted); margin:0 0 20px; }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden; }
-    .row { display:flex; gap:12px; padding:14px 16px; border-top:1px solid var(--line); }
-    .row:first-child { border-top:0; }
-    .icon { width:22px; flex:none; font-weight:700; }
-    .ok .icon { color:var(--good); }
-    .fail .icon { color:var(--bad); }
-    .detail { display:block; color:var(--muted); font-size:14px; }
-    h2 { font-size:16px; margin:28px 0 8px; }
-    a { color:var(--accent); }
-    ul { margin:0; padding-left:20px; }
-    li { margin:6px 0; }
+    main { max-width: 520px; margin: 0 auto; padding: 16px 16px 48px; }
+    h1 { margin: 26px 0 4px; }
+    .card { padding: 0; overflow: hidden; }
+    .row { display: flex; gap: 12px; padding: 13px 16px; border-top: 2px solid var(--line); font-weight: 700; }
+    .row:first-child { border-top: 0; }
+    .icon { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: 9px; border: 2px solid var(--ink); font-weight: 800; font-size: 13px; background: var(--card-2); }
+    .ok .icon { background: var(--brand); color: #1B1530; }
+    .fail .icon { background: var(--coral); color: #1B1530; }
+    .detail { display: block; color: var(--muted); font-size: 14px; font-weight: 500; }
+    h2 { font-size: 20px; margin: 28px 0 8px; }
+    ul { margin: 0; padding-left: 20px; }
+    li { margin: 6px 0; }
   </style>
 </head>
 <body>
   <main>
-    <div class="logo">Order<span>Padi</span></div>
+    <a class="logo" href="/"><span class="logo-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" fill="#fff" stroke="#1B1530" stroke-width="2" stroke-linejoin="round"/><path d="M9 8h6M9 12h4" stroke="#1B1530" stroke-width="2" stroke-linecap="round"/></svg></span><span>Order<b>Padi</b></span></a>
     <h1>Setup check</h1>
     <p class="sub">Every row should show a tick before you test sign-up. Temporary page: deleted before launch.</p>
 
@@ -84,6 +79,8 @@
         const migrations = d.migrations || {};
         addRow('Step 2 database update applied', d.db === true && !!migrations.step2,
           migrations.step2 ? '' : 'Run db/migrations/002_email_otps_ip.sql in the Neon SQL Editor.');
+        addRow('Photos and store colours update applied', d.db === true && !!migrations.step3,
+          migrations.step3 ? '' : 'Run db/migrations/003_photos_and_theme.sql in the Neon SQL Editor.');
         addRow('JWT_SECRET set', !!env.JWT_SECRET, env.JWT_SECRET ? '' : 'Add a long random string, then redeploy.');
         addRow('RESEND_API_KEY set', !!env.RESEND_API_KEY, env.RESEND_API_KEY ? '' : 'Add your Resend key, then redeploy.');
         addRow('Paystack keys set (for Pro)', !!(env.PAYSTACK_SECRET_KEY && env.PAYSTACK_PLAN_CODE),

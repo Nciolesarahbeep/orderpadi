@@ -35,6 +35,8 @@ CREATE TABLE vendors (
   bank_account_number         TEXT,
   delivery_note               TEXT,          -- e.g. "Delivery within Ondo: ₦1,500"
   default_delivery_fee_kobo   BIGINT NOT NULL DEFAULT 0 CHECK (default_delivery_fee_kobo >= 0),
+  store_theme                 TEXT NOT NULL DEFAULT 'green'   -- colour of the store and invoices (added in the redesign)
+                              CHECK (store_theme IN ('green', 'coral', 'sun', 'sky', 'grape', 'night')),
 
   -- plan & billing
   plan                        TEXT NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'pro')),
@@ -101,13 +103,29 @@ CREATE TABLE products (
   name         TEXT NOT NULL,
   description  TEXT,
   price_kobo   BIGINT NOT NULL CHECK (price_kobo >= 0),
-  image_url    TEXT,                          -- v1: optional pasted link; real uploads in v1.1
+  image_url    TEXT,                          -- unused; photos live in product_photos
   is_active    BOOLEAN NOT NULL DEFAULT TRUE, -- archive instead of delete
   sort_order   INTEGER NOT NULL DEFAULT 0,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX products_vendor ON products (vendor_id, is_active, sort_order);
+
+-- Product photos (added in the redesign), shrunk on the seller's phone before
+-- upload. Served at /p/<public_id>; a replaced photo gets a new public_id.
+CREATE TABLE product_photos (
+  id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  public_id   TEXT NOT NULL UNIQUE DEFAULT encode(gen_random_bytes(8), 'hex'),
+  product_id  BIGINT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  vendor_id   BIGINT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+  position    SMALLINT NOT NULL DEFAULT 0 CHECK (position BETWEEN 0 AND 9),  -- 0 is the cover
+  mime        TEXT NOT NULL CHECK (mime IN ('image/jpeg', 'image/webp')),
+  size_bytes  INTEGER NOT NULL CHECK (size_bytes BETWEEN 1 AND 400000),
+  data        BYTEA NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX product_photos_product ON product_photos (product_id, position, id);
+CREATE INDEX product_photos_vendor ON product_photos (vendor_id);
 
 
 -- ---------------------------------------------------------------------

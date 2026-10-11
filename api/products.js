@@ -1,25 +1,36 @@
 // The logged-in vendor's products.
-//   GET    /api/products                                 -> { products }
+//   GET    /api/products                                 -> { products, photoLimit }
 //   POST   /api/products { name, price, description? }   -> { product }
 //   PATCH  /api/products { id, name?, price?, description?, isActive? } -> { product }
 //   DELETE /api/products { id }                          -> { ok }
+// Photos (shrunk on the phone first; see lib/photos.js):
+//   POST   /api/products { action: "add-photo", id, image: "data:image/jpeg;base64,..." } -> { product }
+//   POST   /api/products { action: "remove-photo", photo }  -> { product }
+//   POST   /api/products { action: "cover-photo", photo }   -> { product }   makes it the first photo
 // Prices come in as naira ("4500", "₦4,500.50") and are stored as kobo.
 // Deleting is safe for old orders: they keep their own copy of name and price.
 const { sql } = require('../lib/db');
 const { HttpError, getSessionVendor } = require('../lib/auth');
 const { cleanText, nairaToKobo } = require('../lib/format');
+const { photoLimit, photosByProduct, addPhoto, removePhoto, makeCover } = require('../lib/photos');
 
 const MAX_PRODUCTS = 200;
 
-function productForClient(p) {
+function productForClient(p, photos = []) {
   return {
     id: Number(p.id),
     name: p.name,
     description: p.description || '',
     priceKobo: Number(p.price_kobo),
     isActive: !!p.is_active,
+    photos,
     createdAt: p.created_at
   };
+}
+
+async function withPhotos(vendor, row) {
+  const photos = await photosByProduct(vendor.id);
+  return productForClient(row, photos.get(Number(row.id)) || []);
 }
 
 function readName(body) {
@@ -59,7 +70,11 @@ async function list(vendor) {
     WHERE vendor_id = ${vendor.id}
     ORDER BY is_active DESC, sort_order, created_at, id
   `;
-  return { products: rows.map(productForClient) };
+  const photos = await photosByProduct(vendor.id);
+  return {
+    products: rows.map((p) => productForClient(p, photos.get(Number(p.id)) || [])),
+    photoLimit: photoLimit(vendor)
+  };
 }
 
 async function create(vendor, body) {
@@ -75,7 +90,7 @@ async function create(vendor, body) {
     VALUES (${vendor.id}, ${name}, ${description}, ${priceKobo})
     RETURNING *
   `;
-  return { product: productForClient(row) };
+  return { product: productForClient(row, []) };
 }
 
 async function update(req, vendor, body) {
@@ -96,7 +111,22 @@ async function update(req, vendor, body) {
     WHERE id = ${id} AND vendor_id = ${vendor.id}
     RETURNING *
   `;
-  return { product: productForClient(row) };
+  return { product: await withPhotos(vendor, row) };
+}
+
+async function photoAction(req, vendor, body) {
+  let productId;
+  if (body.action === 'add-photo') {
+    productId = readId(req, body);
+    await addPhoto(vendor, productId, body.image);
+  } else if (body.action === 'remove-photo') {
+    productId = await removePhoto(vendor, String(body.photo || ''));
+  } else {
+    productId = await makeCover(vendor, String(body.photo || ''));
+  }
+  const [row] = await sql`SELECT * FROM products WHERE id = ${productId} AND vendor_id = ${vendor.id}`;
+  if (!row) throw new HttpError(404, "That product doesn't exist or was deleted.");
+  return { product: await withPhotos(vendor, row), photoLimit: photoLimit(vendor) };
 }
 
 async function remove(req, vendor, body) {
@@ -124,6 +154,9 @@ module.exports = async function handler(req, res) {
       return res.status(415).json({ error: 'Send the request as JSON.' });
     }
     const body = req.body && typeof req.body === 'object' ? req.body : {};
+    if (req.method === 'POST' && ['add-photo', 'remove-photo', 'cover-photo'].includes(body.action)) {
+      return res.status(200).json(await photoAction(req, vendor, body));
+    }
     if (req.method === 'POST') return res.status(201).json(await create(vendor, body));
     if (req.method === 'PATCH') return res.status(200).json(await update(req, vendor, body));
     return res.status(200).json(await remove(req, vendor, body));

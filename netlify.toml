@@ -1,7 +1,7 @@
 # Netlify settings. The static pages are copied into public/ at build time;
 # netlify/functions/app.mjs serves the API and the link-preview pages.
 [build]
-  command = "mkdir -p public && cp *.html *.png *.svg *.txt *.webmanifest public/"
+  command = "mkdir -p public && cp *.html *.png *.svg *.txt *.webmanifest *.woff ui.css ui.js public/"
   publish = "public"
 
 [functions]
@@ -20,6 +20,16 @@
     X-Frame-Options = "DENY"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+
+[[headers]]
+  for = "/ui.*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/*.woff"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
 
 [[headers]]
   for = "/*.png"

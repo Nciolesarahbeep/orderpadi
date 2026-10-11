@@ -7,127 +7,140 @@
   <title>Invoice</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#12B76A">
   <!--meta-->
+  <link rel="preload" href="/fredoka.woff" as="font" type="font/woff" crossorigin>
+  <link rel="stylesheet" href="/ui.css">
+  <script>try{var m=localStorage.getItem('op_mode');if(m==='light'||m==='dark')document.documentElement.setAttribute('data-theme',m)}catch(e){}</script>
+  <script src="/ui.js"></script>
   <style>
-    :root {
-      --bg:#f6f6f3; --card:#ffffff; --ink:#141414; --muted:#6b6b66; --line:#e4e4de;
-      --accent:#0a7d4f; --accent-ink:#ffffff; --accent-soft:#e7f4ee; --bad:#b42318; --bad-soft:#fdecea;
-      --warn:#8a5a00; --warn-soft:#fff3d6; --wa:#1fa855;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg:#101010; --card:#1a1a1a; --ink:#f2f2ef; --muted:#a3a39d; --line:#2a2a28;
-        --accent:#2fbf7f; --accent-ink:#0b1f15; --accent-soft:#14291f; --bad:#ff7a6b; --bad-soft:#2c1714;
-        --warn:#f2c14e; --warn-soft:#2e2510; --wa:#2fbf6a;
-      }
-    }
-    * { box-sizing:border-box; }
-    [hidden] { display:none !important; }
-    body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height:1.5; -webkit-text-size-adjust:100%; }
-    main { max-width:480px; margin:0 auto; padding:24px 16px calc(40px + env(safe-area-inset-bottom)); }
-    .view { display:none; }
-    .view.active { display:block; }
-    .loading { padding:80px 0; text-align:center; color:var(--muted); }
-    .muted { color:var(--muted); }
+    main { max-width: 520px; margin: 0 auto; padding: 20px 16px calc(40px + env(safe-area-inset-bottom)); }
+    .view { display: none; }
+    .view.active { display: block; animation: op-rise .4s cubic-bezier(.2, .9, .3, 1.2) both; }
+    .loading { padding: 100px 0; text-align: center; color: var(--muted); font-weight: 700; }
+    .loading .spinner { width: 34px; height: 34px; border-width: 4px; display: block; margin: 0 auto 12px; color: var(--theme); }
 
-    .paper { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px 20px; position:relative; overflow:hidden; }
-    .head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
-    .store { font-size:20px; font-weight:700; letter-spacing:-0.02em; margin:0; }
-    .doc { font-size:14px; color:var(--muted); margin:2px 0 0; }
-    .pill { flex:none; font-size:13px; font-weight:700; padding:4px 12px; border-radius:999px; }
-    .pill.unpaid, .pill.part_paid { background:var(--warn-soft); color:var(--warn); }
-    .pill.paid { background:var(--accent-soft); color:var(--accent); }
-    .pill.cancelled { background:var(--line); color:var(--muted); }
-    .meta { display:flex; gap:16px; margin:18px 0 6px; font-size:14px; }
-    .meta div { flex:1; min-width:0; }
-    .meta .label { font-size:12px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); }
-    .meta p { margin:2px 0 0; overflow-wrap:anywhere; }
-    .lines { margin-top:16px; border-top:1px solid var(--line); }
-    .kv { display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; }
-    .kv.sub { border-bottom:0; padding:5px 0; color:var(--muted); }
-    .kv.total { border-bottom:0; padding-top:12px; font-weight:700; font-size:18px; }
-    .kv.due { border-bottom:0; font-weight:700; color:var(--warn); }
-    .stamp { position:absolute; top:58px; right:-34px; transform:rotate(28deg); background:var(--accent); color:var(--accent-ink); font-weight:800; letter-spacing:0.2em; padding:4px 44px; font-size:13px; }
-    .notice { margin-top:16px; padding:12px 14px; border-radius:12px; font-size:14px; }
-    .notice.ok { background:var(--accent-soft); color:var(--accent); font-weight:600; }
-    .notice.off { background:var(--line); color:var(--muted); }
-    .notice.wait { background:var(--warn-soft); color:var(--warn); font-weight:600; }
+    .paper { position: relative; background: var(--card); border: var(--bw) solid var(--ink); border-radius: 26px; box-shadow: 0 6px 0 var(--ink); overflow: hidden; }
+    .paper-top { position: relative; overflow: hidden; background: var(--theme); color: var(--theme-ink); border-bottom: var(--bw) solid var(--ink); padding: 20px 20px 18px; }
+    .paper-top .blob { width: 110px; height: 110px; right: -38px; top: -46px; }
+    .head { position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; }
+    .mono { flex: none; width: 52px; height: 52px; border-radius: 16px; background: var(--sun); color: #1B1530; border: var(--bw) solid var(--ink); display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: 20px; }
+    .store { font-family: var(--display); font-size: 22px; font-weight: 700; margin: 0; line-height: 1.15; overflow-wrap: anywhere; }
+    .doc { font-size: 15px; font-weight: 800; margin: 2px 0 0; opacity: .85; }
+    .pill { position: relative; z-index: 1; display: inline-block; margin-top: 12px; font-size: 14px; font-weight: 800; padding: 3px 12px; border-radius: 999px; border: 2px solid var(--ink); }
+    .pill.unpaid { background: var(--sun); color: #1B1530; }
+    .pill.part_paid { background: var(--sun-soft); color: var(--text); }
+    .pill.paid { background: var(--brand); color: #1B1530; }
+    .pill.cancelled { background: var(--card-2); color: var(--muted); }
+    .paper-body { padding: 18px 20px 20px; }
+    .meta { display: flex; gap: 16px; margin: 0 0 6px; font-size: 15px; }
+    .meta div { flex: 1; min-width: 0; }
+    .meta .label { font-size: 13px; font-weight: 800; color: var(--muted); }
+    .meta p { margin: 2px 0 0; overflow-wrap: anywhere; font-weight: 700; }
+    .meta p.muted { font-weight: 500; }
+    .lines { margin-top: 14px; border-top: 2px dashed var(--line); }
+    .item { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 2px dashed var(--line); }
+    .item .thumb { flex: none; width: 46px; height: 46px; border-radius: 13px; border: 2px solid var(--ink); font-size: 19px; }
+    .item .i-name { flex: 1; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
+    .item .i-qty { display: block; font-size: 13px; color: var(--muted); font-weight: 600; }
+    .item .i-total { font-family: var(--display); font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .kv { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-top: 0; font-variant-numeric: tabular-nums; font-weight: 700; }
+    .kv.sub { color: var(--muted); }
+    .kv.total { padding-top: 12px; margin-top: 6px; border-top: var(--bw) solid var(--ink); font-family: var(--display); font-size: 24px; }
+    .kv.due { color: var(--bad); font-size: 17px; }
+    .stamp { position: absolute; top: 84px; right: 14px; z-index: 2; padding: 4px 16px; border: 4px solid var(--brand-text); color: var(--brand-text); border-radius: 12px; font-family: var(--display); font-size: 30px; font-weight: 700; letter-spacing: .12em; background: var(--card); transform: rotate(-14deg); animation: op-stamp .6s cubic-bezier(.2, .9, .3, 1.3) .2s both; box-shadow: 0 0 0 3px var(--card); }
+    .notice { margin: 16px 0 0; padding: 12px 14px; border-radius: 16px; border: var(--bw) solid var(--ink); font-size: 15px; font-weight: 700; }
+    .notice.ok { background: var(--brand); color: #1B1530; }
+    .notice.off { background: var(--card-2); color: var(--muted); }
+    .notice.wait { background: var(--sun); color: #1B1530; }
 
-    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; margin-top:14px; }
-    .card-label { font-size:13px; color:var(--muted); margin:0; }
-    .amount { font-size:28px; font-weight:700; letter-spacing:-0.02em; margin:2px 0 10px; font-variant-numeric:tabular-nums; }
-    .row { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--line); }
-    .row b { font-variant-numeric:tabular-nums; }
-    .copy { border:1px solid var(--line); background:none; color:var(--accent); font:inherit; font-size:13px; font-weight:600; padding:4px 10px; border-radius:8px; cursor:pointer; margin-left:8px; }
-    .btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; margin-top:14px; padding:15px; border:0; border-radius:14px; background:var(--accent); color:var(--accent-ink); font:inherit; font-size:16px; font-weight:600; text-decoration:none; cursor:pointer; }
-    .btn[disabled] { opacity:0.6; }
-    .btn.secondary { background:var(--card); color:var(--ink); border:1px solid var(--line); }
-    .btn.wa { background:var(--wa); color:#fff; }
-    .error { margin:12px 0 0; padding:12px 14px; border-radius:12px; background:var(--bad-soft); color:var(--bad); font-size:14px; }
-    footer { margin-top:32px; text-align:center; font-size:13px; color:var(--muted); }
-    footer a { color:var(--ink); font-weight:700; text-decoration:none; }
-    footer a span { color:var(--accent); }
+    .pay { background: var(--card); }
+    .pay .card-label { color: var(--muted); }
+    .amount { font-family: var(--display); font-size: 40px; font-weight: 700; letter-spacing: -0.01em; margin: 2px 0 10px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 0; border-top: 2px solid var(--line); }
+    .row b { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; text-align: right; }
+    .copy { border: 2px solid var(--ink); background: var(--sun); color: #1B1530; font: inherit; font-size: 13px; font-weight: 800; padding: 3px 10px; border-radius: 9px; cursor: pointer; margin-left: 8px; }
+    .error { display: block; }
+    .missing { text-align: center; margin-top: 60px; }
+    .missing svg { width: 110px; height: 110px; margin-bottom: 8px; }
+    footer { margin-top: 30px; text-align: center; }
+    .made-with b { color: var(--brand-text); }
 
     @media print {
-      :root { --bg:#fff; --card:#fff; --ink:#000; --muted:#555; --line:#ddd; }
-      body { background:#fff; }
-      main { padding:0; max-width:none; }
-      .no-print { display:none !important; }
-      .paper { border:0; padding:0; }
+      :root, :root[data-theme="dark"] { --ground: #fff; --card: #fff; --text: #000; --muted: #555; --ink: #000; --line: #ccc; color-scheme: light; }
+      body { background: #fff; }
+      main { padding: 0; max-width: none; }
+      .no-print { display: none !important; }
+      .paper { box-shadow: none; }
+      .stamp { animation: none; }
     }
   </style>
 </head>
 <body>
   <main>
-    <section class="view active" id="view-loading"><p class="loading">Loading invoice…</p></section>
+    <section class="view active" id="view-loading"><div class="loading"><span class="spinner"></span>Loading invoice…</div></section>
 
     <section class="view" id="view-missing">
-      <div style="text-align:center;margin-top:60px">
+      <div class="missing">
+        <svg viewBox="0 0 110 110" aria-hidden="true"><path d="M28 14h54v82l-9-6-9 6-9-6-9 6-9-6-9 6z" fill="#FFD23F" stroke="#1B1530" stroke-width="3.5" stroke-linejoin="round"/><path d="M40 36h30M40 50h18" stroke="#1B1530" stroke-width="3.5" stroke-linecap="round"/><circle cx="84" cy="74" r="16" fill="#FF8A7A" stroke="#1B1530" stroke-width="3.5"/><path d="M84 66v9M84 81v1" stroke="#1B1530" stroke-width="3.5" stroke-linecap="round"/></svg>
         <h1 id="missing-title" style="margin:0">Invoice not found</h1>
-        <p class="muted" id="missing-text">Check the link with the seller.</p>
+        <p class="sub" id="missing-text">Check the link with the seller.</p>
       </div>
     </section>
 
     <section class="view" id="view-invoice">
       <div class="paper">
         <div class="stamp" id="stamp" hidden>PAID</div>
-        <div class="head">
-          <div>
-            <p class="store" id="inv-store"></p>
-            <p class="doc" id="inv-doc"></p>
+        <div class="paper-top">
+          <span class="blob sun"></span>
+          <div class="head">
+            <span class="mono" id="inv-mono"></span>
+            <div>
+              <p class="store" id="inv-store"></p>
+              <p class="doc" id="inv-doc"></p>
+            </div>
           </div>
           <span class="pill" id="inv-pill"></span>
         </div>
-        <div class="meta">
-          <div><span class="label">Date</span><p id="inv-date"></p></div>
-          <div><span class="label">Billed to</span><p id="inv-customer"></p><p class="muted" id="inv-address"></p></div>
+        <div class="paper-body">
+          <div class="meta">
+            <div><span class="label">Date</span><p id="inv-date"></p></div>
+            <div><span class="label">Billed to</span><p id="inv-customer"></p><p class="muted" id="inv-address"></p></div>
+          </div>
+          <div class="lines" id="inv-lines"></div>
+          <div id="inv-totals" style="margin-top:8px"></div>
+          <p class="notice" id="inv-notice" hidden></p>
         </div>
-        <div class="lines" id="inv-lines"></div>
-        <div id="inv-totals"></div>
-        <p class="notice" id="inv-notice" hidden></p>
       </div>
 
-      <div class="card no-print" id="pay-card" hidden>
+      <div class="card pay no-print" id="pay-card" hidden>
         <p class="card-label">Amount to pay</p>
         <div class="amount" id="pay-amount"></div>
         <div id="pay-bank"></div>
-        <button class="btn" type="button" id="paid-btn">I've paid</button>
+        <button class="btn theme" type="button" id="paid-btn">I've paid</button>
         <p class="error" id="paid-error" hidden></p>
       </div>
 
       <div class="no-print">
-        <a class="btn wa" id="chat-btn" target="_blank" rel="noopener" hidden>Message the seller on WhatsApp</a>
+        <a class="btn wa" id="chat-btn" target="_blank" rel="noopener" hidden>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>
+          Message the seller on WhatsApp
+        </a>
         <button class="btn secondary" type="button" id="print-btn">Save as PDF or print</button>
       </div>
     </section>
 
-    <footer id="branding" hidden>Made with <a href="/">Order<span>Padi</span></a></footer>
+    <footer id="branding" hidden><a class="made-with" href="/">Made with Order<b>Padi</b></a></footer>
   </main>
 
   <script>
     const $ = (id) => document.getElementById(id);
     const publicId = decodeURIComponent(location.pathname.split('/')[2] || '').toLowerCase();
-    const state = { invoice: null, store: null };
+    const state = { invoice: null, store: null, wasPaid: null };
+    const THEME_HEX = { green: '#12B76A', coral: '#FF8A7A', sun: '#FFD23F', sky: '#6CCFF6', grape: '#6A4CE0', night: '#1B1530' };
+    const TINTS = ['t0', 't1', 't2', 't3', 't4'];
+    const tintFor = (text) => TINTS[[...String(text || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % TINTS.length];
+    const initials = (name) => (String(name || '').replace(/['’]/g, '').match(/[A-Za-z0-9]+/g) || ['?']).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
 
     function formatNaira(kobo) {
       const decimals = kobo % 100 === 0 ? 0 : 2;
@@ -172,6 +185,10 @@
       const paid = !cancelled && inv.paymentStatus === 'paid';
       const docName = paid ? 'Receipt' : 'Invoice';
       document.title = docName + ' #' + inv.number + ' · ' + store.businessName;
+      const theme = THEME_HEX[store.theme] ? store.theme : 'green';
+      document.documentElement.setAttribute('data-store', theme);
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', THEME_HEX[theme]);
+      $('inv-mono').textContent = initials(store.businessName);
 
       $('inv-store').textContent = store.businessName;
       $('inv-doc').textContent = docName + ' #' + inv.number;
@@ -186,7 +203,23 @@
 
       const lines = $('inv-lines');
       lines.textContent = '';
-      inv.items.forEach((i) => lines.appendChild(kv(i.quantity + ' × ' + i.name, formatNaira(i.lineTotalKobo))));
+      inv.items.forEach((i) => {
+        const row = el('div', 'item');
+        const thumb = el('div', 'thumb ph ' + tintFor(i.name));
+        if (i.photo) {
+          const img = document.createElement('img');
+          img.alt = '';
+          img.src = i.photo;
+          OP.fadeImage(img);
+          thumb.appendChild(img);
+        } else {
+          thumb.textContent = initials(i.name).slice(0, 1);
+        }
+        const name = el('div', 'i-name', i.name);
+        name.appendChild(el('span', 'i-qty', i.quantity + ' × ' + formatNaira(i.unitPriceKobo)));
+        row.append(thumb, name, el('span', 'i-total', formatNaira(i.lineTotalKobo)));
+        lines.appendChild(row);
+      });
 
       const totals = $('inv-totals');
       totals.textContent = '';
@@ -255,6 +288,9 @@
       }
       $('branding').hidden = !store.branded;
       switchView('invoice');
+      // Celebrate when the receipt turns paid while it's open.
+      if (state.wasPaid === false && paid) OP.confetti($('stamp'));
+      state.wasPaid = paid;
     }
 
     $('paid-btn').addEventListener('click', async () => {
@@ -273,9 +309,21 @@
       state.invoice = data.invoice;
       state.store = data.store;
       render();
+      OP.buzz(15);
     });
 
     $('print-btn').addEventListener('click', () => window.print());
+
+    // While money is owed, check now and then so the receipt appears as soon
+    // as the seller confirms the payment.
+    setInterval(async () => {
+      const inv = state.invoice;
+      if (!inv || document.hidden || inv.status === 'cancelled' || inv.paymentStatus === 'paid') return;
+      const { ok, data } = await api('/api/public?invoice=' + encodeURIComponent(publicId));
+      if (!ok) return;
+      const changed = data.invoice.paymentStatus !== inv.paymentStatus || data.invoice.amountPaidKobo !== inv.amountPaidKobo || data.invoice.status !== inv.status;
+      if (changed) { state.invoice = data.invoice; state.store = data.store; render(); }
+    }, 20000);
 
     (async function start() {
       if (!/^[0-9a-f]{16}$/.test(publicId)) return switchView('missing');

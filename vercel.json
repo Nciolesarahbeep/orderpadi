@@ -10,7 +10,8 @@
   "rewrites": [
     { "source": "/", "destination": "/api/public?render=home" },
     { "source": "/s/:slug", "destination": "/api/public?render=store&slug=:slug" },
-    { "source": "/i/:id", "destination": "/api/public?render=invoice&id=:id" }
+    { "source": "/i/:id", "destination": "/api/public?render=invoice&id=:id" },
+    { "source": "/p/:id", "destination": "/api/public?photo=:id" }
   ],
   "headers": [
     {
@@ -23,7 +24,7 @@
       ]
     },
     {
-      "source": "/(og.png|og-shop.png|apple-touch-icon.png|icon-192.png|icon-512.png|favicon.svg)",
+      "source": "/(og.png|og-shop.png|apple-touch-icon.png|icon-192.png|icon-512.png|favicon.svg|ui.css|ui.js|fredoka.woff)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=86400" }
       ]

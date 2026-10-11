@@ -3,7 +3,8 @@
 Orders, invoices and payment tracking for WhatsApp and Instagram sellers in Nigeria.
 
 - **Sellers** get a store link (`/s/your-shop`), invoices with their bank details, a list of who owes them, and sales numbers.
-- **Free plan:** 20 orders a month. **Pro:** ₦2,500 a month through Paystack, with unlimited orders, no branding, reports and CSV export.
+- **Free plan:** 20 orders a month, 1 photo per product. **Pro:** ₦2,500 a month through Paystack, with unlimited orders, 3 photos per product, no branding, reports and CSV export.
+- **Look:** bold and playful, in light and dark. Sellers pick one of six store colours, add product photos, swipe an order to mark it paid, and make a WhatsApp status picture of their products.
 - Plain HTML pages and Node server functions, with a Neon Postgres database. Hosted on **Netlify** (`netlify.toml`); `vercel.json` is kept so it can also run on Vercel.
 - No npm packages: the database is reached over HTTPS (`lib/db.js`), and login tokens and password hashing use Node's built-in crypto (`lib/jwt.js`, `lib/password.js`).
 
@@ -17,7 +18,10 @@ Orders, invoices and payment tracking for WhatsApp and Instagram sellers in Nige
 | `/i/<id>` | An invoice or receipt for one order |
 | `/admin` | Admin panel (only for admins) |
 | `/terms`, `/privacy` | Terms of service and privacy policy |
+| `/p/<id>` | A product photo (cached for a year; a new photo gets a new address) |
 | `/setup` | Setup check. Delete `setup.html` after launch |
+
+Shared look: `ui.css` (colours, buttons, cards, animations, light/dark), `ui.js` (light/dark choice, confetti, counting numbers, scroll reveal) and `fredoka.woff`, the heading font (SIL Open Font License, `FREDOKA-OFL.txt`).
 
 ## Environment variables (Netlify → Site configuration → Environment variables)
 
@@ -47,10 +51,15 @@ Redeploy after changing any of them (Deploys → Trigger deploy).
 
 ## Database
 
-`db/schema.sql` creates everything. Updates made after the first version are in `db/migrations/` and are run once, in order, in the Neon SQL Editor.
+`db/schema.sql` creates everything. Updates made after the first version are in `db/migrations/` and are run once, in order, in the Neon SQL Editor:
+
+- `002_email_otps_ip.sql`: limits email codes per device.
+- `003_photos_and_theme.sql`: product photos and store colours.
+
+Product photos are shrunk on the seller's phone (about 1000px, under 240 KB) and stored in the `product_photos` table. The admin panel shows how much space they use; Neon's free plan has 512 MB.
 
 ## How requests are served
 
 - Static pages (`*.html`, icons, pictures) are copied to `public/` at build time and served directly.
-- `netlify/functions/app.mjs` handles `/api/*`, `/`, `/s/*` and `/i/*`. It passes each request to the matching handler in `api/` through `lib/webAdapter.js`.
+- `netlify/functions/app.mjs` handles `/api/*`, `/`, `/s/*`, `/i/*` and `/p/*`. It passes each request to the matching handler in `api/` through `lib/webAdapter.js`.
 - On Vercel, `vercel.json` does the same job: each file in `api/` is its own function (9 of the 12 allowed on the free plan).

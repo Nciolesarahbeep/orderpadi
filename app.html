@@ -8,217 +8,225 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#0a7d4f">
+  <meta name="theme-color" content="#F3EFFF" data-auto>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="OrderPadi">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="preload" href="/fredoka.woff" as="font" type="font/woff" crossorigin>
+  <link rel="stylesheet" href="/ui.css">
+  <script>try{var m=localStorage.getItem('op_mode');if(m==='light'||m==='dark')document.documentElement.setAttribute('data-theme',m)}catch(e){}</script>
+  <script src="/ui.js"></script>
   <style>
-    :root {
-      --bg:#f6f6f3; --card:#ffffff; --ink:#141414; --muted:#6b6b66; --line:#e4e4de;
-      --accent:#0a7d4f; --accent-ink:#ffffff; --accent-soft:#e7f4ee; --bad:#b42318; --bad-soft:#fdecea;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg:#101010; --card:#1a1a1a; --ink:#f2f2ef; --muted:#a3a39d; --line:#2a2a28;
-        --accent:#2fbf7f; --accent-ink:#0b1f15; --accent-soft:#14291f; --bad:#ff7a6b; --bad-soft:#2c1714;
-      }
-    }
-    * { box-sizing:border-box; }
-    [hidden] { display:none !important; }
-    body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height:1.5; -webkit-text-size-adjust:100%; }
-    main { max-width:440px; margin:0 auto; padding:28px 16px calc(40px + env(safe-area-inset-bottom)); }
-    .logo { font-weight:700; font-size:20px; letter-spacing:-0.02em; color:var(--ink); text-decoration:none; }
-    .logo span { color:var(--accent); }
+    main { max-width: 480px; margin: 0 auto; padding: 16px 16px calc(40px + env(safe-area-inset-bottom)); }
+    .view { display: none; }
+    .view.active { display: block; animation: op-rise .35s cubic-bezier(.2, .9, .3, 1.2) both; }
+    .loading { padding: 90px 0; text-align: center; color: var(--muted); font-weight: 700; }
+    .loading .logo-mark { width: 64px; height: 64px; border-radius: 20px; margin: 0 auto 14px; animation: op-bump 1s ease infinite; }
+    .loading .logo-mark svg { width: 36px; height: 36px; }
+    footer { margin-top: 44px; text-align: center; font-size: 14px; color: var(--muted); font-weight: 600; }
+    footer a { color: var(--muted); }
 
-    .view { display:none; }
-    .view.active { display:block; }
-    h1 { font-size:26px; line-height:1.2; letter-spacing:-0.02em; margin:28px 0 6px; }
-    .sub { color:var(--muted); margin:0 0 20px; }
-    .sub b { color:var(--ink); overflow-wrap:anywhere; }
+    /* top bar + bell */
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; }
+    .bell { display: none; position: relative; width: 46px; height: 46px; border: var(--bw) solid var(--ink); border-radius: 15px; background: var(--card); color: var(--text); box-shadow: var(--shadow-sm); cursor: pointer; align-items: center; justify-content: center; transform-origin: 50% 15%; }
+    .bell:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+    body.in-app .bell { display: flex; }
+    .bell svg { width: 23px; height: 23px; }
+    .bell-count { position: absolute; top: -9px; right: -9px; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 12px; background: var(--coral); color: #1B1530; border: 2px solid var(--ink); font-size: 12px; font-weight: 800; line-height: 20px; text-align: center; }
 
-    label { display:block; font-size:14px; font-weight:600; margin:16px 0 6px; }
-    input { width:100%; font:inherit; font-size:16px; color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:12px; padding:13px 14px; outline:none; -webkit-appearance:none; }
-    input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
-    input.invalid { border-color:var(--bad); }
-    .with-toggle { position:relative; }
-    .with-toggle input { padding-right:64px; }
-    .toggle { position:absolute; right:6px; top:50%; transform:translateY(-50%); background:none; border:0; color:var(--muted); font:inherit; font-size:14px; padding:8px; cursor:pointer; }
-    .hint { font-size:13px; color:var(--muted); margin:6px 0 0; overflow-wrap:anywhere; }
-    .hint.good { color:var(--accent); }
-    .hint.bad { color:var(--bad); }
-    .code-input { letter-spacing:0.45em; text-align:center; font-size:26px; font-weight:600; font-variant-numeric:tabular-nums; padding:14px 8px 14px calc(8px + 0.45em); }
+    /* sign-in screens */
+    .hero { position: relative; overflow: hidden; margin-top: 16px; padding: 26px 20px 22px; border: var(--bw) solid var(--ink); border-radius: 28px; box-shadow: var(--shadow); color: #1B1530; }
+    .hero h1 { position: relative; z-index: 1; margin: 0 0 6px; font-size: 34px; max-width: 78%; }
+    .hero .sub { position: relative; z-index: 1; color: #1B1530; opacity: .85; margin: 0; max-width: 80%; }
+    .hero .sub b { color: #1B1530; }
+    .hero.lilac { background: var(--lilac); } .hero.green { background: var(--brand); } .hero.sky { background: var(--sky); }
+    .hero.sun { background: var(--sun); } .hero.coral { background: var(--coral); }
+    .hero .sparkle { width: 34px; height: 34px; right: 26px; bottom: 20px; }
+    .auth-card { margin-top: 14px; }
+    .auth-card label:first-of-type { margin-top: 2px; }
 
-    .btn { display:block; width:100%; margin-top:22px; padding:15px; border:0; border-radius:14px; background:var(--accent); color:var(--accent-ink); font:inherit; font-size:16px; font-weight:600; cursor:pointer; }
-    .btn[disabled] { opacity:0.6; cursor:default; }
-    .btn.secondary { background:var(--card); color:var(--ink); border:1px solid var(--line); }
-    .link { background:none; border:0; padding:4px 0; font:inherit; color:var(--accent); font-weight:600; cursor:pointer; }
-    .link[disabled] { color:var(--muted); font-weight:500; cursor:default; }
-    .center { text-align:center; margin:18px 0 0; color:var(--muted); }
+    /* home */
+    .hello { font-size: 30px; margin-top: 16px; overflow-wrap: anywhere; }
+    .store-card { position: relative; overflow: hidden; }
+    .store-card > :not(.blob) { position: relative; z-index: 1; }
+    .store-card .blob { z-index: 0; }
+    .store-link { display: block; font-family: var(--display); font-size: 20px; font-weight: 700; color: #1B1530; overflow-wrap: anywhere; text-decoration: none; margin-right: 54px; }
+    .status-btn { margin-top: 12px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 10px; margin: 10px 0 2px; }
+    .tile { border: var(--bw) solid var(--ink); border-radius: 18px; padding: 10px 12px; color: #1B1530; min-width: 0; }
+    .tile b { display: block; font-family: var(--display); font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; line-height: 1.15; }
+    .tile span { font-size: 13px; font-weight: 800; opacity: .8; }
+    .tile.sky { background: var(--sky); } .tile.lilac { background: var(--lilac); } .tile.coral { background: var(--coral); }
+    .tile.sun { background: var(--sun); } .tile.green { background: var(--brand); } .tile.plain { background: var(--card-2); color: var(--text); }
+    .stats.money .tile b { font-size: 18px; }
+    .big-figure { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 10px; margin: 0 0 6px; }
+    .big-figure b { font-family: var(--display); font-size: 40px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.05; }
+    .big-figure span { font-size: 15px; font-weight: 800; opacity: .8; }
+    .sales-card { background: var(--sun); color: #1B1530; }
+    .sales-card .card-label, .sales-card .muted { color: #1B1530; opacity: .8; }
+    .checklist { list-style: none; margin: 4px 0 0; padding: 0; }
+    .checklist button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 0; background: none; border: 0; border-top: 2px solid var(--line); font: inherit; font-weight: 700; color: var(--text); text-align: left; cursor: pointer; }
+    .checklist li:first-child button { border-top: 0; }
+    .tick { flex: none; width: 32px; height: 32px; border-radius: 11px; border: var(--bw) solid var(--ink); background: var(--card-2); display: grid; place-items: center; font-family: var(--display); font-size: 15px; font-weight: 700; color: var(--text); }
+    .checklist .done .tick { background: var(--brand); color: #1B1530; animation: op-pop .45s cubic-bezier(.2, .9, .3, 1.5); }
+    .checklist .done .item-text { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 2px; }
+    .ready-card { background: var(--brand); color: #1B1530; display: flex; gap: 14px; align-items: center; }
+    .ready-card .card-label { color: #1B1530; opacity: 1; font-size: 16px; }
+    .ready-card svg { flex: none; width: 54px; height: 54px; }
 
-    .error { display:none; margin:16px 0 0; padding:12px 14px; border-radius:12px; background:var(--bad-soft); color:var(--bad); font-size:14px; }
-    .error.show { display:block; }
-    .banner { display:none; margin:20px 0 0; padding:12px 14px; border-radius:12px; background:var(--bad-soft); color:var(--bad); font-size:14px; }
-    .banner.show { display:block; }
-    .banner a { color:inherit; font-weight:600; }
+    /* headings with a button */
+    .head-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 18px 0 6px; }
+    .head-row h1 { margin: 0; }
 
-    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; margin-top:16px; }
-    .card-label { font-size:13px; color:var(--muted); margin:0 0 4px; }
-    .store-link { font-size:17px; font-weight:600; color:var(--ink); overflow-wrap:anywhere; text-decoration:none; }
-    .actions { display:flex; gap:10px; margin-top:14px; }
-    .actions .btn { margin-top:0; padding:12px; font-size:15px; }
-    .card p { margin:0; }
-    .loading { padding:80px 0; text-align:center; color:var(--muted); }
-    footer { margin-top:48px; text-align:center; font-size:13px; color:var(--muted); }
-    footer a { color:var(--muted); }
-    .muted { color:var(--muted); font-weight:400; }
+    /* orders: each order is a card you can swipe left to mark paid */
+    .orders-stack { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+    .swipe { position: relative; border-radius: 20px; }
+    .swipe-under { position: absolute; inset: 0; border: var(--bw) solid var(--ink); border-radius: 20px; background: var(--brand); color: #1B1530; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding-right: 18px; font-weight: 800; opacity: 0; transition: opacity .15s, background-color .2s; }
+    .swipe-under svg { width: 24px; height: 24px; transition: transform .25s cubic-bezier(.2, .9, .3, 1.6); }
+    .swipe.dragging .swipe-under, .swipe.busy .swipe-under { opacity: 1; }
+    .swipe.armed .swipe-under svg { transform: scale(1.3); }
+    .swipe:not(.armed) .swipe-under { background: var(--sun); }
+    .orders-stack .row-btn { position: relative; z-index: 1; border: var(--bw) solid var(--ink); border-radius: 20px; background: var(--card); box-shadow: var(--shadow); padding: 14px; touch-action: pan-y; transition: transform .35s cubic-bezier(.2, .9, .3, 1.2); align-items: flex-start; }
+    .swipe.dragging .row-btn { transition: none; }
+    .orders-stack .row-btn:active { background: var(--card); }
+    .order-row .row-side { text-align: right; flex: none; }
+    .order-row .row-time { font-size: 13px; color: var(--muted); font-weight: 600; }
+    .order-num { display: inline-grid; place-items: center; min-width: 30px; height: 26px; padding: 0 7px; margin-right: 6px; border-radius: 9px; background: var(--lilac); color: #1B1530; border: 2px solid var(--ink); font-family: var(--display); font-size: 14px; font-weight: 700; vertical-align: 1px; }
+    .swipe-hint { display: flex; align-items: center; gap: 10px; margin: 12px 0 0; padding: 10px 12px; border: var(--bw) dashed var(--ink); border-radius: 16px; font-size: 14px; font-weight: 700; color: var(--text); background: var(--card); }
+    .swipe-hint svg { flex: none; width: 26px; height: 26px; animation: op-nudge 1.6s ease-in-out infinite; }
+    .swipe-hint button { margin-left: auto; flex: none; }
+    @keyframes op-nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-8px); } }
+    .filter-chip { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 6px 12px; border-radius: 999px; background: var(--lilac); color: #1B1530; border: 2px solid var(--ink); font-size: 14px; font-weight: 800; font-family: inherit; cursor: pointer; }
 
-    textarea { width:100%; min-height:88px; font:inherit; font-size:16px; color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:12px; padding:13px 14px; outline:none; resize:vertical; -webkit-appearance:none; }
-    textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
-    textarea.invalid { border-color:var(--bad); }
-    .prefix { position:relative; }
-    .prefix span { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:16px; pointer-events:none; }
-    .prefix input { padding-left:30px; }
-    .section-title { font-size:13px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); margin:32px 0 0; }
-    .head-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:28px 0 6px; }
-    .head-row h1 { margin:0; }
-    .btn.small { width:auto; margin:0; padding:10px 18px; font-size:15px; border-radius:12px; }
-    .btn.danger { background:none; color:var(--bad); border:1px solid var(--line); }
+    /* one order */
+    .person { display: flex; align-items: center; gap: 12px; }
+    .avatar { flex: none; width: 46px; height: 46px; border-radius: 15px; border: var(--bw) solid var(--ink); background: var(--coral); color: #1B1530; display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: 18px; }
+    .contact { display: flex; gap: 10px; margin-top: 14px; }
+    .contact .btn { margin: 0; min-height: 46px; padding: 10px; font-size: 15px; box-shadow: var(--shadow-sm); }
+    .pay-line { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 2px solid var(--line); }
+    .pay-line:first-child { border-top: 0; }
+    .pay-line .row-main { font-size: 15px; font-weight: 700; }
+    .x { flex: none; width: 34px; height: 34px; border-radius: 11px; border: 2px solid var(--ink); background: var(--card-2); color: var(--text); font-size: 18px; font-weight: 800; line-height: 1; cursor: pointer; }
+    .stepper { display: flex; align-items: center; border: var(--bw) solid var(--ink); border-radius: 13px; overflow: hidden; background: var(--card); flex: none; }
+    .stepper button { width: 36px; height: 36px; border: 0; background: var(--sun); color: #1B1530; font-size: 20px; font-weight: 800; cursor: pointer; }
+    .stepper span { min-width: 32px; text-align: center; font-family: var(--display); font-weight: 700; font-size: 17px; }
+    .money-total { font-family: var(--display); }
 
-    /* setup checklist on Home */
-    .progress { height:6px; border-radius:3px; background:var(--line); margin:10px 0 4px; overflow:hidden; }
-    .progress div { height:100%; background:var(--accent); border-radius:3px; transition:width 0.3s; }
-    .checklist { list-style:none; margin:0; padding:0; }
-    .checklist button { display:flex; align-items:center; gap:12px; width:100%; padding:13px 0; background:none; border:0; border-top:1px solid var(--line); font:inherit; color:var(--ink); text-align:left; cursor:pointer; }
-    .checklist li:first-child button { border-top:0; }
-    .tick { flex:none; width:26px; height:26px; border-radius:13px; border:2px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--muted); }
-    .checklist .done .tick { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
-    .checklist .done .item-text { color:var(--muted); text-decoration:line-through; }
-    .chev { margin-left:auto; color:var(--muted); font-size:20px; line-height:1; }
+    /* notifications + customers */
+    .note-row { padding: 14px 16px; border-top: 2px solid var(--line); }
+    .note-row:first-child { border-top: 0; }
+    .note-row.unread { background: var(--sun-soft); }
+    .note-row button { all: unset; display: flex; gap: 12px; align-items: flex-start; width: 100%; cursor: pointer; font-weight: 600; }
+    .note-dot { flex: none; width: 12px; height: 12px; margin-top: 6px; border-radius: 50%; border: 2px solid var(--ink); background: var(--card-2); }
+    .note-row.unread .note-dot { background: var(--coral); }
+    .note-row .row-time { font-size: 13px; color: var(--muted); margin-top: 2px; font-weight: 600; }
+    .cust-row { padding: 12px 16px; border-top: 2px solid var(--line); }
+    .cust-row:first-child { border-top: 0; }
+    .cust-top { display: flex; align-items: center; gap: 12px; }
+    .cust-top button { all: unset; flex: 1; min-width: 0; cursor: pointer; display: flex; align-items: center; gap: 12px; }
+    .cust-top .avatar { width: 40px; height: 40px; border-radius: 13px; font-size: 16px; }
+    .owing { font-family: var(--display); font-weight: 700; font-size: 17px; color: var(--bad); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .paid-up { font-size: 13px; font-weight: 800; white-space: nowrap; padding: 2px 9px; border-radius: 999px; border: 2px solid var(--ink); background: var(--brand); color: #1B1530; }
+    .remind { display: inline-flex; align-items: center; gap: 6px; margin: 8px 0 0 52px; padding: 5px 12px; border-radius: 999px; border: 2px solid var(--ink); background: var(--wa); color: #1B1530; font-size: 14px; font-weight: 800; text-decoration: none; }
 
-    /* product list */
-    .list { margin-top:16px; background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden; }
-    .row-btn { display:flex; align-items:center; gap:12px; width:100%; padding:14px 16px; background:none; border:0; border-top:1px solid var(--line); font:inherit; color:var(--ink); text-align:left; cursor:pointer; }
-    .row-btn:first-child { border-top:0; }
-    .row-main { flex:1; min-width:0; }
-    .row-name { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .row-sub { font-size:14px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .row-btn.hidden-item .row-name, .row-btn.hidden-item .price { color:var(--muted); }
-    .price { font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
-    .badge { display:inline-block; font-size:12px; font-weight:600; padding:1px 8px; border-radius:999px; background:var(--line); color:var(--muted); margin-left:6px; vertical-align:1px; }
-    .empty { text-align:center; padding:36px 16px; color:var(--muted); background:var(--card); border:1px dashed var(--line); border-radius:16px; margin-top:16px; }
-    .empty .btn { width:auto; display:inline-block; padding:12px 22px; margin-top:14px; }
+    /* report */
+    .bars { display: flex; align-items: flex-end; gap: 3px; height: 150px; margin-top: 14px; padding: 8px; border: var(--bw) solid var(--ink); border-radius: 16px; background: var(--card-2); }
+    .bars div { flex: 1; background: var(--brand); border: 1.5px solid var(--ink); border-radius: 5px 5px 2px 2px; min-height: 3px; transform-origin: bottom; animation: op-grow .6s cubic-bezier(.2, .9, .3, 1.3) both; }
+    .bars div.zero { background: var(--line); border-color: transparent; }
+    @keyframes op-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+    .bar-axis { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); margin-top: 6px; font-weight: 700; }
+    .perks { margin: 10px 0 0; padding: 0; list-style: none; }
+    .perks li { position: relative; margin: 6px 0; padding-left: 30px; font-weight: 700; }
+    .perks li::before { content: ''; position: absolute; left: 0; top: 2px; width: 20px; height: 20px; border-radius: 7px; border: 2px solid var(--ink); background: var(--brand) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231B1530' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") center / 13px no-repeat; }
+    .plan-card { background: var(--lilac); color: #1B1530; }
+    .plan-card .card-label { color: #1B1530; opacity: .85; }
 
-    /* on/off switch */
-    .switch-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:20px; padding:14px 16px; background:var(--card); border:1px solid var(--line); border-radius:12px; }
-    .switch-row small { display:block; color:var(--muted); font-size:13px; }
-    .switch { position:relative; flex:none; width:50px; height:30px; margin:0; }
-    .switch input { position:absolute; inset:0; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; }
-    .switch span { position:absolute; inset:0; border-radius:15px; background:var(--line); transition:background 0.2s; pointer-events:none; }
-    .switch span::after { content:''; position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:12px; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.25); transition:transform 0.2s; }
-    .switch input:checked + span { background:var(--accent); }
-    .switch input:checked + span::after { transform:translateX(20px); }
+    /* products */
+    .pgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+    .pgrid .row-btn { display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 0; border: var(--bw) solid var(--ink); border-radius: 20px; background: var(--card); box-shadow: var(--shadow); overflow: hidden; text-align: left; transition: transform .12s, box-shadow .12s; }
+    .pgrid .row-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); background: var(--card); }
+    .pgrid .ph { aspect-ratio: 1; border-bottom: var(--bw) solid var(--ink); font-size: 44px; }
+    .pgrid .pbody { padding: 10px 12px 12px; min-width: 0; }
+    .pgrid .row-name { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.25; font-size: 15px; }
+    .pgrid .price { display: block; margin-top: 4px; }
+    .pgrid .hidden-item .ph { filter: grayscale(1); opacity: .6; }
+    .pgrid .hidden-item .badge { position: absolute; top: 8px; left: 8px; background: var(--card); }
+    .pgrid .pcount { position: absolute; right: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 999px; border: 2px solid var(--ink); background: var(--card); color: var(--text); font-family: var(--body); font-size: 12px; font-weight: 800; }
+    .pgrid .pcount svg { width: 13px; height: 13px; }
 
-    /* bottom tab bar + toast (only when logged in) */
-    body.in-app main { padding-bottom:calc(110px + env(safe-area-inset-bottom)); }
-    body.in-app footer { display:none; }
-    .tabbar { position:fixed; left:0; right:0; bottom:0; display:none; background:var(--card); border-top:1px solid var(--line); padding:6px 8px calc(6px + env(safe-area-inset-bottom)); z-index:10; }
-    body.in-app .tabbar { display:block; }
-    .tabbar-inner { display:flex; max-width:440px; margin:0 auto; }
-    .tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 0; background:none; border:0; font:inherit; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; }
-    .tab svg { width:24px; height:24px; }
-    .tab.active { color:var(--accent); }
-    .toast { position:fixed; left:50%; bottom:calc(86px + env(safe-area-inset-bottom)); transform:translate(-50%, 16px); background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:999px; font-size:14px; font-weight:600; opacity:0; pointer-events:none; transition:opacity 0.2s, transform 0.2s; z-index:20; white-space:nowrap; }
-    .toast.show { opacity:1; transform:translate(-50%, 0); }
+    /* product editor: photo slots */
+    .slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+    .slot { position: relative; aspect-ratio: 1; border-radius: 18px; border: var(--bw) solid var(--ink); overflow: hidden; background: var(--card-2); }
+    .slot.filled { box-shadow: var(--shadow-sm); animation: op-pop .45s cubic-bezier(.2, .9, .3, 1.4) both; }
+    .slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .slot .tag { position: absolute; left: 6px; bottom: 6px; background: var(--ink); color: #fff; font-size: 11px; font-weight: 800; border-radius: 8px; padding: 2px 7px; }
+    .slot .slot-x { position: absolute; top: 5px; right: 5px; width: 30px; height: 30px; border-radius: 10px; border: 2px solid var(--ink); background: var(--card); color: var(--text); font-size: 17px; font-weight: 800; line-height: 1; cursor: pointer; display: grid; place-items: center; padding: 0; }
+    .slot .slot-cover { position: absolute; left: 5px; bottom: 5px; border: 2px solid var(--ink); background: var(--sun); color: #1B1530; font: inherit; font-size: 11px; font-weight: 800; border-radius: 9px; padding: 2px 7px; cursor: pointer; }
+    .slot.add { border-style: dashed; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--text); font-size: 13px; font-weight: 800; cursor: pointer; background: var(--ground); padding: 0; font-family: inherit; width: 100%; }
+    .slot.add svg { width: 28px; height: 28px; }
+    .slot.add:active { transform: scale(.96); }
+    .slot.locked { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-style: dashed; color: var(--muted); font-size: 12px; font-weight: 800; cursor: pointer; background: var(--ground); padding: 0; font-family: inherit; width: 100%; }
+    .slot.locked .pro-tag { margin: 0; }
+    .slot.busy { display: grid; place-items: center; color: var(--text); }
+    .slot.busy img { position: absolute; inset: 0; opacity: .45; }
+    .slot.busy .spinner { position: relative; width: 26px; height: 26px; }
+    .photos-head { display: flex; align-items: baseline; gap: 6px; font-weight: 800; font-size: 16px; }
 
-    /* top bar + notification bell */
-    .topbar { display:flex; align-items:center; justify-content:space-between; }
-    .bell { display:none; position:relative; width:42px; height:42px; border:1px solid var(--line); border-radius:12px; background:var(--card); color:var(--ink); cursor:pointer; align-items:center; justify-content:center; }
-    body.in-app .bell { display:flex; }
-    .bell svg { width:22px; height:22px; }
-    .bell-count { position:absolute; top:-6px; right:-6px; min-width:20px; height:20px; padding:0 5px; border-radius:10px; background:var(--bad); color:#fff; font-size:12px; font-weight:700; line-height:20px; text-align:center; }
+    /* settings: store colour + appearance */
+    .swatches { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+    .swatch { aspect-ratio: 1; border-radius: 16px; border: var(--bw) solid var(--ink); box-shadow: var(--shadow-sm); display: grid; place-items: center; padding: 0; cursor: pointer; transition: transform .25s cubic-bezier(.2, .9, .3, 1.6), box-shadow .2s; }
+    .swatch svg { width: 20px; height: 20px; opacity: 0; transform: scale(.4); transition: transform .3s cubic-bezier(.2, .9, .3, 1.8), opacity .2s; }
+    .swatch[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--card), 0 0 0 6px var(--ink); }
+    .swatch[aria-pressed="true"] svg { opacity: 1; transform: scale(1); }
+    .swatch:active { transform: scale(.9); }
+    .store-preview { margin-top: 14px; border: var(--bw) solid var(--ink); border-radius: 18px; overflow: hidden; }
+    .store-preview-head { background: var(--theme); color: var(--theme-ink); padding: 14px; display: flex; align-items: center; gap: 12px; transition: background-color .35s; }
+    .store-preview-head .mono { width: 44px; height: 44px; border-radius: 14px; background: var(--sun); color: #1B1530; border: var(--bw) solid var(--ink); display: grid; place-items: center; font-family: var(--display); font-weight: 700; flex: none; }
+    .store-preview-head b { display: block; font-family: var(--display); font-size: 19px; line-height: 1.15; overflow-wrap: anywhere; }
+    .store-preview-head span { font-size: 13px; font-weight: 700; opacity: .85; }
+    .store-preview-body { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 10px; background: var(--ground); }
+    .store-preview-body i { display: block; height: 46px; border-radius: 12px; border: 2px solid var(--ink); }
+    .store-preview-body i:nth-child(1) { background: var(--sun); } .store-preview-body i:nth-child(2) { background: var(--sky); } .store-preview-body i:nth-child(3) { background: var(--coral); }
+    .settings-group { padding-top: 6px; }
+    .settings-group > label:first-child { margin-top: 10px; }
 
-    /* status badges */
-    :root { --warn:#8a5a00; --warn-soft:#fff3d6; --info:#1d5fbf; --info-soft:#e6efff; }
-    @media (prefers-color-scheme: dark) { :root { --warn:#f2c14e; --warn-soft:#2e2510; --info:#7fb0ff; --info-soft:#14223a; } }
-    .badges { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
-    .badge.b-new { background:var(--info-soft); color:var(--info); }
-    .badge.b-processing { background:var(--info-soft); color:var(--info); }
-    .badge.b-delivered, .badge.b-paid { background:var(--accent-soft); color:var(--accent); }
-    .badge.b-unpaid, .badge.b-part_paid, .badge.b-claim { background:var(--warn-soft); color:var(--warn); }
-    .badge.b-cancelled { background:var(--line); color:var(--muted); text-decoration:line-through; }
-    .badges .badge { margin-left:0; }
+    /* status picture */
+    .status-frame { margin-top: 14px; display: grid; place-items: center; padding: 14px; background: var(--card); border: var(--bw) solid var(--ink); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .status-frame canvas { width: min(62vw, 250px); height: auto; aspect-ratio: 9 / 16; border-radius: 14px; border: var(--bw) solid var(--ink); display: block; }
+    .pick-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 12px; padding: 0 4px; }
+    .pick { position: relative; aspect-ratio: 1; padding: 0; border-radius: 14px; border: var(--bw) solid var(--ink); overflow: hidden; cursor: pointer; font-size: 20px; }
+    .pick[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--card), 0 0 0 6px var(--grape); }
+    .pick .pick-n { position: absolute; top: 4px; right: 4px; min-width: 22px; height: 22px; border-radius: 11px; border: 2px solid var(--ink); background: var(--grape); color: #fff; font-family: var(--body); font-size: 12px; font-weight: 800; line-height: 18px; display: none; }
+    .pick[aria-pressed="true"] .pick-n { display: block; }
+    .status-input { margin-top: 10px; }
+    .pick .ph { position: absolute; inset: 0; font-size: 24px; }
+    .pick .ph .badge, .pick .ph .pcount { display: none; }
 
-    /* orders */
-    .chips { display:flex; gap:8px; overflow-x:auto; margin:4px -16px 0; padding:4px 16px; scrollbar-width:none; }
-    .chips::-webkit-scrollbar { display:none; }
-    .chip { flex:none; border:1px solid var(--line); background:var(--card); color:var(--ink); font:inherit; font-size:14px; font-weight:600; padding:7px 14px; border-radius:999px; cursor:pointer; }
-    .chip.active { background:var(--ink); color:var(--bg); border-color:var(--ink); }
-    .chip span:not(:empty) { margin-left:4px; opacity:0.7; }
-    .order-row { align-items:flex-start; }
-    .order-row .row-side { text-align:right; flex:none; }
-    .order-row .row-time { font-size:13px; color:var(--muted); }
-    .stats { display:flex; gap:10px; margin:8px 0 4px; }
-    .stats div { flex:1; background:var(--bg); border-radius:12px; padding:10px 12px; }
-    .stats b { display:block; font-size:20px; font-variant-numeric:tabular-nums; }
-    .stats span { font-size:13px; color:var(--muted); }
-    .alert { margin-top:14px; padding:12px 14px; border-radius:12px; background:var(--warn-soft); color:var(--warn); font-size:14px; font-weight:600; }
-    .back { background:none; border:0; padding:4px 0; margin:20px 0 0; font:inherit; color:var(--accent); font-weight:600; cursor:pointer; }
-    .kv { display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-top:1px solid var(--line); font-variant-numeric:tabular-nums; }
-    .kv:first-child { border-top:0; }
-    .kv.strong { font-weight:700; }
-    .kv .muted { font-weight:400; }
-    .contact { display:flex; gap:10px; margin-top:10px; }
-    .contact a { flex:1; text-align:center; padding:10px; border:1px solid var(--line); border-radius:12px; color:var(--ink); text-decoration:none; font-weight:600; font-size:15px; }
-    .seg { display:flex; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:4px; gap:4px; margin-top:10px; }
-    .seg button { flex:1; border:0; background:none; color:var(--muted); font:inherit; font-size:14px; font-weight:600; padding:9px 4px; border-radius:9px; cursor:pointer; }
-    .seg button.active { background:var(--accent); color:var(--accent-ink); }
-    .seg button[disabled] { opacity:0.5; cursor:default; }
-    .pay-line { display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--line); }
-    .pay-line:first-child { border-top:0; }
-    .pay-line .row-main { font-size:15px; }
-    .x { border:0; background:none; color:var(--muted); font-size:20px; line-height:1; padding:4px 8px; cursor:pointer; }
-    select { width:100%; font:inherit; font-size:16px; color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:12px; padding:13px 14px; outline:none; -webkit-appearance:none; appearance:none; }
-    .two { display:flex; gap:10px; }
-    .two > div { flex:1; min-width:0; }
-    .btn.wa { background:#1fa855; color:#fff; text-decoration:none; text-align:center; }
-    a.btn { text-decoration:none; text-align:center; }
-    .note-row { padding:14px 16px; border-bottom:1px solid var(--line); }
-    .note-row:last-child { border-bottom:0; }
-    .note-row.unread { background:var(--accent-soft); }
-    .note-row button { all:unset; display:block; width:100%; cursor:pointer; }
-    .note-row .row-time { font-size:13px; color:var(--muted); margin-top:2px; }
+    /* undo bar */
+    .snack { position: fixed; left: 50%; bottom: calc(104px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); width: min(440px, calc(100vw - 32px)); display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 16px; border: var(--bw) solid var(--ink); border-radius: 18px; background: var(--brand); color: #1B1530; box-shadow: var(--shadow); font-weight: 800; z-index: 61; opacity: 0; pointer-events: none; transition: opacity .2s, transform .35s cubic-bezier(.2, .9, .3, 1.5); }
+    .snack.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+    .snack span { flex: 1; min-width: 0; }
+    .snack .btn { background: var(--card); color: var(--text); }
 
-    /* plan, sales, customers, report */
-    .stats.money b { font-size:17px; overflow-wrap:anywhere; }
-    .big-figure { display:flex; align-items:baseline; flex-wrap:wrap; gap:2px 10px; margin:0 0 6px; }
-    .big-figure b { font-size:30px; letter-spacing:-0.02em; font-variant-numeric:tabular-nums; }
-    .big-figure span { color:var(--muted); font-size:14px; }
-    .card-label + .kv { border-top:0; }
-    .progress.warn div { background:var(--warn); }
-    .perks { margin:10px 0 0; padding-left:20px; }
-    .perks li { margin:4px 0; }
-    .pro-tag { display:inline-block; font-size:12px; font-weight:800; letter-spacing:0.06em; padding:2px 8px; border-radius:6px; background:var(--accent); color:var(--accent-ink); vertical-align:2px; margin-left:6px; }
-    .cust-row { padding:12px 16px; border-top:1px solid var(--line); }
-    .cust-row:first-child { border-top:0; }
-    .cust-top { display:flex; align-items:center; gap:12px; }
-    .cust-top button { all:unset; flex:1; min-width:0; cursor:pointer; }
-    .owing { font-weight:700; color:var(--warn); white-space:nowrap; font-variant-numeric:tabular-nums; }
-    .paid-up { color:var(--muted); font-size:14px; white-space:nowrap; }
-    .remind { display:inline-block; margin-top:8px; font-size:14px; font-weight:600; color:#1fa855; text-decoration:none; }
-    .bars { display:flex; align-items:flex-end; gap:3px; height:140px; margin-top:12px; }
-    .bars div { flex:1; background:var(--accent); border-radius:3px 3px 0 0; min-height:2px; opacity:0.9; }
-    .bars div.zero { background:var(--line); }
-    .bar-axis { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-top:6px; }
-    .filter-chip { display:inline-flex; align-items:center; gap:6px; margin-top:10px; padding:6px 12px; border-radius:999px; background:var(--accent-soft); color:var(--accent); font-size:14px; font-weight:600; border:0; font-family:inherit; cursor:pointer; }
+    /* floating tab bar (only when logged in) */
+    body.in-app main { padding-bottom: calc(118px + env(safe-area-inset-bottom)); }
+    body.in-app footer { display: none; }
+    .tabbar { position: fixed; left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom)); display: none; z-index: 30; }
+    body.in-app .tabbar { display: block; }
+    .tabbar-inner { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; max-width: 456px; margin: 0 auto; padding: 6px; background: var(--card); border: var(--bw) solid var(--ink); border-radius: 24px; box-shadow: var(--shadow); }
+    .tab { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 0; background: none; border: 2px solid transparent; border-radius: 18px; font: inherit; font-size: 12px; font-weight: 800; color: var(--muted); cursor: pointer; transition: background-color .2s, color .2s; }
+    .tab svg { width: 23px; height: 23px; }
+    .tab.active { background: var(--brand); color: #1B1530; border-color: var(--ink); }
+    .tab.active svg { animation: op-bump .4s ease; }
   </style>
 </head>
 <body>
   <main>
     <div class="topbar">
-      <a class="logo" href="/">Order<span>Padi</span></a>
+      <a class="logo" href="/"><span class="logo-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" fill="#fff" stroke="#1B1530" stroke-width="2" stroke-linejoin="round"/><path d="M9 8h6M9 12h4" stroke="#1B1530" stroke-width="2" stroke-linecap="round"/></svg></span><span>Order<b>Padi</b></span></a>
       <button class="bell" type="button" id="bell" aria-label="Notifications">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
         <span class="bell-count" id="bell-count" hidden></span>
       </button>
     </div>
@@ -226,14 +234,18 @@
 
     <!-- Loading -->
     <section class="view active" id="view-loading">
-      <p class="loading">Loading…</p>
+      <div class="loading"><div class="logo-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" fill="#fff" stroke="#1B1530" stroke-width="2" stroke-linejoin="round"/><path d="M9 8h6M9 12h4" stroke="#1B1530" stroke-width="2" stroke-linecap="round"/></svg></div>Loading…</div>
     </section>
 
     <!-- Log in -->
     <section class="view" id="view-login">
-      <h1>Log in</h1>
-      <p class="sub">Welcome back. Log in to see your orders.</p>
-      <form id="login-form" novalidate>
+      <div class="hero lilac">
+        <span class="blob sun float" style="width:120px;height:120px;right:-36px;top:-34px"></span>
+        <span class="blob sky float" style="--r:18deg;width:58px;height:58px;right:58px;bottom:-24px;animation-delay:-2s"></span>
+        <h1>Log in</h1>
+        <p class="sub">Welcome back. Log in to see your orders.</p>
+      </div>
+      <form id="login-form" class="card auth-card" novalidate>
         <label for="login-email">Email</label>
         <input id="login-email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false">
         <label for="login-password">Password</label>
@@ -250,9 +262,13 @@
 
     <!-- Sign up -->
     <section class="view" id="view-signup">
-      <h1>Create your store</h1>
-      <p class="sub">Free to start. Your customers order from your own link.</p>
-      <form id="signup-form" novalidate>
+      <div class="hero green">
+        <span class="blob sun float" style="width:110px;height:110px;right:-30px;top:-36px"></span>
+        <span class="blob coral float" style="--r:-12deg;width:54px;height:54px;right:70px;bottom:-22px;animation-delay:-1.5s"></span>
+        <h1>Create your store</h1>
+        <p class="sub">Free to start. Your customers order from your own link.</p>
+      </div>
+      <form id="signup-form" class="card auth-card" novalidate>
         <label for="signup-name">Business name</label>
         <input id="signup-name" type="text" autocomplete="organization" maxlength="60" placeholder="e.g. Ada's Wigs">
         <label for="signup-slug">Store link</label>
@@ -274,9 +290,13 @@
 
     <!-- Confirm email with a code -->
     <section class="view" id="view-verify">
-      <h1>Check your email</h1>
-      <p class="sub">We sent a 6-digit code to <b id="verify-email"></b>. It expires in 10 minutes.</p>
-      <form id="verify-form" novalidate>
+      <div class="hero sky">
+        <span class="blob sun float" style="width:100px;height:100px;right:-28px;top:-30px"></span>
+        <svg class="sparkle float" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z" fill="#fff" stroke="#1B1530" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        <h1>Check your email</h1>
+        <p class="sub">We sent a 6-digit code to <b id="verify-email"></b>. It expires in 10 minutes.</p>
+      </div>
+      <form id="verify-form" class="card auth-card" novalidate>
         <label for="verify-code">Code</label>
         <input id="verify-code" class="code-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*">
         <p class="error" id="verify-error"></p>
@@ -288,9 +308,12 @@
 
     <!-- Forgot password -->
     <section class="view" id="view-forgot">
-      <h1>Reset your password</h1>
-      <p class="sub">Enter your email and we'll send you a code.</p>
-      <form id="forgot-form" novalidate>
+      <div class="hero sun">
+        <span class="blob sky float" style="width:100px;height:100px;right:-30px;top:-34px"></span>
+        <h1>Reset your password</h1>
+        <p class="sub">Enter your email and we'll send you a code.</p>
+      </div>
+      <form id="forgot-form" class="card auth-card" novalidate>
         <label for="forgot-email">Email</label>
         <input id="forgot-email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false">
         <p class="error" id="forgot-error"></p>
@@ -301,9 +324,12 @@
 
     <!-- Reset password with the code -->
     <section class="view" id="view-reset">
-      <h1>Choose a new password</h1>
-      <p class="sub">If <b id="reset-email"></b> has an OrderPadi account, we've sent it a 6-digit code.</p>
-      <form id="reset-form" novalidate>
+      <div class="hero coral">
+        <span class="blob sun float" style="width:100px;height:100px;right:-30px;top:-34px"></span>
+        <h1>Choose a new password</h1>
+        <p class="sub">If <b id="reset-email"></b> has an OrderPadi account, we've sent it a 6-digit code.</p>
+      </div>
+      <form id="reset-form" class="card auth-card" novalidate>
         <label for="reset-code">Code</label>
         <input id="reset-code" class="code-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*">
         <label for="reset-password">New password</label>
@@ -323,30 +349,35 @@
 
     <!-- Home -->
     <section class="view" id="view-home">
-      <h1 id="home-title">Hi</h1>
+      <h1 id="home-title" class="hello">Hi</h1>
       <p class="sub">Share your store link so customers can order.</p>
-      <div class="card">
+      <div class="card store-card tint-brand">
+        <span class="blob sun" style="width:96px;height:96px;right:-28px;top:-30px"></span>
         <p class="card-label">Your store link</p>
         <a class="store-link" id="home-link" href="#" target="_blank" rel="noopener"></a>
         <div class="actions">
           <button class="btn secondary" type="button" id="copy-link">Copy link</button>
-          <button class="btn" type="button" id="share-link">Share</button>
+          <button class="btn sun" type="button" id="share-link">Share</button>
         </div>
+        <button class="btn grape status-btn" type="button" id="open-status">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"/><circle cx="12" cy="10" r="3"/><path d="M9 16h6"/></svg>
+          Make a status picture
+        </button>
       </div>
-      <div class="card" id="plan-card" hidden>
+      <div class="card plan-card" id="plan-card" hidden>
         <p class="card-label" id="plan-label">Free plan</p>
         <div class="progress" id="plan-progress"><div id="plan-bar"></div></div>
-        <p id="plan-text" style="margin:6px 0 0"></p>
-        <button class="btn" type="button" data-upgrade style="margin-top:12px">Upgrade to Pro · ₦2,500/month</button>
+        <p id="plan-text" style="margin:6px 0 0;font-weight:600"></p>
+        <button class="btn grape" type="button" data-upgrade style="margin-top:12px">Upgrade to Pro · ₦2,500/month</button>
       </div>
-      <div class="card" id="sales-card" hidden>
+      <div class="card sales-card" id="sales-card" hidden>
         <p class="card-label">Sales today</p>
         <p class="big-figure"><b id="sales-today">₦0</b><span id="sales-today-label">0 orders</span></p>
-        <div class="stats">
-          <div><b id="sales-week">₦0</b><span>This week</span></div>
-          <div><b id="sales-month">₦0</b><span>This month</span></div>
+        <div class="stats money">
+          <div class="tile plain" style="background:var(--card);color:var(--text)"><b id="sales-week">₦0</b><span>This week</span></div>
+          <div class="tile plain" style="background:var(--card);color:var(--text)"><b id="sales-month">₦0</b><span>This month</span></div>
         </div>
-        <p class="muted" id="sales-received" style="margin:6px 0 0;font-size:14px"></p>
+        <p class="muted" id="sales-received" style="margin:8px 0 0;font-size:14px;font-weight:700"></p>
         <div class="actions">
           <button class="btn secondary" type="button" id="open-customers">Who owes you</button>
           <button class="btn secondary" type="button" id="open-report">Full report</button>
@@ -355,12 +386,12 @@
       <div class="card" id="orders-card" hidden>
         <p class="card-label">Orders</p>
         <div class="stats">
-          <div><b id="home-new">0</b><span>New</span></div>
-          <div><b id="home-unpaid">0</b><span>Unpaid</span></div>
-          <div><b id="home-owing">₦0</b><span>Owed to you</span></div>
+          <div class="tile sky"><b id="home-new">0</b><span>New</span></div>
+          <div class="tile sun"><b id="home-unpaid">0</b><span>Unpaid</span></div>
+          <div class="tile coral"><b id="home-owing">₦0</b><span>Owed to you</span></div>
         </div>
         <p class="alert" id="home-says-paid" hidden></p>
-        <button class="btn secondary" type="button" data-tab="orders" style="margin-top:12px">View orders</button>
+        <button class="btn secondary" type="button" data-tab="orders" style="margin-top:14px">View orders</button>
       </div>
       <div class="card" id="setup-card" hidden>
         <p class="card-label" id="setup-label">Set up your store</p>
@@ -371,9 +402,12 @@
           <li id="check-products"><button type="button" data-new-product><span class="tick">3</span><span class="item-text">Add your first product</span><span class="chev">›</span></button></li>
         </ul>
       </div>
-      <div class="card" id="ready-card" hidden>
-        <p class="card-label">✓ Your store is set up</p>
-        <p>Share your link on WhatsApp and Instagram. Orders show up here and in the Orders tab.</p>
+      <div class="card ready-card" id="ready-card" hidden>
+        <svg viewBox="0 0 54 54" aria-hidden="true"><circle cx="27" cy="27" r="24" fill="#FFD23F" stroke="#1B1530" stroke-width="2.5"/><path d="M16 28l7 7 15-16" fill="none" stroke="#1B1530" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div>
+          <p class="card-label">Your store is set up</p>
+          <p>Share your link on WhatsApp and Instagram. Orders show up here and in the Orders tab.</p>
+        </div>
       </div>
     </section>
 
@@ -381,7 +415,7 @@
     <section class="view" id="view-orders">
       <div class="head-row">
         <h1>Orders</h1>
-        <button class="btn small" type="button" id="new-order-btn">New</button>
+        <button class="btn small sun" type="button" id="new-order-btn">+ New</button>
       </div>
       <div class="chips" id="order-filters">
         <button class="chip active" type="button" data-filter="all">All</button>
@@ -390,6 +424,11 @@
         <button class="chip" type="button" data-filter="delivered">Delivered</button>
       </div>
       <button class="filter-chip" type="button" id="customer-filter" hidden></button>
+      <p class="swipe-hint" id="swipe-hint" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+        Swipe an unpaid order left to mark it paid.
+        <button class="btn small secondary" type="button" id="swipe-hint-ok">Got it</button>
+      </p>
       <div id="orders-list"></div>
       <button class="btn secondary" type="button" id="orders-more" hidden>Load more</button>
     </section>
@@ -397,19 +436,23 @@
     <!-- One order -->
     <section class="view" id="view-order">
       <button class="back" type="button" data-tab="orders">‹ Orders</button>
-      <h1 id="order-title" style="margin-top:10px">Order</h1>
+      <h1 id="order-title" style="margin-top:14px">Order</h1>
       <div class="badges" id="order-badges"></div>
       <p class="sub" id="order-meta" style="margin-top:8px"></p>
       <p class="alert" id="order-says-paid" hidden></p>
 
       <div class="card">
-        <p class="card-label">Customer</p>
-        <p style="margin:0;font-weight:600" id="order-customer"></p>
-        <p style="margin:2px 0 0" class="muted" id="order-address"></p>
-        <p style="margin:6px 0 0" id="order-note"></p>
+        <div class="person">
+          <span class="avatar" id="order-avatar">?</span>
+          <div class="row-main">
+            <p style="margin:0;font-weight:800" id="order-customer"></p>
+            <p style="margin:2px 0 0" class="muted" id="order-address"></p>
+          </div>
+        </div>
+        <p style="margin:10px 0 0;font-weight:600" id="order-note"></p>
         <div class="contact">
-          <a id="order-call" href="#">Call</a>
-          <a id="order-chat" href="#" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="btn secondary" id="order-call" href="#">Call</a>
+          <a class="btn wa" id="order-chat" href="#" target="_blank" rel="noopener">WhatsApp</a>
         </div>
       </div>
 
@@ -428,14 +471,14 @@
 
       <p class="section-title">Payments</p>
       <div class="card" id="order-payments"></div>
-      <form id="payment-form" novalidate>
+      <form id="payment-form" class="card" novalidate>
         <div class="two">
           <div>
-            <label for="payment-amount">Amount received</label>
+            <label for="payment-amount" style="margin-top:0">Amount received</label>
             <div class="prefix"><span>₦</span><input id="payment-amount" type="text" inputmode="decimal" autocomplete="off"></div>
           </div>
           <div>
-            <label for="payment-method">How</label>
+            <label for="payment-method" style="margin-top:0">How</label>
             <select id="payment-method">
               <option value="transfer">Transfer</option>
               <option value="cash">Cash</option>
@@ -462,38 +505,44 @@
     <!-- New (manual) order -->
     <section class="view" id="view-neworder">
       <button class="back" type="button" data-tab="orders">‹ Orders</button>
-      <h1 style="margin-top:10px">New order</h1>
+      <h1 style="margin-top:14px">New order</h1>
       <p class="sub">For customers who order by WhatsApp, Instagram or phone.</p>
       <form id="neworder-form" novalidate>
-        <p class="section-title">Customer</p>
-        <label for="neworder-name">Name</label>
-        <input id="neworder-name" type="text" maxlength="80" autocomplete="off">
-        <label for="neworder-phone">Phone number</label>
-        <input id="neworder-phone" type="tel" inputmode="tel" autocomplete="off" placeholder="0803 123 4567">
-        <label for="neworder-address">Delivery address <span class="muted">(optional)</span></label>
-        <input id="neworder-address" type="text" maxlength="300" autocomplete="off">
+        <div class="card">
+          <h3>Customer</h3>
+          <label for="neworder-name">Name</label>
+          <input id="neworder-name" type="text" maxlength="80" autocomplete="off">
+          <label for="neworder-phone">Phone number</label>
+          <input id="neworder-phone" type="tel" inputmode="tel" autocomplete="off" placeholder="0803 123 4567">
+          <label for="neworder-address">Delivery address <span class="muted">(optional)</span></label>
+          <input id="neworder-address" type="text" maxlength="300" autocomplete="off">
+        </div>
 
-        <p class="section-title">Items</p>
-        <div class="card" id="neworder-lines"></div>
-        <label for="neworder-product">Add a product</label>
-        <select id="neworder-product"></select>
-        <p class="center"><button class="link" type="button" id="neworder-custom-toggle">+ Add an item that isn't in your products</button></p>
-        <div id="neworder-custom" hidden>
-          <div class="two">
-            <div><label for="neworder-custom-name">Item</label><input id="neworder-custom-name" type="text" maxlength="80" autocomplete="off"></div>
-            <div><label for="neworder-custom-price">Price</label><div class="prefix"><span>₦</span><input id="neworder-custom-price" type="text" inputmode="decimal" autocomplete="off"></div></div>
+        <div class="card">
+          <h3>Items</h3>
+          <div id="neworder-lines"></div>
+          <label for="neworder-product">Add a product</label>
+          <select id="neworder-product"></select>
+          <p class="center" style="margin-top:12px"><button class="link" type="button" id="neworder-custom-toggle">+ Add an item that isn't in your products</button></p>
+          <div id="neworder-custom" hidden>
+            <div class="two">
+              <div><label for="neworder-custom-name">Item</label><input id="neworder-custom-name" type="text" maxlength="80" autocomplete="off"></div>
+              <div><label for="neworder-custom-price">Price</label><div class="prefix"><span>₦</span><input id="neworder-custom-price" type="text" inputmode="decimal" autocomplete="off"></div></div>
+            </div>
+            <button class="btn secondary" type="button" id="neworder-custom-add">Add item</button>
           </div>
-          <button class="btn secondary" type="button" id="neworder-custom-add">Add item</button>
         </div>
 
-        <p class="section-title">Extras</p>
-        <div class="two">
-          <div><label for="neworder-fee">Delivery fee</label><div class="prefix"><span>₦</span><input id="neworder-fee" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
-          <div><label for="neworder-discount">Discount</label><div class="prefix"><span>₦</span><input id="neworder-discount" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
+        <div class="card">
+          <h3>Extras</h3>
+          <div class="two">
+            <div><label for="neworder-fee">Delivery fee</label><div class="prefix"><span>₦</span><input id="neworder-fee" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
+            <div><label for="neworder-discount">Discount</label><div class="prefix"><span>₦</span><input id="neworder-discount" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
+          </div>
+          <label for="neworder-note">Note <span class="muted">(optional)</span></label>
+          <input id="neworder-note" type="text" maxlength="300" autocomplete="off">
         </div>
-        <label for="neworder-note">Note <span class="muted">(optional)</span></label>
-        <input id="neworder-note" type="text" maxlength="300" autocomplete="off">
-        <div class="card" id="neworder-totals"></div>
+        <div class="card tint-sun" id="neworder-totals"></div>
         <p class="error" id="neworder-error"></p>
         <button class="btn" type="submit" id="neworder-save">Create order</button>
       </form>
@@ -502,7 +551,7 @@
     <!-- Customers -->
     <section class="view" id="view-customers">
       <button class="back" type="button" data-tab="home">‹ Home</button>
-      <h1 style="margin-top:10px">Customers</h1>
+      <h1 style="margin-top:14px">Customers</h1>
       <p class="sub" id="customers-sub">Everyone who has ordered, and who still owes you.</p>
       <div id="customers-list"></div>
     </section>
@@ -510,22 +559,42 @@
     <!-- Report (Pro) -->
     <section class="view" id="view-report">
       <button class="back" type="button" data-tab="home">‹ Home</button>
-      <h1 style="margin-top:10px">Last 30 days</h1>
+      <h1 style="margin-top:14px">Last 30 days</h1>
       <div id="report-body"></div>
     </section>
 
     <!-- Notifications -->
     <section class="view" id="view-notifications">
       <button class="back" type="button" id="notifications-back">‹ Back</button>
-      <h1 style="margin-top:10px">Notifications</h1>
+      <h1 style="margin-top:14px">Notifications</h1>
       <div id="notifications-list"></div>
+    </section>
+
+    <!-- WhatsApp status picture -->
+    <section class="view" id="view-status">
+      <button class="back" type="button" data-tab="home">‹ Home</button>
+      <h1 style="margin-top:14px">Status picture</h1>
+      <p class="sub">A picture of your products with your store link on it, sized for WhatsApp status.</p>
+      <div class="status-frame"><canvas id="status-canvas" width="1080" height="1920" aria-label="Preview of your status picture"></canvas></div>
+      <p class="section-title">Headline</p>
+      <div class="chips" id="status-headlines"></div>
+      <input id="status-headline" class="status-input" type="text" maxlength="36" aria-label="Headline">
+      <p class="section-title">Products <span class="muted" id="status-count" style="font-family:var(--body);font-size:15px"></span></p>
+      <p class="hint" id="status-products-hint">Pick up to 4. Products with photos look best.</p>
+      <div class="pick-grid" id="status-products"></div>
+      <button class="btn wa" type="button" id="status-share">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4M12 2v13"/></svg>
+        Share to WhatsApp
+      </button>
+      <button class="btn secondary" type="button" id="status-download">Save picture</button>
+      <p class="hint" style="text-align:center;margin-top:12px">Tap Share, pick WhatsApp, then choose My status.</p>
     </section>
 
     <!-- Products -->
     <section class="view" id="view-products">
       <div class="head-row">
         <h1>Products</h1>
-        <button class="btn small" type="button" data-new-product>Add</button>
+        <button class="btn small sun" type="button" data-new-product>+ Add</button>
       </div>
       <p class="sub" id="products-sub">What customers can order from your store.</p>
       <div id="products-list"></div>
@@ -533,9 +602,17 @@
 
     <!-- Add / edit a product -->
     <section class="view" id="view-product">
-      <h1 id="product-title">Add product</h1>
-      <form id="product-form" novalidate>
-        <label for="product-name">Name</label>
+      <button class="back" type="button" data-tab="products">‹ Products</button>
+      <h1 id="product-title" style="margin-top:14px">Add product</h1>
+      <div class="card">
+        <div class="photos-head">Photos <span class="muted" id="photo-note">(up to 3)</span></div>
+        <div class="slots" id="photo-slots"></div>
+        <p class="hint">Photos are shrunk on your phone before upload, so they load fast for customers.</p>
+        <p class="error" id="photo-error"></p>
+        <input type="file" id="photo-input" accept="image/*" hidden>
+      </div>
+      <form id="product-form" class="card" novalidate>
+        <label for="product-name" style="margin-top:0">Name</label>
         <input id="product-name" type="text" maxlength="80" placeholder="e.g. Bone straight wig, 22 inches">
         <label for="product-price">Price</label>
         <div class="prefix"><span>₦</span><input id="product-price" type="text" inputmode="decimal" autocomplete="off" placeholder="45000"></div>
@@ -556,59 +633,89 @@
     <section class="view" id="view-settings">
       <h1>Settings</h1>
       <p class="sub">What customers see on your store and invoices.</p>
+
+      <div class="card" id="theme-card">
+        <div style="font-weight:800;font-size:16px">Store colour</div>
+        <div class="muted" style="font-size:14px">Customers see this on your store and invoices.</div>
+        <div class="swatches" id="swatches" role="group" aria-label="Store colour"></div>
+        <div class="store-preview" id="store-preview" data-store="green" aria-hidden="true">
+          <div class="store-preview-head"><span class="mono" id="preview-mono">OP</span><div><b id="preview-name">Your store</b><span>Preview of your store</span></div></div>
+          <div class="store-preview-body"><i></i><i></i><i></i></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:800;font-size:16px">Appearance</div>
+        <div class="seg" id="mode-seg" role="group" aria-label="Appearance">
+          <button type="button" data-mode="auto">Auto</button>
+          <button type="button" data-mode="light">Light</button>
+          <button type="button" data-mode="dark">Dark</button>
+        </div>
+        <div class="muted" style="font-size:14px;margin-top:8px">Auto follows your phone. Saved on this phone only.</div>
+      </div>
+
       <form id="settings-form" novalidate>
         <p class="section-title">Store</p>
-        <label for="settings-name">Business name</label>
-        <input id="settings-name" type="text" maxlength="60" autocomplete="organization">
-        <label for="settings-slug">Store link</label>
-        <input id="settings-slug" type="text" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="40">
-        <p class="hint" id="settings-slug-hint"></p>
+        <div class="card settings-group">
+          <label for="settings-name">Business name</label>
+          <input id="settings-name" type="text" maxlength="60" autocomplete="organization">
+          <label for="settings-slug">Store link</label>
+          <input id="settings-slug" type="text" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="40">
+          <p class="hint" id="settings-slug-hint"></p>
+        </div>
 
         <p class="section-title">WhatsApp</p>
-        <label for="settings-whatsapp">WhatsApp number</label>
-        <input id="settings-whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="0803 123 4567">
-        <p class="hint">Customers tap a button to send you their order here.</p>
+        <div class="card settings-group">
+          <label for="settings-whatsapp">WhatsApp number</label>
+          <input id="settings-whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="0803 123 4567">
+          <p class="hint">Customers tap a button to send you their order here.</p>
+        </div>
 
         <p class="section-title">Bank details for transfers</p>
-        <label for="settings-bank">Bank</label>
-        <input id="settings-bank" type="text" list="bank-list" autocomplete="off" placeholder="e.g. Opay, GTBank">
-        <datalist id="bank-list">
-          <option value="Access Bank"><option value="Citibank"><option value="Ecobank"><option value="Fidelity Bank">
-          <option value="First Bank"><option value="FCMB"><option value="Globus Bank"><option value="GTBank">
-          <option value="Jaiz Bank"><option value="Keystone Bank"><option value="Kuda"><option value="Lotus Bank">
-          <option value="Moniepoint"><option value="Opay"><option value="PalmPay"><option value="Parallex Bank">
-          <option value="Polaris Bank"><option value="PremiumTrust Bank"><option value="Providus Bank">
-          <option value="Stanbic IBTC"><option value="Standard Chartered"><option value="Sterling Bank">
-          <option value="Taj Bank"><option value="Titan Trust Bank"><option value="UBA"><option value="Union Bank">
-          <option value="Unity Bank"><option value="VFD Microfinance Bank"><option value="Wema Bank (ALAT)">
-          <option value="Zenith Bank">
-        </datalist>
-        <label for="settings-account-number">Account number</label>
-        <input id="settings-account-number" type="text" inputmode="numeric" autocomplete="off" placeholder="10 digits">
-        <label for="settings-account-name">Account name</label>
-        <input id="settings-account-name" type="text" maxlength="80" autocomplete="off">
-        <p class="hint">Shown on invoices so customers know where to pay.</p>
+        <div class="card settings-group">
+          <label for="settings-bank">Bank</label>
+          <input id="settings-bank" type="text" list="bank-list" autocomplete="off" placeholder="e.g. Opay, GTBank">
+          <datalist id="bank-list">
+            <option value="Access Bank"><option value="Citibank"><option value="Ecobank"><option value="Fidelity Bank">
+            <option value="First Bank"><option value="FCMB"><option value="Globus Bank"><option value="GTBank">
+            <option value="Jaiz Bank"><option value="Keystone Bank"><option value="Kuda"><option value="Lotus Bank">
+            <option value="Moniepoint"><option value="Opay"><option value="PalmPay"><option value="Parallex Bank">
+            <option value="Polaris Bank"><option value="PremiumTrust Bank"><option value="Providus Bank">
+            <option value="Stanbic IBTC"><option value="Standard Chartered"><option value="Sterling Bank">
+            <option value="Taj Bank"><option value="Titan Trust Bank"><option value="UBA"><option value="Union Bank">
+            <option value="Unity Bank"><option value="VFD Microfinance Bank"><option value="Wema Bank (ALAT)">
+            <option value="Zenith Bank">
+          </datalist>
+          <label for="settings-account-number">Account number</label>
+          <input id="settings-account-number" type="text" inputmode="numeric" autocomplete="off" placeholder="10 digits">
+          <label for="settings-account-name">Account name</label>
+          <input id="settings-account-name" type="text" maxlength="80" autocomplete="off">
+          <p class="hint">Shown on invoices so customers know where to pay.</p>
+        </div>
 
         <p class="section-title">Delivery</p>
-        <label for="settings-fee">Delivery fee</label>
-        <div class="prefix"><span>₦</span><input id="settings-fee" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
-        <label for="settings-note">Delivery note <span class="muted">(optional)</span></label>
-        <input id="settings-note" type="text" maxlength="140" placeholder="e.g. Same-day delivery within Ondo">
+        <div class="card settings-group">
+          <label for="settings-fee">Delivery fee</label>
+          <div class="prefix"><span>₦</span><input id="settings-fee" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+          <label for="settings-note">Delivery note <span class="muted">(optional)</span></label>
+          <input id="settings-note" type="text" maxlength="140" placeholder="e.g. Same-day delivery within Ondo">
+        </div>
 
         <p class="error" id="settings-error"></p>
         <button class="btn" type="submit" id="settings-save">Save changes</button>
       </form>
 
       <p class="section-title">Plan</p>
-      <div class="card" id="plan-settings">
+      <div class="card plan-card" id="plan-settings">
         <p class="card-label" id="ps-label">Your plan</p>
-        <p id="ps-text" style="margin:2px 0 0">Loading…</p>
+        <p id="ps-text" style="margin:2px 0 0;font-weight:700">Loading…</p>
         <ul class="perks" id="ps-perks">
           <li>Unlimited orders every month</li>
+          <li>3 photos per product</li>
           <li>No "Made with OrderPadi" on your store and invoices</li>
           <li>30-day sales report and order export (CSV)</li>
         </ul>
-        <button class="btn" type="button" data-upgrade id="ps-upgrade">Upgrade to Pro · ₦2,500/month</button>
+        <button class="btn grape" type="button" data-upgrade id="ps-upgrade">Upgrade to Pro · ₦2,500/month</button>
         <button class="btn secondary" type="button" id="ps-manage" hidden>Change card or cancel</button>
         <p class="muted" id="ps-note" style="font-size:14px;margin:10px 0 0" hidden></p>
       </div>
@@ -616,36 +723,38 @@
       <p class="section-title">Account</p>
       <div class="card">
         <p class="card-label">Logged in as</p>
-        <p id="settings-email"></p>
+        <p id="settings-email" style="font-weight:700;overflow-wrap:anywhere"></p>
       </div>
-      <a class="btn secondary" id="admin-link" href="/admin" hidden style="text-align:center;text-decoration:none">Open admin panel</a>
+      <a class="btn secondary" id="admin-link" href="/admin" hidden>Open admin panel</a>
       <button class="btn secondary" type="button" id="logout">Log out</button>
+      <p class="center" style="font-size:14px"><a href="/terms" style="color:var(--muted)">Terms</a> · <a href="/privacy" style="color:var(--muted)">Privacy</a></p>
     </section>
 
-    <footer><a href="/setup">Setup check</a></footer>
+    <footer><a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/setup">Setup check</a></footer>
   </main>
 
   <nav class="tabbar" aria-label="Main">
     <div class="tabbar-inner">
       <button class="tab" type="button" data-tab="home" id="tab-home">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
         Home
       </button>
       <button class="tab" type="button" data-tab="orders" id="tab-orders">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-3-2-2 2-2-2-2 2-2-2-3 2V4a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 12h6"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-3-2-2 2-2-2-2 2-2-2-3 2V4a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 12h6"/></svg>
         Orders
       </button>
       <button class="tab" type="button" data-tab="products" id="tab-products">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12.1a1 1 0 0 1-1 .9H7.2a1 1 0 0 1-1-.9z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12.1a1 1 0 0 1-1 .9H7.2a1 1 0 0 1-1-.9z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg>
         Products
       </button>
       <button class="tab" type="button" data-tab="settings" id="tab-settings">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg>
         Settings
       </button>
     </div>
   </nav>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="snack" id="snack" role="status" aria-live="polite"><span id="snack-text"></span><button class="btn small" type="button" id="snack-undo">Undo</button></div>
 
   <script>
     const $ = (id) => document.getElementById(id);
@@ -654,14 +763,38 @@
       vendor: null, setup: null, products: null, editing: null, toastTimer: null,
       filter: 'all', orders: [], hasMore: false, counts: null, order: null,
       draft: [], unread: 0, poller: null, backTo: 'home',
-      stats: null, billing: null, customerFilter: null
+      stats: null, billing: null, customerFilter: null,
+      photoLimit: 1, pendingPhotos: [], photoBusy: false, statusPick: null, snackTimer: null
     };
     // Logged-in screens, and which tab each one belongs to.
     const APP_VIEWS = {
       home: 'home', orders: 'orders', order: 'orders', neworder: 'orders',
       products: 'products', product: 'products', settings: 'settings', notifications: '',
-      customers: 'home', report: 'home'
+      customers: 'home', report: 'home', status: 'home'
     };
+    const THEMES = [
+      { id: 'green', name: 'Green', hex: '#12B76A', ink: '#1B1530' },
+      { id: 'coral', name: 'Coral', hex: '#FF8A7A', ink: '#1B1530' },
+      { id: 'sun', name: 'Sunshine', hex: '#FFD23F', ink: '#1B1530' },
+      { id: 'sky', name: 'Sky', hex: '#6CCFF6', ink: '#1B1530' },
+      { id: 'grape', name: 'Grape', hex: '#6A4CE0', ink: '#FFFFFF' },
+      { id: 'night', name: 'Night', hex: '#2A2150', ink: '#FFFFFF' }
+    ];
+    const themeOf = (id) => THEMES.find((t) => t.id === id) || THEMES[0];
+    const TINTS = ['t0', 't1', 't2', 't3', 't4'];
+    const tintFor = (text) => TINTS[[...String(text || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % TINTS.length];
+    const initials = (name) => (String(name || '').replace(/['’]/g, '').match(/[A-Za-z0-9]+/g) || ['?']).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+    const EMPTY_ART = '<svg class="empty-art" viewBox="0 0 92 92" aria-hidden="true"><path d="M18 34h56l-5 44a4 4 0 0 1-4 3.5H27A4 4 0 0 1 23 78z" fill="#FFD23F" stroke="#1B1530" stroke-width="3" stroke-linejoin="round"/><path d="M33 34v-6a13 13 0 0 1 26 0v6" fill="none" stroke="#1B1530" stroke-width="3" stroke-linecap="round"/><circle cx="38" cy="54" r="3" fill="#1B1530"/><circle cx="54" cy="54" r="3" fill="#1B1530"/><path d="M39 64c4 4 10 4 14 0" fill="none" stroke="#1B1530" stroke-width="3" stroke-linecap="round"/><circle cx="76" cy="18" r="8" fill="#FF8A7A" stroke="#1B1530" stroke-width="3"/><path d="M12 16l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" fill="#6CCFF6" stroke="#1B1530" stroke-width="2" stroke-linejoin="round"/></svg>';
+    function emptyBox(text) {
+      const box = document.createElement('div');
+      box.className = 'empty pop';
+      box.innerHTML = EMPTY_ART;
+      const p = document.createElement('p');
+      p.style.margin = '0';
+      p.textContent = text;
+      box.appendChild(p);
+      return box;
+    }
 
     // ---------- helpers ----------
     function switchView(name) {
@@ -674,9 +807,10 @@
       window.scrollTo(0, 0);
     }
 
-    function toast(text) {
+    function toast(text, tone) {
       const el = $('toast');
       el.textContent = text;
+      el.classList.toggle('good', tone === 'good');
       el.classList.add('show');
       clearTimeout(state.toastTimer);
       state.toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
@@ -1012,20 +1146,21 @@
           : u.remaining + (u.remaining === 1 ? ' free order' : ' free orders') + ' left this month. Pro gives you unlimited orders.';
       }
       $('sales-card').hidden = !(st && c && c.total);
+      const naira = (v) => formatNaira(Math.round(v));
       if (st) {
-        $('sales-today').textContent = formatNaira(st.today.salesKobo);
+        OP.countUp($('sales-today'), st.today.salesKobo, naira, 900);
         $('sales-today-label').textContent = st.today.orders + (st.today.orders === 1 ? ' order' : ' orders');
-        $('sales-week').textContent = formatNaira(st.week.salesKobo);
-        $('sales-month').textContent = formatNaira(st.month.salesKobo);
+        OP.countUp($('sales-week'), st.week.salesKobo, naira);
+        OP.countUp($('sales-month'), st.month.salesKobo, naira);
         $('sales-received').textContent = 'Received this month: ' + formatNaira(st.month.receivedKobo);
       }
 
       // Orders summary, once there are any.
       $('orders-card').hidden = !(c && c.total);
       if (c && c.total) {
-        $('home-new').textContent = c.new;
-        $('home-unpaid').textContent = c.unpaid;
-        $('home-owing').textContent = formatNaira(c.owingKobo);
+        OP.countUp($('home-new'), c.new);
+        OP.countUp($('home-unpaid'), c.unpaid);
+        OP.countUp($('home-owing'), c.owingKobo, naira);
         $('home-says-paid').hidden = !c.saysPaid;
         $('home-says-paid').textContent = c.saysPaid === 1
           ? '1 customer says they\'ve paid. Check and confirm it.'
@@ -1088,7 +1223,33 @@
         return $('products-list').appendChild(p);
       }
       state.products = data.products;
+      state.photoLimit = data.photoLimit || 1;
       renderProducts();
+    }
+
+    // A product's cover photo, or a coloured tile with its first letter.
+    function photoBox(p, className) {
+      const box = el('div', className + ' ' + tintFor(p.name));
+      const photos = p.photos || [];
+      if (photos.length) {
+        const img = document.createElement('img');
+        img.alt = '';
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.src = photos[0].url;
+        OP.fadeImage(img);
+        box.appendChild(img);
+      } else {
+        box.appendChild(document.createTextNode(initials(p.name).slice(0, 1)));
+      }
+      if (!p.isActive) box.appendChild(el('span', 'badge', 'Hidden'));
+      if (photos.length > 1) {
+        const n = el('span', 'pcount');
+        n.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="12" cy="12" r="3"/></svg>';
+        n.appendChild(document.createTextNode(String(photos.length)));
+        box.appendChild(n);
+      }
+      return box;
     }
 
     function renderProducts() {
@@ -1102,9 +1263,7 @@
         : 'What customers can order from your store.';
 
       if (!list.length) {
-        const empty = document.createElement('div');
-        empty.className = 'empty';
-        empty.innerHTML = '<p style="margin:0">No products yet. Add the things you sell so customers can order them.</p>';
+        const empty = emptyBox('No products yet. Add the things you sell, with a photo, so customers can order them.');
         const add = document.createElement('button');
         add.type = 'button';
         add.className = 'btn';
@@ -1114,37 +1273,15 @@
         return box.appendChild(empty);
       }
 
-      const wrap = document.createElement('div');
-      wrap.className = 'list';
+      const wrap = el('div', 'pgrid stagger');
       list.forEach((p) => {
-        const row = document.createElement('button');
+        const row = el('button', 'row-btn' + (p.isActive ? '' : ' hidden-item'));
         row.type = 'button';
-        row.className = 'row-btn' + (p.isActive ? '' : ' hidden-item');
-        const main = document.createElement('div');
-        main.className = 'row-main';
-        const name = document.createElement('div');
-        name.className = 'row-name';
-        name.textContent = p.name;
-        if (!p.isActive) {
-          const badge = document.createElement('span');
-          badge.className = 'badge';
-          badge.textContent = 'Hidden';
-          name.appendChild(badge);
-        }
-        main.appendChild(name);
-        if (p.description) {
-          const sub = document.createElement('div');
-          sub.className = 'row-sub';
-          sub.textContent = p.description;
-          main.appendChild(sub);
-        }
-        const price = document.createElement('span');
-        price.className = 'price';
-        price.textContent = formatNaira(p.priceKobo);
-        const chev = document.createElement('span');
-        chev.className = 'chev';
-        chev.textContent = '›';
-        row.append(main, price, chev);
+        row.appendChild(photoBox(p, 'ph'));
+        const body = el('div', 'pbody');
+        body.appendChild(el('div', 'row-name', p.name));
+        body.appendChild(el('span', 'price', formatNaira(p.priceKobo)));
+        row.appendChild(body);
         row.addEventListener('click', () => openProduct(p));
         wrap.appendChild(row);
       });
@@ -1160,8 +1297,170 @@
       $('product-active').checked = p ? p.isActive : true;
       $('product-save').textContent = p ? 'Save changes' : 'Add product';
       $('product-delete').hidden = !p;
+      state.pendingPhotos = [];
       switchView('product');
+      renderSlots();
       if (!p) $('product-name').focus();
+    }
+
+    // ---------- product photos ----------
+    // Saved products upload a photo as soon as it's picked. A new product
+    // keeps its photos here until "Add product" saves it.
+    const CAMERA_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h2l2-2h6l2 2h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+    function currentPhotos() {
+      if (state.editing) return (state.editing.photos || []).map((ph) => ({ id: ph.id, url: ph.url }));
+      return state.pendingPhotos.map((url, i) => ({ id: 'new-' + i, url, pending: true }));
+    }
+
+    function renderSlots() {
+      const box = $('photo-slots');
+      box.textContent = '';
+      const photos = currentPhotos();
+      const limit = state.photoLimit || 1;
+      $('photo-note').textContent = limit > 1 ? '(up to ' + limit + ')' : '(1 on the free plan)';
+      for (let i = 0; i < 3; i++) {
+        const ph = photos[i];
+        if (ph) {
+          const slot = el('div', 'slot filled');
+          const img = document.createElement('img');
+          img.src = ph.url;
+          img.alt = 'Photo ' + (i + 1);
+          slot.appendChild(img);
+          if (i === 0) slot.appendChild(el('span', 'tag', 'Cover'));
+          const x = el('button', 'slot-x', '×');
+          x.type = 'button';
+          x.setAttribute('aria-label', 'Remove photo ' + (i + 1));
+          x.addEventListener('click', () => removePhoto(ph, i));
+          slot.appendChild(x);
+          if (i > 0) {
+            const cover = el('button', 'slot-cover', 'Make cover');
+            cover.type = 'button';
+            cover.addEventListener('click', () => coverPhoto(ph, i));
+            slot.appendChild(cover);
+          }
+          box.appendChild(slot);
+        } else if (i === photos.length && state.photoBusy) {
+          const slot = el('div', 'slot busy');
+          slot.innerHTML = '<span class="spinner" aria-label="Uploading"></span>';
+          box.appendChild(slot);
+        } else if (i < limit) {
+          const add = el('button', 'slot add');
+          add.type = 'button';
+          add.innerHTML = CAMERA_ICON + '<span>' + (i === 0 ? 'Add photo' : 'Add another') + '</span>';
+          add.setAttribute('aria-label', 'Add a photo');
+          add.disabled = state.photoBusy;
+          add.addEventListener('click', () => { $('photo-input').value = ''; $('photo-input').click(); });
+          box.appendChild(add);
+        } else {
+          const lock = el('button', 'slot locked');
+          lock.type = 'button';
+          lock.dataset.upgrade = '';
+          lock.innerHTML = '<span class="pro-tag">PRO</span><span>3 photos</span>';
+          lock.setAttribute('aria-label', 'Go Pro to add up to 3 photos');
+          box.appendChild(lock);
+        }
+      }
+    }
+
+    // Shrinks a phone photo to about 1000px and under 240 KB, as a JPEG.
+    async function shrinkImage(file) {
+      const url = URL.createObjectURL(file);
+      try {
+        const img = await new Promise((resolve, reject) => {
+          const i = new Image();
+          i.onload = () => resolve(i);
+          i.onerror = () => reject(new Error('unreadable'));
+          i.src = url;
+        });
+        let side = 1000;
+        let quality = 0.82;
+        let out = '';
+        for (let attempt = 0; attempt < 8; attempt++) {
+          const scale = Math.min(1, side / Math.max(img.naturalWidth, img.naturalHeight));
+          const w = Math.max(1, Math.round(img.naturalWidth * scale));
+          const h = Math.max(1, Math.round(img.naturalHeight * scale));
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          out = canvas.toDataURL('image/jpeg', quality);
+          if (out.length * 0.75 < 240000) return out;
+          quality -= 0.1;
+          if (quality < 0.55) { quality = 0.78; side = Math.round(side * 0.8); }
+        }
+        return out;
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    function photoError(text) {
+      const box = $('photo-error');
+      box.textContent = text;
+      box.classList.add('show');
+    }
+    function clearPhotoError() { $('photo-error').textContent = ''; $('photo-error').classList.remove('show'); }
+
+    function storeEdited(product) {
+      state.editing = product;
+      state.products = (state.products || []).map((x) => (x.id === product.id ? product : x));
+    }
+
+    $('photo-input').addEventListener('change', async () => {
+      const file = $('photo-input').files && $('photo-input').files[0];
+      if (!file) return;
+      clearPhotoError();
+      if (!/^image\//.test(file.type || 'image/')) return photoError('That file is not a photo.');
+      state.photoBusy = true;
+      renderSlots();
+      let dataUrl;
+      try { dataUrl = await shrinkImage(file); } catch (e) {
+        state.photoBusy = false;
+        renderSlots();
+        return photoError("Couldn't read that photo. Try another one, or a screenshot of it.");
+      }
+      if (!state.editing) {
+        state.pendingPhotos.push(dataUrl);
+        state.photoBusy = false;
+        return renderSlots();
+      }
+      const { ok, status, data } = await api('/api/products', { action: 'add-photo', id: state.editing.id, image: dataUrl });
+      state.photoBusy = false;
+      if (status === 401) return sessionLost();
+      if (data.photoLimit) state.photoLimit = data.photoLimit;
+      if (!ok) { renderSlots(); return photoError(data.error || 'Could not upload the photo.'); }
+      storeEdited(data.product);
+      renderSlots();
+      toast('Photo added', 'good');
+    });
+
+    async function removePhoto(ph, index) {
+      clearPhotoError();
+      if (ph.pending) { state.pendingPhotos.splice(index, 1); return renderSlots(); }
+      const { ok, status, data } = await api('/api/products', { action: 'remove-photo', photo: ph.id });
+      if (status === 401) return sessionLost();
+      if (!ok) return photoError(data.error || 'Could not remove the photo.');
+      storeEdited(data.product);
+      renderSlots();
+      toast('Photo removed');
+    }
+
+    async function coverPhoto(ph, index) {
+      clearPhotoError();
+      if (ph.pending) {
+        const [moved] = state.pendingPhotos.splice(index, 1);
+        state.pendingPhotos.unshift(moved);
+        return renderSlots();
+      }
+      const { ok, status, data } = await api('/api/products', { action: 'cover-photo', photo: ph.id });
+      if (status === 401) return sessionLost();
+      if (!ok) return photoError(data.error || 'Could not change the cover photo.');
+      storeEdited(data.product);
+      renderSlots();
+      toast('Cover photo changed');
     }
 
     function countActive() { return (state.products || []).filter((p) => p.isActive).length; }
@@ -1187,11 +1486,24 @@
       if (!ok) return showError('product', data.error || 'Could not save the product.', data.field);
 
       if (!state.products) state.products = [];
-      if (editing) state.products = state.products.map((p) => (p.id === data.product.id ? data.product : p));
-      else state.products.push(data.product);
+      let saved = data.product;
+      let photoProblem = '';
+      // A new product: now upload the photos picked before it was saved.
+      if (!editing && state.pendingPhotos.length) {
+        busy(btn, true, 'Uploading photos…');
+        for (const image of state.pendingPhotos.slice(0, state.photoLimit || 1)) {
+          const up = await api('/api/products', { action: 'add-photo', id: saved.id, image });
+          if (up.ok) saved = up.data.product;
+          else { photoProblem = up.data.error || 'A photo could not be uploaded. Add it again.'; break; }
+        }
+        state.pendingPhotos = [];
+        busy(btn, false);
+      }
+      if (editing) state.products = state.products.map((p) => (p.id === saved.id ? saved : p));
+      else state.products.push(saved);
       state.products.sort((a, b) => Number(b.isActive) - Number(a.isActive));
       if (state.setup) state.setup.products = countActive();
-      toast(editing ? 'Saved' : 'Product added');
+      toast(photoProblem || (editing ? 'Saved' : 'Product added'), photoProblem ? '' : 'good');
       renderProducts();
       switchView('products');
     });
@@ -1241,7 +1553,59 @@
       $('settings-email').textContent = v.email;
       $('admin-link').hidden = !v.isAdmin;
       setHint('settings-slug-hint', 'Your current link: ' + location.host + '/s/' + v.slug);
+      renderThemePicker();
+      renderModeSeg();
     }
+
+    const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
+    function renderThemePicker() {
+      const v = state.vendor;
+      const current = v.storeTheme || 'green';
+      const box = $('swatches');
+      if (!box.children.length) {
+        THEMES.forEach((t) => {
+          const b = el('button', 'swatch');
+          b.type = 'button';
+          b.dataset.theme = t.id;
+          b.style.background = t.hex;
+          b.style.color = t.ink;
+          b.setAttribute('aria-label', t.name);
+          b.innerHTML = CHECK;
+          b.addEventListener('click', () => pickTheme(t.id));
+          box.appendChild(b);
+        });
+      }
+      box.querySelectorAll('.swatch').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.theme === current)));
+      $('store-preview').dataset.store = current;
+      $('preview-name').textContent = v.businessName;
+      $('preview-mono').textContent = initials(v.businessName);
+    }
+
+    async function pickTheme(id) {
+      const before = state.vendor.storeTheme || 'green';
+      if (id === before) return;
+      state.vendor = { ...state.vendor, storeTheme: id };
+      renderThemePicker();
+      OP.buzz();
+      const { ok, status, data } = await api('/api/me', { storeTheme: id }, 'PATCH');
+      if (status === 401) return sessionLost();
+      if (!ok) {
+        state.vendor = { ...state.vendor, storeTheme: before };
+        renderThemePicker();
+        return toast(data.error || 'Could not change the colour.');
+      }
+      state.vendor = data.vendor;
+      toast(themeOf(id).name + ' store colour saved', 'good');
+    }
+
+    function renderModeSeg() {
+      const mode = OP.getMode();
+      document.querySelectorAll('#mode-seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+    }
+    document.querySelectorAll('#mode-seg button').forEach((b) => b.addEventListener('click', () => {
+      OP.setMode(b.dataset.mode);
+      renderModeSeg();
+    }));
 
     $('settings-slug').addEventListener('input', () => queueSlugCheck('settings-slug', 'settings-slug-hint', settingsSlugOpts()));
     $('settings-slug').addEventListener('blur', () => { $('settings-slug').value = toSlug($('settings-slug').value); });
@@ -1358,30 +1722,117 @@
       $('orders-more').hidden = !state.hasMore;
       $('customer-filter').hidden = !state.customerFilter;
       if (state.customerFilter) $('customer-filter').textContent = state.customerFilter.name + "'s orders  ×";
+      const swipeable = state.orders.some(canSwipe);
+      $('swipe-hint').hidden = !swipeable || hintDismissed();
       if (!state.orders.length) {
-        const empty = el('div', 'empty');
-        empty.appendChild(el('p', null, state.filter === 'all'
+        return box.appendChild(emptyBox(state.filter === 'all'
           ? 'No orders yet. Share your store link, or tap New to add an order from WhatsApp.'
           : 'Nothing here right now.'));
-        empty.firstChild.style.margin = '0';
-        return box.appendChild(empty);
       }
-      const wrap = el('div', 'list');
+      const wrap = el('div', 'orders-stack stagger');
       state.orders.forEach((o) => {
+        const swipe = el('div', 'swipe');
+        const under = el('div', 'swipe-under');
+        under.innerHTML = '<span>Mark paid</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
         const row = el('button', 'row-btn order-row');
         row.type = 'button';
         const main = el('div', 'row-main');
-        main.appendChild(el('div', 'row-name', '#' + o.number + ' · ' + o.customerName));
+        const name = el('div', 'row-name');
+        name.append(el('span', 'order-num', '#' + o.number), document.createTextNode(o.customerName));
+        main.appendChild(name);
         if (o.itemsSummary) main.appendChild(el('div', 'row-sub', o.itemsSummary));
         main.appendChild(orderBadges(o));
         const side = el('div', 'row-side');
         side.appendChild(el('div', 'price', formatNaira(o.totalKobo)));
         side.appendChild(el('div', 'row-time', when(o.createdAt)));
         row.append(main, side);
-        row.addEventListener('click', () => openOrder(o.id));
-        wrap.appendChild(row);
+        row.addEventListener('click', () => {
+          if (row.dataset.dragged) { delete row.dataset.dragged; return; }
+          openOrder(o.id);
+        });
+        swipe.append(under, row);
+        if (canSwipe(o)) attachSwipe(swipe, row, o);
+        wrap.appendChild(swipe);
       });
       box.appendChild(wrap);
+    }
+
+    function canSwipe(o) { return o.status !== 'cancelled' && o.paymentStatus !== 'paid' && o.balanceKobo > 0; }
+    function hintDismissed() { try { return localStorage.getItem('op_swipe_hint') === '1'; } catch (e) { return false; } }
+    $('swipe-hint-ok').addEventListener('click', () => {
+      try { localStorage.setItem('op_swipe_hint', '1'); } catch (e) {}
+      $('swipe-hint').hidden = true;
+    });
+
+    // Drag an unpaid order left past the line and let go: records the full
+    // balance as a transfer, with an Undo button for a few seconds.
+    function attachSwipe(wrap, row, o) {
+      let startX = 0, startY = 0, dx = 0, pointer = null, decided = false, horizontal = false;
+      const limit = () => Math.min(140, row.offsetWidth * 0.38);
+      row.addEventListener('pointerdown', (e) => {
+        if (e.button || wrap.classList.contains('busy')) return;
+        pointer = e.pointerId; startX = e.clientX; startY = e.clientY; dx = 0; decided = false; horizontal = false;
+      });
+      row.addEventListener('pointermove', (e) => {
+        if (e.pointerId !== pointer) return;
+        const mx = e.clientX - startX;
+        const my = e.clientY - startY;
+        if (!decided) {
+          if (Math.abs(mx) < 8 && Math.abs(my) < 8) return;
+          decided = true;
+          horizontal = Math.abs(mx) > Math.abs(my) * 1.2 && mx < 0;
+          if (!horizontal) { pointer = null; return; }
+          try { row.setPointerCapture(e.pointerId); } catch (err) {}
+          wrap.classList.add('dragging');
+        }
+        dx = Math.max(-row.offsetWidth * 0.7, Math.min(0, mx));
+        row.style.transform = 'translateX(' + dx + 'px)';
+        const armed = dx < -limit();
+        if (armed !== wrap.classList.contains('armed')) { wrap.classList.toggle('armed', armed); if (armed) OP.buzz(8); }
+      });
+      const finish = (e) => {
+        if (e.pointerId !== pointer) return;
+        pointer = null;
+        if (!horizontal) return;
+        row.dataset.dragged = '1';
+        setTimeout(() => { delete row.dataset.dragged; }, 400);
+        wrap.classList.remove('dragging');
+        if (dx < -limit()) markPaidFromList(o, wrap, row);
+        else { row.style.transform = ''; wrap.classList.remove('armed'); }
+      };
+      row.addEventListener('pointerup', finish);
+      row.addEventListener('pointercancel', finish);
+    }
+
+    async function markPaidFromList(o, wrap, row) {
+      wrap.classList.add('busy');
+      row.style.transform = 'translateX(-' + Math.min(140, row.offsetWidth * 0.38) + 'px)';
+      const { ok, status, data } = await api('/api/orders', { action: 'payment', id: o.id, amount: koboToInput(o.balanceKobo), method: 'transfer', note: 'Marked paid from the orders list' });
+      if (status === 401) return sessionLost();
+      wrap.classList.remove('busy', 'armed');
+      row.style.transform = '';
+      if (!ok) return toast(data.error || 'Could not mark it paid.');
+      OP.confetti(row);
+      OP.buzz(20);
+      const payment = data.order.payments[data.order.payments.length - 1];
+      showSnack('Order #' + o.number + ' paid · ' + formatNaira(o.balanceKobo), async () => {
+        const undo = await api('/api/orders', { action: 'undo-payment', id: o.id, paymentId: payment.id });
+        if (undo.ok) { toast('Payment removed'); loadOrders(true, { quiet: true }); }
+        else toast(undo.data.error || 'Could not undo it.');
+      });
+      state.orders = state.orders.map((x) => (x.id === o.id ? { ...x, ...data.order } : x));
+      renderOrders();
+      loadOrders(true, { quiet: true });
+      loadStats();
+    }
+
+    function showSnack(text, onUndo) {
+      $('snack-text').textContent = text;
+      $('snack').classList.add('show');
+      $('toast').classList.remove('show');
+      clearTimeout(state.snackTimer);
+      $('snack-undo').onclick = () => { $('snack').classList.remove('show'); clearTimeout(state.snackTimer); onUndo(); };
+      state.snackTimer = setTimeout(() => $('snack').classList.remove('show'), 5000);
     }
 
     document.querySelectorAll('#order-filters .chip').forEach((chip) => chip.addEventListener('click', () => {
@@ -1419,6 +1870,7 @@
       $('order-says-paid').textContent = o.customerName + ' says they\'ve paid. Check your bank app, then record the payment below.';
 
       $('order-customer').textContent = o.customerName + ' · ' + formatPhone(o.customerPhone);
+      $('order-avatar').textContent = initials(o.customerName);
       $('order-address').textContent = o.deliveryAddress || 'No delivery address';
       $('order-note').textContent = o.note ? 'Note: ' + o.note : '';
       $('order-note').hidden = !o.note;
@@ -1499,11 +1951,14 @@
     }
 
     async function orderAction(body, doneText) {
+      const wasPaid = state.order.paymentStatus === 'paid';
       const { ok, status, data } = await api('/api/orders', { ...body, id: state.order.id });
       if (status === 401) { sessionLost(); return false; }
       if (!ok) { showError(body.action === 'payment' ? 'payment' : 'order', data.error || 'Could not update the order.', data.field); return false; }
       renderOrder(data.order);
-      if (doneText) toast(doneText);
+      const nowPaid = data.order.paymentStatus === 'paid' && !wasPaid;
+      if (nowPaid) { OP.confetti($('order-badges')); OP.buzz(20); }
+      if (doneText) toast(nowPaid ? 'Paid in full!' : doneText, nowPaid || body.action !== 'status' ? 'good' : '');
       loadOrders(true, { quiet: true });
       return true;
     }
@@ -1585,16 +2040,14 @@
         main.appendChild(el('div', null, l.name));
         main.appendChild(el('div', 'row-sub', formatNaira(l.priceKobo) + ' each'));
         const step = el('div', 'stepper');
-        step.style.cssText = 'display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden';
         const minus = el('button', null, '−');
         const plus = el('button', null, '+');
-        [minus, plus].forEach((b) => { b.type = 'button'; b.style.cssText = 'width:34px;height:34px;border:0;background:var(--accent-soft);color:var(--accent);font-size:18px;font-weight:600;cursor:pointer'; });
+        [minus, plus].forEach((b) => { b.type = 'button'; });
         minus.setAttribute('aria-label', 'One less');
         plus.setAttribute('aria-label', 'One more');
         minus.addEventListener('click', () => { l.quantity -= 1; if (l.quantity <= 0) state.draft.splice(index, 1); renderDraft(); });
         plus.addEventListener('click', () => { l.quantity = Math.min(99, l.quantity + 1); renderDraft(); });
         const qty = el('span', null, String(l.quantity));
-        qty.style.cssText = 'min-width:30px;text-align:center;font-weight:700';
         step.append(minus, qty, plus);
         line.append(main, step);
         box.appendChild(line);
@@ -1609,7 +2062,7 @@
         totals.appendChild(row);
       });
       const total = el('div', 'kv strong');
-      total.append(el('span', null, 'Total'), el('span', null, formatNaira(Math.max(0, t.total))));
+      total.append(el('span', null, 'Total'), el('span', 'num', formatNaira(Math.max(0, t.total))));
       totals.appendChild(total);
     }
 
@@ -1666,7 +2119,9 @@
 
     // ---------- notifications ----------
     function setUnread(n) {
+      const before = state.unread;
       state.unread = Number(n) || 0;
+      if (state.unread > before) { OP.replay($('bell'), 'wiggle'); OP.replay($('bell-count'), 'bump'); }
       $('bell-count').textContent = state.unread > 9 ? '9+' : String(state.unread);
       $('bell-count').hidden = !state.unread;
     }
@@ -1680,14 +2135,16 @@
       const { ok, status, data } = await api('/api/orders?view=notifications');
       if (status === 401) return sessionLost();
       box.textContent = '';
-      if (!ok || !data.notifications.length) return box.appendChild(el('p', 'empty', ok ? 'No notifications yet. New orders and payment messages show up here.' : (data.error || 'Could not load notifications.')));
-      const list = el('div', 'list');
+      if (!ok || !data.notifications.length) return box.appendChild(emptyBox(ok ? 'No notifications yet. New orders and payment messages show up here.' : (data.error || 'Could not load notifications.')));
+      const list = el('div', 'list stagger');
       data.notifications.forEach((n) => {
         const row = el('div', 'note-row' + (n.read ? '' : ' unread'));
         const btn = el('button');
         btn.type = 'button';
-        btn.appendChild(el('div', null, n.message));
-        btn.appendChild(el('div', 'row-time', when(n.createdAt)));
+        const text = el('div');
+        text.appendChild(el('div', null, n.message));
+        text.appendChild(el('div', 'row-time', when(n.createdAt)));
+        btn.append(el('span', 'note-dot'), text);
         if (n.orderId) btn.addEventListener('click', () => openOrder(n.orderId));
         else if (/^(cap_|plan_)/.test(n.type || '')) btn.addEventListener('click', () => goTab('settings', 'plan-settings'));
         row.appendChild(btn);
@@ -1784,6 +2241,284 @@
       loadStats();
     }
 
+    // ---------- WhatsApp status picture ----------
+    // Drawn on a 1080×1920 canvas (the size WhatsApp status uses) from the
+    // seller's products, store colour and link, then shared or saved.
+    const HEADLINES = ['New stock is in!', 'Fresh arrivals', 'Order today', 'Sale on now', 'Back in stock'];
+    let drawTicket = 0;
+    let drawTimer = null;
+
+    $('open-status').addEventListener('click', openStatus);
+
+    async function openStatus() {
+      switchView('status');
+      if (!state.products) {
+        const { ok, status, data } = await api('/api/products');
+        if (status === 401) return sessionLost();
+        state.products = ok ? data.products : [];
+        if (ok) state.photoLimit = data.photoLimit || 1;
+      }
+      const live = state.products.filter((p) => p.isActive);
+      if (!state.statusPick) {
+        state.statusPick = live.slice().sort((a, b) => Number(b.photos.length > 0) - Number(a.photos.length > 0)).slice(0, 4).map((p) => p.id);
+      }
+      state.statusPick = state.statusPick.filter((id) => live.some((p) => p.id === id));
+      if (!$('status-headline').value) $('status-headline').value = HEADLINES[0];
+      renderHeadlineChips();
+      renderStatusPicks();
+      drawStatus();
+    }
+
+    function renderHeadlineChips() {
+      const box = $('status-headlines');
+      box.textContent = '';
+      HEADLINES.forEach((h) => {
+        const chip = el('button', 'chip' + ($('status-headline').value === h ? ' active' : ''), h);
+        chip.type = 'button';
+        chip.addEventListener('click', () => { $('status-headline').value = h; renderHeadlineChips(); drawStatus(); });
+        box.appendChild(chip);
+      });
+    }
+    $('status-headline').addEventListener('input', () => {
+      renderHeadlineChips();
+      clearTimeout(drawTimer);
+      drawTimer = setTimeout(drawStatus, 150);
+    });
+
+    function renderStatusPicks() {
+      const box = $('status-products');
+      box.textContent = '';
+      const live = (state.products || []).filter((p) => p.isActive);
+      $('status-count').textContent = live.length ? '· ' + state.statusPick.length + ' of 4' : '';
+      $('status-share').disabled = !live.length;
+      $('status-download').disabled = !live.length;
+      $('status-products-hint').hidden = !live.length;
+      if (!live.length) {
+        box.style.display = 'block';
+        const empty = emptyBox('Add products to your store first. Then they can go on your status picture.');
+        const add = el('button', 'btn', 'Add a product');
+        add.type = 'button';
+        add.dataset.newProduct = '';
+        empty.appendChild(add);
+        return box.appendChild(empty);
+      }
+      box.style.display = '';
+      live.forEach((p) => {
+        const b = el('button', 'pick');
+        b.type = 'button';
+        const pos = state.statusPick.indexOf(p.id);
+        b.setAttribute('aria-pressed', String(pos >= 0));
+        b.setAttribute('aria-label', p.name);
+        b.appendChild(photoBox({ ...p, isActive: true }, 'ph'));
+        b.appendChild(el('span', 'pick-n', pos >= 0 ? String(pos + 1) : ''));
+        b.addEventListener('click', () => {
+          const i = state.statusPick.indexOf(p.id);
+          if (i >= 0) state.statusPick.splice(i, 1);
+          else if (state.statusPick.length < 4) state.statusPick.push(p.id);
+          else return toast('Up to 4 products fit on one picture.');
+          renderStatusPicks();
+          drawStatus();
+        });
+        box.appendChild(b);
+      });
+    }
+
+    function loadImage(url) {
+      if (!url) return Promise.resolve(null);
+      return new Promise((resolve) => {
+        const img = new Image();
+        const timer = setTimeout(() => resolve(null), 6000);
+        img.onload = () => { clearTimeout(timer); resolve(img); };
+        img.onerror = () => { clearTimeout(timer); resolve(null); };
+        img.src = url;
+      });
+    }
+
+    function rr(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    // Cuts text to fit a width, adding "…".
+    function fit(ctx, text, width) {
+      if (ctx.measureText(text).width <= width) return text;
+      let t = text;
+      while (t.length > 1 && ctx.measureText(t + '…').width > width) t = t.slice(0, -1);
+      return t.trimEnd() + '…';
+    }
+
+    function wrapLines(ctx, text, width, maxLines) {
+      const words = String(text).split(/\s+/).filter(Boolean);
+      const lines = [];
+      let line = '';
+      words.forEach((w) => {
+        const test = line ? line + ' ' + w : w;
+        if (ctx.measureText(test).width <= width || !line) line = test;
+        else { lines.push(line); line = w; }
+      });
+      if (line) lines.push(line);
+      if (lines.length > maxLines) {
+        const kept = lines.slice(0, maxLines);
+        kept[maxLines - 1] = fit(ctx, lines.slice(maxLines - 1).join(' '), width);
+        return kept;
+      }
+      return lines;
+    }
+
+    async function drawStatus() {
+      const ticket = ++drawTicket;
+      const v = state.vendor;
+      if (!v) return;
+      const canvas = $('status-canvas');
+      const ctx = canvas.getContext('2d');
+      const W = 1080;
+      const H = 1920;
+      const INK = '#1B1530';
+      const theme = themeOf(v.storeTheme);
+      const picks = (state.statusPick || []).map((id) => (state.products || []).find((p) => p.id === id)).filter(Boolean);
+      try { await Promise.all([document.fonts.load('700 100px Fredoka'), document.fonts.load('600 40px Fredoka')]); } catch (e) {}
+      const images = await Promise.all(picks.map((p) => loadImage(p.photos && p.photos[0] && p.photos[0].url)));
+      if (ticket !== drawTicket) return;
+      const F = (size) => '700 ' + size + 'px Fredoka, ui-rounded, system-ui, sans-serif';
+      const B = (size, weight) => (weight || 800) + ' ' + size + 'px -apple-system, BlinkMacSystemFont, system-ui, sans-serif';
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = theme.hex;
+      ctx.fillRect(0, 0, W, H);
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 8;
+      // decorations
+      ctx.beginPath(); ctx.arc(W - 60, 70, 290, 0, Math.PI * 2); ctx.fillStyle = '#FFD23F'; ctx.fill(); ctx.stroke();
+      ctx.save(); ctx.translate(30, 1340); ctx.rotate(18 * Math.PI / 180); rr(ctx, -150, -150, 300, 300, 90); ctx.fillStyle = '#6CCFF6'; ctx.fill(); ctx.stroke(); ctx.restore();
+      ctx.save(); ctx.translate(W - 120, 560); ctx.beginPath();
+      [[0, -64], [17, -17], [64, 0], [17, 17], [0, 64], [-17, 17], [-64, 0], [-17, -17]].forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+      ctx.closePath(); ctx.fillStyle = '#FFFFFF'; ctx.fill(); ctx.lineWidth = 6; ctx.stroke(); ctx.restore();
+      ctx.lineWidth = 8;
+
+      // header: initials tile + business name
+      rr(ctx, 70, 96, 140, 140, 42); ctx.fillStyle = '#FFFFFF'; ctx.fill(); ctx.stroke();
+      ctx.fillStyle = INK; ctx.font = F(54); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(initials(v.businessName), 140, 170);
+      ctx.textAlign = 'left';
+      ctx.fillStyle = theme.ink;
+      ctx.font = F(62);
+      ctx.fillText(fit(ctx, v.businessName, 560), 240, 168);
+
+      // headline
+      ctx.font = F(124);
+      ctx.textBaseline = 'alphabetic';
+      const lines = wrapLines(ctx, $('status-headline').value.trim() || HEADLINES[0], 860, 2);
+      let y = 420;
+      lines.forEach((line) => { ctx.fillText(line, 70, y); y += 124; });
+
+      // product tiles
+      const top = y - 20;
+      const bottom = H - 340;
+      const n = picks.length;
+      const cols = n === 1 ? 1 : 2;
+      const rows = n > 2 ? 2 : 1;
+      const gap = 44;
+      const infoH = 150;
+      let tileW = n === 1 ? 700 : (W - 140 - gap) / 2;
+      const maxTileH = (bottom - top - (rows - 1) * gap) / rows;
+      tileW = Math.min(tileW, (maxTileH - infoH) / 0.92);
+      const photoH = tileW * 0.92;
+      const tileH = photoH + infoH;
+      const gridW = cols * tileW + (cols - 1) * gap;
+      const gridH = rows * tileH + (rows - 1) * gap;
+      const x0 = (W - gridW) / 2;
+      const y0 = top + (bottom - top - gridH) / 2;
+      const tilts = [-2, 1.5, 1, -1.5];
+      const tints = { t0: '#FFD23F', t1: '#6CCFF6', t2: '#FF8A7A', t3: '#CDB8FF', t4: '#12B76A' };
+      picks.forEach((p, i) => {
+        let col = i % cols;
+        const row = Math.floor(i / cols);
+        let x = x0 + col * (tileW + gap);
+        if (n === 3 && i === 2) x = (W - tileW) / 2;
+        const ty = y0 + row * (tileH + gap);
+        ctx.save();
+        ctx.translate(x + tileW / 2, ty + tileH / 2);
+        ctx.rotate(tilts[i] * Math.PI / 180);
+        ctx.translate(-tileW / 2, -tileH / 2);
+        rr(ctx, 0, 14, tileW, tileH, 50); ctx.fillStyle = INK; ctx.fill();
+        rr(ctx, 0, 0, tileW, tileH, 50); ctx.fillStyle = '#FFFFFF'; ctx.fill();
+        ctx.save();
+        rr(ctx, 0, 0, tileW, tileH, 50); ctx.clip();
+        ctx.beginPath(); ctx.rect(0, 0, tileW, photoH); ctx.clip();
+        const img = images[i];
+        if (img) {
+          const scale = Math.max(tileW / img.naturalWidth, photoH / img.naturalHeight);
+          const dw = img.naturalWidth * scale;
+          const dh = img.naturalHeight * scale;
+          ctx.drawImage(img, (tileW - dw) / 2, (photoH - dh) / 2, dw, dh);
+        } else {
+          ctx.fillStyle = tints[tintFor(p.name)];
+          ctx.fillRect(0, 0, tileW, photoH);
+          ctx.fillStyle = INK; ctx.font = F(Math.round(photoH * 0.45)); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(initials(p.name).slice(0, 1), tileW / 2, photoH / 2 + 6);
+          ctx.textAlign = 'left';
+        }
+        ctx.restore();
+        ctx.beginPath(); ctx.moveTo(0, photoH); ctx.lineTo(tileW, photoH); ctx.stroke();
+        rr(ctx, 0, 0, tileW, tileH, 50); ctx.stroke();
+        ctx.fillStyle = INK; ctx.textBaseline = 'alphabetic';
+        ctx.font = B(Math.round(Math.min(40, tileW * 0.085)));
+        ctx.fillText(fit(ctx, p.name, tileW - 56), 28, photoH + 62);
+        ctx.font = F(Math.round(Math.min(56, tileW * 0.12)));
+        ctx.fillText(formatNaira(p.priceKobo), 28, photoH + 126);
+        ctx.restore();
+      });
+
+      // store link card
+      const cardY = H - 296;
+      rr(ctx, 70, cardY + 14, W - 140, 210, 50); ctx.fillStyle = INK; ctx.fill();
+      rr(ctx, 70, cardY, W - 140, 210, 50); ctx.fillStyle = '#FFFFFF'; ctx.fill(); ctx.stroke();
+      ctx.fillStyle = INK; ctx.textAlign = 'center';
+      ctx.font = B(40);
+      ctx.fillText('Order in one minute on my store', W / 2, cardY + 82);
+      const link = (location.host + '/s/' + v.slug);
+      let size = 54;
+      ctx.font = F(size);
+      while (ctx.measureText(link).width > W - 220 && size > 30) { size -= 2; ctx.font = F(size); }
+      ctx.fillText(fit(ctx, link, W - 220), W / 2, cardY + 156);
+      ctx.textAlign = 'left';
+    }
+
+    function statusBlob() { return new Promise((resolve) => $('status-canvas').toBlob(resolve, 'image/jpeg', 0.9)); }
+    function saveBlob(blob, name) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+    }
+    $('status-share').addEventListener('click', async () => {
+      await drawStatus();
+      const blob = await statusBlob();
+      if (!blob) return toast('Could not make the picture. Try again.');
+      const file = new File([blob], state.vendor.slug + '-status.jpg', { type: 'image/jpeg' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try { await navigator.share({ files: [file] }); } catch (e) { if (!e || e.name !== 'AbortError') { saveBlob(blob, file.name); toast('Picture saved'); } }
+      } else {
+        saveBlob(blob, file.name);
+        toast('Picture saved. Post it from WhatsApp, Status.', 'good');
+      }
+    });
+    $('status-download').addEventListener('click', async () => {
+      await drawStatus();
+      const blob = await statusBlob();
+      if (!blob) return toast('Could not make the picture. Try again.');
+      saveBlob(blob, state.vendor.slug + '-status.jpg');
+      toast('Picture saved', 'good');
+    });
+
     // ---------- customers ----------
     $('open-customers').addEventListener('click', loadCustomers);
 
@@ -1795,20 +2530,24 @@
       if (status === 401) return sessionLost();
       box.textContent = '';
       if (!ok) return box.appendChild(el('p', 'empty', data.error || 'Could not load customers.'));
-      if (!data.customers.length) return box.appendChild(el('p', 'empty', 'No customers yet. They appear here after their first order.'));
+      if (!data.customers.length) return box.appendChild(emptyBox('No customers yet. They appear here after their first order.'));
       const owing = data.customers.filter((c) => c.owingKobo > 0);
       const total = owing.reduce((s, c) => s + c.owingKobo, 0);
       $('customers-sub').textContent = owing.length
         ? owing.length + (owing.length === 1 ? ' customer owes you ' : ' customers owe you ') + formatNaira(total) + ' in total.'
         : 'Nobody owes you anything right now.';
-      const list = el('div', 'list');
+      const list = el('div', 'list stagger');
       data.customers.forEach((c) => {
         const row = el('div', 'cust-row');
         const top = el('div', 'cust-top');
         const main = el('button');
         main.type = 'button';
-        main.appendChild(el('div', 'row-name', c.name));
-        main.appendChild(el('div', 'row-sub', c.orderCount + (c.orderCount === 1 ? ' order' : ' orders') + (c.lastOrderAt ? ' · last ' + when(c.lastOrderAt) : '')));
+        const av = el('span', 'avatar', initials(c.name));
+        av.style.background = ['var(--coral)', 'var(--sky)', 'var(--sun)', 'var(--lilac)', 'var(--brand)'][TINTS.indexOf(tintFor(c.name))];
+        const who = el('div', 'row-main');
+        who.appendChild(el('div', 'row-name', c.name));
+        who.appendChild(el('div', 'row-sub', c.orderCount + (c.orderCount === 1 ? ' order' : ' orders') + (c.lastOrderAt ? ' · last ' + when(c.lastOrderAt) : '')));
+        main.append(av, who);
         main.addEventListener('click', () => {
           state.customerFilter = { id: c.id, name: c.name };
           state.filter = 'all';
@@ -1843,13 +2582,13 @@
       if (status === 401) return sessionLost();
       box.textContent = '';
       if (status === 402) {
-        const card = el('div', 'card');
+        const card = el('div', 'card plan-card');
         card.appendChild(el('p', 'card-label', 'Reports are part of Pro'));
         card.appendChild(el('p', null, 'See your sales day by day, your best-selling products, and download every order as a spreadsheet.'));
         const ul = el('ul', 'perks');
         ['Unlimited orders every month', 'No "Made with OrderPadi" branding', '30-day report and CSV export'].forEach((x) => ul.appendChild(el('li', null, x)));
         card.appendChild(ul);
-        const up = el('button', 'btn', 'Upgrade to Pro · ₦2,500/month');
+        const up = el('button', 'btn grape', 'Upgrade to Pro · ₦2,500/month');
         up.type = 'button';
         up.dataset.upgrade = '';
         card.appendChild(up);
@@ -1860,6 +2599,8 @@
       const fmt = (s) => new Date(s + 'T12:00:00').toLocaleDateString('en-NG', { day: 'numeric', month: 'short' });
       const totals = el('div', 'card');
       totals.appendChild(el('p', 'card-label', 'Sales'));
+      totals.style.background = 'var(--sun)';
+      totals.style.color = '#1B1530';
       const big = el('p', 'big-figure');
       big.append(el('b', null, formatNaira(data.totals.salesKobo)), el('span', null, data.totals.orders + (data.totals.orders === 1 ? ' order' : ' orders')));
       totals.appendChild(big);
@@ -1876,6 +2617,7 @@
       data.days.forEach((d) => {
         const bar = el('div', d.salesKobo ? '' : 'zero');
         bar.style.height = Math.max(2, Math.round((d.salesKobo / max) * 100)) + '%';
+        bar.style.animationDelay = (data.days.indexOf(d) * 0.015) + 's';
         bar.title = d.day + ': ' + formatNaira(d.salesKobo) + ' · ' + d.orders + ' orders';
         bars.appendChild(bar);
       });

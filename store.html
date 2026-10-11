@@ -7,143 +7,159 @@
   <meta name="description" content="Order online and pay by bank transfer.">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#12B76A">
   <!--meta-->
+  <link rel="preload" href="/fredoka.woff" as="font" type="font/woff" crossorigin>
+  <link rel="stylesheet" href="/ui.css">
+  <script>try{var m=localStorage.getItem('op_mode');if(m==='light'||m==='dark')document.documentElement.setAttribute('data-theme',m)}catch(e){}</script>
+  <script src="/ui.js"></script>
   <style>
-    :root {
-      --bg:#f6f6f3; --card:#ffffff; --ink:#141414; --muted:#6b6b66; --line:#e4e4de;
-      --accent:#0a7d4f; --accent-ink:#ffffff; --accent-soft:#e7f4ee; --bad:#b42318; --bad-soft:#fdecea;
-      --wa:#1fa855;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg:#101010; --card:#1a1a1a; --ink:#f2f2ef; --muted:#a3a39d; --line:#2a2a28;
-        --accent:#2fbf7f; --accent-ink:#0b1f15; --accent-soft:#14291f; --bad:#ff7a6b; --bad-soft:#2c1714;
-        --wa:#2fbf6a;
-      }
-    }
-    * { box-sizing:border-box; }
-    [hidden] { display:none !important; }
-    body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height:1.5; -webkit-text-size-adjust:100%; }
-    main { max-width:480px; margin:0 auto; padding:24px 16px calc(120px + env(safe-area-inset-bottom)); }
-    h1 { font-size:26px; line-height:1.2; letter-spacing:-0.02em; margin:0; }
-    .muted { color:var(--muted); }
-    .view { display:none; }
-    .view.active { display:block; }
-    .loading { padding:80px 0; text-align:center; color:var(--muted); }
+    main { max-width: 520px; margin: 0 auto; padding: 0 16px calc(130px + env(safe-area-inset-bottom)); }
+    .view { display: none; }
+    .view.active { display: block; animation: op-fade .3s both; }
+    .loading { padding: 100px 0; text-align: center; color: var(--muted); font-weight: 700; }
+    .loading .spinner { width: 34px; height: 34px; border-width: 4px; color: var(--theme); display: block; margin: 0 auto 12px; }
 
-    /* store header */
-    .store-head { display:flex; align-items:center; gap:14px; margin:8px 0 6px; }
-    .avatar { flex:none; width:56px; height:56px; border-radius:16px; background:var(--accent); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; letter-spacing:-0.02em; }
-    .store-head p { margin:2px 0 0; font-size:14px; }
-    .chat { display:inline-flex; align-items:center; gap:6px; margin-top:12px; padding:8px 14px; border:1px solid var(--line); border-radius:999px; background:var(--card); color:var(--ink); text-decoration:none; font-size:14px; font-weight:600; }
-    .chat svg { width:16px; height:16px; color:var(--wa); }
-    .mode { margin:14px 0 0; padding:12px 14px; border-radius:12px; background:var(--accent-soft); color:var(--accent); font-size:14px; font-weight:600; }
-    .cartbar.wa button { background:var(--wa); color:#fff; }
-    .section-title { font-size:13px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); margin:28px 0 10px; }
+    /* store header in the seller's colour */
+    .store-top { position: relative; overflow: hidden; margin: 0 -16px; padding: 26px 20px 24px; background: var(--theme); color: var(--theme-ink); border-bottom: var(--bw) solid var(--ink); }
+    .store-top > :not(.blob):not(.sparkle) { position: relative; z-index: 1; }
+    .store-head { display: flex; align-items: center; gap: 14px; }
+    .mono { flex: none; width: 62px; height: 62px; border-radius: 19px; background: var(--sun); color: #1B1530; border: var(--bw) solid var(--ink); box-shadow: var(--shadow); display: grid; place-items: center; font-family: var(--display); font-size: 24px; font-weight: 700; }
+    .store-top h1 { margin: 0; font-size: 30px; overflow-wrap: anywhere; }
+    .store-top p { margin: 3px 0 0; font-size: 15px; font-weight: 700; opacity: .9; }
+    .chat { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; padding: 9px 16px; border: var(--bw) solid var(--ink); border-radius: 999px; background: #fff; color: #1B1530; text-decoration: none; font-size: 15px; font-weight: 800; box-shadow: var(--shadow-sm); }
+    .chat:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+    .chat svg { width: 19px; height: 19px; color: #1fa855; }
+    .store-top .sparkle { width: 30px; height: 30px; right: 104px; top: 22px; z-index: 0; }
+    .mode { margin: 16px 0 0; padding: 12px 14px; border-radius: 16px; border: var(--bw) solid var(--ink); background: var(--sun); color: #1B1530; font-size: 15px; font-weight: 800; }
+    .section-row { display: flex; align-items: baseline; justify-content: space-between; margin: 22px 0 12px; }
+    .section-row h2 { margin: 0; }
 
     /* products */
-    .product { display:flex; gap:12px; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px 14px 14px 16px; margin-bottom:10px; }
-    .p-main { flex:1; min-width:0; }
-    .p-name { font-weight:600; }
-    .p-desc { font-size:14px; color:var(--muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-    .p-price { margin-top:4px; font-weight:700; font-variant-numeric:tabular-nums; }
-    .add { flex:none; border:1px solid var(--accent); background:none; color:var(--accent); font:inherit; font-weight:600; font-size:15px; padding:8px 18px; border-radius:12px; cursor:pointer; }
-    .stepper { flex:none; display:flex; align-items:center; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
-    .stepper button { width:38px; height:38px; border:0; background:var(--accent-soft); color:var(--accent); font:inherit; font-size:20px; font-weight:600; cursor:pointer; }
-    .stepper span { min-width:32px; text-align:center; font-weight:700; font-variant-numeric:tabular-nums; }
-    .empty { text-align:center; padding:36px 16px; color:var(--muted); background:var(--card); border:1px dashed var(--line); border-radius:16px; }
+    #product-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .product { position: relative; display: flex; flex-direction: column; background: var(--card); border: var(--bw) solid var(--ink); border-radius: 20px; box-shadow: var(--shadow); overflow: hidden; }
+    .p-photo { position: relative; aspect-ratio: 1; border: 0; border-bottom: var(--bw) solid var(--ink); padding: 0; width: 100%; font-size: 46px; cursor: pointer; }
+    .p-photo .more { position: absolute; right: 8px; bottom: 8px; display: inline-flex; gap: 3px; }
+    .p-photo .more i { width: 7px; height: 7px; border-radius: 50%; background: #fff; border: 1.5px solid var(--ink); }
+    .p-body { display: flex; flex-direction: column; flex: 1; padding: 10px 12px 12px; min-width: 0; }
+    .p-name { font-weight: 800; font-size: 15px; line-height: 1.25; overflow-wrap: anywhere; }
+    .p-desc { font-size: 13px; color: var(--muted); font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 2px; }
+    .p-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin-top: auto; padding-top: 8px; min-height: 46px; }
+    .p-foot .stepper { margin-left: auto; }
+    .p-price { font-family: var(--display); font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .add { flex: none; width: 40px; height: 40px; border-radius: 13px; border: var(--bw) solid var(--ink); background: var(--theme); color: var(--theme-ink); box-shadow: var(--shadow-sm); display: grid; place-items: center; padding: 0; cursor: pointer; transition: transform .12s, box-shadow .12s; }
+    .add:active { transform: translateY(2px) scale(.94); box-shadow: 0 1px 0 var(--ink); }
+    .add svg { width: 20px; height: 20px; }
+    .stepper { flex: none; display: flex; align-items: center; border: var(--bw) solid var(--ink); border-radius: 13px; overflow: hidden; background: var(--card); animation: op-pop .35s cubic-bezier(.2, .9, .3, 1.5); }
+    .stepper button { width: 32px; height: 36px; border: 0; background: var(--sun); color: #1B1530; font: inherit; font-size: 19px; font-weight: 800; cursor: pointer; padding: 0; }
+    .stepper span { min-width: 26px; text-align: center; font-family: var(--display); font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; }
+    #product-list > .empty { grid-column: 1 / -1; }
 
     /* cart bar */
-    .cartbar { position:fixed; left:0; right:0; bottom:0; padding:10px 16px calc(10px + env(safe-area-inset-bottom)); background:linear-gradient(to top, var(--bg) 70%, transparent); z-index:10; }
-    .cartbar button { display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; max-width:448px; margin:0 auto; padding:15px 18px; border:0; border-radius:16px; background:var(--accent); color:var(--accent-ink); font:inherit; font-size:16px; font-weight:600; cursor:pointer; box-shadow:0 6px 20px rgba(0,0,0,0.15); }
-    .cartbar .count { background:rgba(255,255,255,0.2); border-radius:999px; padding:2px 10px; font-size:14px; }
+    .cartbar { position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 14px calc(14px + env(safe-area-inset-bottom)); z-index: 20; pointer-events: none; animation: op-rise .45s cubic-bezier(.2, .9, .3, 1.3) both; }
+    .cartbar button { pointer-events: auto; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; max-width: 492px; margin: 0 auto; padding: 13px 16px; border: var(--bw) solid var(--ink); border-radius: 20px; background: var(--theme); color: var(--theme-ink); box-shadow: var(--shadow); font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
+    .cartbar button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+    .cartbar .count { display: inline-block; background: var(--sun); color: #1B1530; border: 2px solid var(--ink); border-radius: 999px; padding: 1px 10px; font-size: 14px; }
+    .cartbar.wa button { background: var(--wa); color: #1B1530; }
+    .cartbar svg { width: 20px; height: 20px; flex: none; }
+
+    /* photo viewer */
+    .viewer { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; background: var(--overlay); animation: op-fade .2s both; }
+    .viewer-card { margin-top: auto; background: var(--card); border-top: var(--bw) solid var(--ink); border-radius: 30px 30px 0 0; padding: 12px 16px calc(18px + env(safe-area-inset-bottom)); max-height: 94vh; overflow-y: auto; animation: op-sheet .45s cubic-bezier(.2, .9, .3, 1.15) both; width: 100%; max-width: 520px; margin-left: auto; margin-right: auto; }
+    .viewer-close { float: right; width: 44px; height: 44px; border-radius: 14px; border: var(--bw) solid var(--ink); background: var(--card-2); color: var(--text); display: grid; place-items: center; cursor: pointer; padding: 0; }
+    .viewer-close svg { width: 18px; height: 18px; }
+    .slides { clear: both; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; margin: 8px 0 0; border-radius: 20px; scrollbar-width: none; }
+    .slides::-webkit-scrollbar { display: none; }
+    .slide { flex: 0 0 100%; scroll-snap-align: center; aspect-ratio: 1; border: var(--bw) solid var(--ink); border-radius: 20px; font-size: 90px; }
+    .dots { display: flex; justify-content: center; gap: 6px; margin-top: 10px; min-height: 12px; }
+    .dots i { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--ink); background: var(--card); transition: background-color .2s, transform .2s; }
+    .dots i.on { background: var(--theme); transform: scale(1.2); }
+    .viewer h2 { margin: 12px 0 2px; }
+    .viewer .v-price { font-family: var(--display); font-weight: 700; font-size: 24px; }
+    .viewer .v-desc { color: var(--muted); font-weight: 500; margin: 6px 0 0; white-space: pre-line; }
 
     /* checkout */
-    .back { background:none; border:0; padding:4px 0; margin:0 0 14px; font:inherit; color:var(--accent); font-weight:600; cursor:pointer; }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:6px 16px; margin-top:16px; }
-    .line { display:flex; align-items:center; gap:12px; padding:12px 0; border-top:1px solid var(--line); }
-    .line:first-child { border-top:0; }
-    .line .l-main { flex:1; min-width:0; }
-    .line .l-name { font-weight:600; }
-    .line .l-sub { font-size:14px; color:var(--muted); }
-    .line .stepper button { width:34px; height:34px; font-size:18px; }
-    .sum { display:flex; justify-content:space-between; padding:8px 0; font-variant-numeric:tabular-nums; }
-    .sum.total { border-top:1px solid var(--line); margin-top:4px; padding-top:12px; font-weight:700; font-size:18px; }
-    label { display:block; font-size:14px; font-weight:600; margin:16px 0 6px; }
-    input, textarea { width:100%; font:inherit; font-size:16px; color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:12px; padding:13px 14px; outline:none; -webkit-appearance:none; }
-    textarea { min-height:76px; resize:vertical; }
-    input:focus, textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
-    .invalid { border-color:var(--bad) !important; }
-    .error { display:none; margin:16px 0 0; padding:12px 14px; border-radius:12px; background:var(--bad-soft); color:var(--bad); font-size:14px; }
-    .error.show { display:block; }
-    .btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; margin-top:20px; padding:15px; border:0; border-radius:14px; background:var(--accent); color:var(--accent-ink); font:inherit; font-size:16px; font-weight:600; text-decoration:none; cursor:pointer; }
-    .btn[disabled] { opacity:0.6; }
-    .btn.wa { background:var(--wa); color:#fff; }
-    .btn.wa svg { width:20px; height:20px; }
-    .btn.secondary { background:var(--card); color:var(--ink); border:1px solid var(--line); }
-    .fine { font-size:13px; color:var(--muted); text-align:center; margin:14px 0 0; }
+    .page-title { margin: 18px 0 4px; }
+    .card.lines { padding: 6px 16px; }
+    .line { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 2px solid var(--line); }
+    .line:first-child { border-top: 0; }
+    .line .thumb { flex: none; width: 48px; height: 48px; border-radius: 14px; border: 2px solid var(--ink); font-size: 20px; }
+    .line .l-main { flex: 1; min-width: 0; }
+    .line .l-name { font-weight: 800; overflow-wrap: anywhere; }
+    .line .l-sub { font-size: 14px; color: var(--muted); font-weight: 600; }
+    .sum { display: flex; justify-content: space-between; padding: 7px 0; font-variant-numeric: tabular-nums; font-weight: 700; }
+    .sum.total { border-top: 2px solid var(--line); margin-top: 4px; padding-top: 12px; font-family: var(--display); font-size: 22px; }
+    .totals { background: var(--sun); color: #1B1530; }
+    .fine { font-size: 14px; color: var(--muted); text-align: center; margin: 14px 0 0; font-weight: 600; }
 
     /* done */
-    .done-head { text-align:center; margin:16px 0 4px; }
-    .done-icon { width:64px; height:64px; margin:0 auto 14px; border-radius:32px; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center; }
-    .done-icon svg { width:32px; height:32px; }
-    .done-head p { color:var(--muted); margin:8px 0 0; }
-    .pay { padding:14px 16px; }
-    .pay-label { font-size:13px; color:var(--muted); margin:0; }
-    .pay-amount { font-size:28px; font-weight:700; letter-spacing:-0.02em; margin:2px 0 10px; font-variant-numeric:tabular-nums; }
-    .pay-row { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--line); }
-    .pay-row b { font-variant-numeric:tabular-nums; }
-    .copy { border:1px solid var(--line); background:none; color:var(--accent); font:inherit; font-size:13px; font-weight:600; padding:4px 10px; border-radius:8px; cursor:pointer; margin-left:8px; }
-    .links { text-align:center; margin-top:18px; }
-    .links a, .links button { color:var(--accent); font-weight:600; text-decoration:none; background:none; border:0; font:inherit; cursor:pointer; padding:6px; }
+    .done-head { text-align: center; margin: 26px 0 4px; }
+    .done-icon { width: 92px; height: 92px; margin: 0 auto 14px; animation: op-pop .6s cubic-bezier(.2, .9, .3, 1.6) both; }
+    .done-head h1 { margin: 0; }
+    .done-head p { color: var(--muted); margin: 8px 0 0; font-weight: 600; }
+    .pay { background: var(--card); }
+    .pay-label { font-size: 14px; color: var(--muted); margin: 0; font-weight: 800; }
+    .pay-amount { font-family: var(--display); font-size: 38px; font-weight: 700; letter-spacing: -0.01em; margin: 2px 0 10px; font-variant-numeric: tabular-nums; }
+    .pay-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 0; border-top: 2px solid var(--line); }
+    .pay-row b { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; text-align: right; }
+    .copy { border: 2px solid var(--ink); background: var(--sun); color: #1B1530; font: inherit; font-size: 13px; font-weight: 800; padding: 3px 10px; border-radius: 9px; cursor: pointer; margin-left: 8px; }
+    .links { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; margin-top: 18px; }
+    .links a, .links button { color: var(--grape-text); font-weight: 800; background: none; border: 0; font: inherit; cursor: pointer; padding: 6px; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 2px; }
+    .missing { text-align: center; margin-top: 60px; }
+    .missing svg { width: 120px; height: 120px; margin-bottom: 10px; }
 
-    footer { margin-top:40px; text-align:center; font-size:13px; color:var(--muted); }
-    footer a { color:var(--ink); font-weight:700; text-decoration:none; }
-    footer a span { color:var(--accent); }
+    footer { margin-top: 34px; text-align: center; }
+    .made-with b { color: var(--brand-text); }
   </style>
 </head>
 <body>
   <main>
-    <section class="view active" id="view-loading"><p class="loading">Loading store…</p></section>
+    <section class="view active" id="view-loading"><div class="loading"><span class="spinner"></span>Loading store…</div></section>
 
     <section class="view" id="view-missing">
-      <div class="done-head" style="margin-top:60px">
+      <div class="missing">
+        <svg viewBox="0 0 120 120" aria-hidden="true"><path d="M24 46h72l-6 56a5 5 0 0 1-5 4.5H35a5 5 0 0 1-5-4.5z" fill="#CDB8FF" stroke="#1B1530" stroke-width="3.5" stroke-linejoin="round"/><path d="M43 46v-8a17 17 0 0 1 34 0v8" fill="none" stroke="#1B1530" stroke-width="3.5" stroke-linecap="round"/><path d="M47 70l8 8M55 70l-8 8M65 70l8 8M73 70l-8 8" stroke="#1B1530" stroke-width="3.5" stroke-linecap="round"/><path d="M50 92c6-5 14-5 20 0" fill="none" stroke="#1B1530" stroke-width="3.5" stroke-linecap="round"/><circle cx="98" cy="22" r="10" fill="#FFD23F" stroke="#1B1530" stroke-width="3"/></svg>
         <h1>Store not found</h1>
-        <p id="missing-text">Check the link with the seller.</p>
+        <p class="sub" id="missing-text">Check the link with the seller.</p>
       </div>
     </section>
 
     <!-- Products -->
     <section class="view" id="view-shop">
-      <div class="store-head">
-        <div class="avatar" id="store-initials"></div>
-        <div>
-          <h1 id="store-name"></h1>
-          <p class="muted" id="store-delivery"></p>
+      <header class="store-top">
+        <span class="blob sun" style="width:150px;height:150px;right:-50px;top:-60px;background:#FFD23F"></span>
+        <span class="blob sky" style="width:70px;height:70px;right:30px;bottom:-34px;transform:rotate(18deg)"></span>
+        <svg class="sparkle" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z" fill="#fff" stroke="#1B1530" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        <div class="store-head">
+          <div class="mono" id="store-initials"></div>
+          <div>
+            <h1 id="store-name"></h1>
+            <p id="store-delivery"></p>
+          </div>
         </div>
-      </div>
-      <a class="chat" id="store-chat" target="_blank" rel="noopener" hidden>
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>
-        Chat with the seller
-      </a>
+        <a class="chat" id="store-chat" target="_blank" rel="noopener" hidden>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>
+          Chat with the seller
+        </a>
+      </header>
       <p class="mode" id="shop-mode" hidden></p>
       <p class="error" id="shop-error"></p>
-      <p class="section-title" id="products-title">Products</p>
+      <div class="section-row"><h2 id="products-title">Products</h2><span class="muted" id="products-count"></span></div>
       <div id="product-list"></div>
     </section>
 
     <!-- Checkout -->
     <section class="view" id="view-checkout">
       <button class="back" type="button" data-go="shop">‹ Keep shopping</button>
-      <h1>Your order</h1>
-      <div class="card" id="checkout-lines"></div>
-      <div class="card">
+      <h1 class="page-title">Your order</h1>
+      <div class="card lines" id="checkout-lines"></div>
+      <div class="card totals">
         <div class="sum"><span>Subtotal</span><span id="sum-subtotal"></span></div>
         <div class="sum" id="sum-delivery-row"><span>Delivery</span><span id="sum-delivery"></span></div>
         <div class="sum total"><span>Total</span><span id="sum-total"></span></div>
       </div>
-      <form id="checkout-form" novalidate>
-        <label for="checkout-name">Your name</label>
+      <form id="checkout-form" class="card" novalidate>
+        <label for="checkout-name" style="margin-top:0">Your name</label>
         <input id="checkout-name" type="text" autocomplete="name" maxlength="80">
         <label for="checkout-phone">Phone number</label>
         <input id="checkout-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0803 123 4567">
@@ -152,7 +168,7 @@
         <label for="checkout-note">Note for the seller <span class="muted">(optional)</span></label>
         <input id="checkout-note" type="text" maxlength="300" placeholder="e.g. Colour, size, best time to deliver">
         <p class="error" id="checkout-error"></p>
-        <button class="btn" type="submit" id="checkout-submit">Place order</button>
+        <button class="btn theme" type="submit" id="checkout-submit">Place order</button>
       </form>
       <p class="fine">You'll pay the seller by bank transfer. They'll confirm your order on WhatsApp.</p>
     </section>
@@ -160,7 +176,7 @@
     <!-- Order placed -->
     <section class="view" id="view-done">
       <div class="done-head">
-        <div class="done-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+        <svg class="done-icon" viewBox="0 0 92 92" aria-hidden="true"><circle cx="46" cy="48" r="40" fill="#1B1530"/><circle cx="46" cy="44" r="40" fill="#12B76A" stroke="#1B1530" stroke-width="3"/><path d="M28 45l12 12 24-26" fill="none" stroke="#1B1530" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M78 8l2.5 7.5L88 18l-7.5 2.5L78 28l-2.5-7.5L68 18l7.5-2.5z" fill="#FFD23F" stroke="#1B1530" stroke-width="2" stroke-linejoin="round"/></svg>
         <h1 id="done-title">Order placed</h1>
         <p id="done-text"></p>
       </div>
@@ -169,29 +185,46 @@
         Send order on WhatsApp
       </a>
       <div class="card pay" id="done-pay"></div>
-      <div class="card" id="done-lines"></div>
+      <div class="card lines" id="done-lines"></div>
       <div class="links">
         <a id="done-invoice" href="#">View invoice</a>
         <button type="button" data-go="shop">Order something else</button>
       </div>
     </section>
 
-    <footer id="branding" hidden>Made with <a href="/">Order<span>Padi</span></a></footer>
+    <footer id="branding" hidden><a class="made-with" href="/">Made with Order<b>Padi</b></a></footer>
   </main>
 
   <div class="cartbar" id="cartbar" hidden>
     <button type="button" id="cart-open">
-      <span><span class="count" id="cart-count"></span></span>
+      <span class="count" id="cart-count"></span>
       <span><span id="cart-label">View order</span> · <span id="cart-total"></span></span>
-      <span aria-hidden="true">›</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
     </button>
+  </div>
+
+  <div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-labelledby="viewer-name">
+    <div class="viewer-card">
+      <button class="viewer-close" type="button" id="viewer-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="slides" id="viewer-slides"></div>
+      <div class="dots" id="viewer-dots"></div>
+      <h2 id="viewer-name"></h2>
+      <div class="v-price" id="viewer-price"></div>
+      <p class="v-desc" id="viewer-desc"></p>
+      <div id="viewer-action"></div>
+    </div>
   </div>
 
   <script>
     const $ = (id) => document.getElementById(id);
     const slug = decodeURIComponent(location.pathname.split('/')[2] || '').toLowerCase();
     const CART_KEY = 'op_cart_' + slug;
-    const state = { store: null, products: [], cart: new Map() };
+    const state = { store: null, products: [], cart: new Map(), viewing: null };
+    const THEME_HEX = { green: '#12B76A', coral: '#FF8A7A', sun: '#FFD23F', sky: '#6CCFF6', grape: '#6A4CE0', night: '#1B1530' };
+    const TINTS = ['t0', 't1', 't2', 't3', 't4'];
+    const tintFor = (text) => TINTS[[...String(text || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % TINTS.length];
+    const initials = (name) => (String(name || '').replace(/['’]/g, '').match(/[A-Za-z0-9]+/g) || ['?']).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+    const PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 
     // ---------- helpers ----------
     function formatNaira(kobo) {
@@ -232,6 +265,24 @@
     }
     function waLink(phone, text) { return 'https://wa.me/' + phone + (text ? '?text=' + encodeURIComponent(text) : ''); }
 
+    // A photo, or a coloured tile with the product's first letter.
+    function photoTile(p, className, index) {
+      const box = el('div', className + ' ph ' + tintFor(p.name));
+      const url = (p.photos || [])[index || 0];
+      if (url) {
+        const img = document.createElement('img');
+        img.alt = p.name;
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.src = url;
+        OP.fadeImage(img);
+        box.appendChild(img);
+      } else {
+        box.appendChild(document.createTextNode(initials(p.name).slice(0, 1)));
+      }
+      return box;
+    }
+
     // ---------- saved cart + customer details ----------
     function saveCart() {
       try { localStorage.setItem(CART_KEY, JSON.stringify([...state.cart])); } catch (e) {}
@@ -247,12 +298,15 @@
     function savedCustomer() { try { return JSON.parse(localStorage.getItem('op_customer') || '{}'); } catch (e) { return {}; } }
 
     function setQty(id, qty) {
+      const before = state.cart.get(id) || 0;
       if (qty <= 0) state.cart.delete(id);
       else state.cart.set(id, Math.min(99, qty));
       saveCart();
       renderProducts();
       if ($('view-checkout').classList.contains('active')) renderCheckout();
       renderCartBar();
+      if (state.viewing === id) renderViewerAction();
+      if (qty > before) { OP.replay($('cart-count'), 'bump'); OP.buzz(8); }
     }
     function onlineOrdering() { return !state.store || state.store.acceptingOrders !== false; }
     function canOrder() { return onlineOrdering() || !!(state.store && state.store.whatsappPhone); }
@@ -294,12 +348,29 @@
       return box;
     }
 
+    function addButton(p) {
+      const add = el('button', 'add');
+      add.type = 'button';
+      add.innerHTML = PLUS;
+      add.setAttribute('aria-label', 'Add ' + p.name);
+      add.addEventListener('click', () => setQty(p.id, 1));
+      return add;
+    }
+
     // ---------- shop ----------
+    function applyTheme(theme) {
+      const id = THEME_HEX[theme] ? theme : 'green';
+      document.documentElement.setAttribute('data-store', id);
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', THEME_HEX[id]);
+    }
+
     function renderStore() {
       const s = state.store;
       document.title = s.businessName + ' · Order online';
+      applyTheme(s.theme);
       $('store-name').textContent = s.businessName;
-      $('store-initials').textContent = s.businessName.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+      $('store-initials').textContent = initials(s.businessName);
       const delivery = [];
       if (s.deliveryFeeKobo) delivery.push('Delivery ' + formatNaira(s.deliveryFeeKobo));
       if (s.deliveryNote) delivery.push(s.deliveryNote);
@@ -315,13 +386,15 @@
       mode.textContent = s.whatsappPhone
         ? 'Orders here go straight to the seller on WhatsApp. Add what you want, then tap "Send on WhatsApp".'
         : "This store isn't taking orders online right now. Please contact the seller.";
-      renderProducts();
+      renderProducts(true);
     }
 
-    function renderProducts() {
+    function renderProducts(first) {
       const list = $('product-list');
       list.textContent = '';
+      list.classList.toggle('stagger', !!first);
       $('products-title').textContent = state.products.length ? 'Products' : '';
+      $('products-count').textContent = state.products.length > 1 ? state.products.length + ' items' : '';
       if (!state.products.length) {
         list.appendChild(el('div', 'empty', state.store.whatsappPhone
           ? 'No products listed yet. Tap "Chat with the seller" to ask what\'s available.'
@@ -330,21 +403,28 @@
       }
       state.products.forEach((p) => {
         const card = el('div', 'product');
-        const main = el('div', 'p-main');
-        main.appendChild(el('div', 'p-name', p.name));
-        if (p.description) main.appendChild(el('div', 'p-desc', p.description));
-        main.appendChild(el('div', 'p-price', formatNaira(p.priceKobo)));
-        card.appendChild(main);
-        const qty = state.cart.get(p.id) || 0;
-        if (!canOrder()) { list.appendChild(card); return; }
-        if (qty) card.appendChild(stepper(p.id, qty));
-        else {
-          const add = el('button', 'add', 'Add');
-          add.type = 'button';
-          add.setAttribute('aria-label', 'Add ' + p.name);
-          add.addEventListener('click', () => setQty(p.id, 1));
-          card.appendChild(add);
+        const photo = el('button', 'p-photo');
+        photo.type = 'button';
+        photo.setAttribute('aria-label', 'See ' + p.name);
+        const tile = photoTile(p, 'p-tile');
+        tile.style.cssText = 'position:absolute;inset:0';
+        photo.appendChild(tile);
+        if ((p.photos || []).length > 1) {
+          const more = el('span', 'more');
+          p.photos.forEach(() => more.appendChild(document.createElement('i')));
+          photo.appendChild(more);
         }
+        photo.addEventListener('click', () => openViewer(p.id));
+        card.appendChild(photo);
+        const body = el('div', 'p-body');
+        body.appendChild(el('div', 'p-name', p.name));
+        if (p.description) body.appendChild(el('div', 'p-desc', p.description));
+        const foot = el('div', 'p-foot');
+        foot.appendChild(el('div', 'p-price', formatNaira(p.priceKobo)));
+        const qty = state.cart.get(p.id) || 0;
+        if (canOrder()) foot.appendChild(qty ? stepper(p.id, qty) : addButton(p));
+        body.appendChild(foot);
+        card.appendChild(body);
         list.appendChild(card);
       });
     }
@@ -360,6 +440,59 @@
       $('cart-total').textContent = formatNaira(t.total);
     }
 
+    // ---------- photo viewer ----------
+    function openViewer(id) {
+      const p = state.products.find((x) => x.id === id);
+      if (!p) return;
+      state.viewing = id;
+      const slides = $('viewer-slides');
+      slides.textContent = '';
+      const count = Math.max(1, (p.photos || []).length);
+      for (let i = 0; i < count; i++) slides.appendChild(photoTile(p, 'slide', i));
+      const dots = $('viewer-dots');
+      dots.textContent = '';
+      if (count > 1) for (let i = 0; i < count; i++) dots.appendChild(el('i', i ? '' : 'on'));
+      slides.scrollLeft = 0;
+      $('viewer-name').textContent = p.name;
+      $('viewer-price').textContent = formatNaira(p.priceKobo);
+      $('viewer-desc').textContent = p.description || '';
+      renderViewerAction();
+      $('viewer').hidden = false;
+      document.body.style.overflow = 'hidden';
+      $('viewer-close').focus();
+    }
+    function renderViewerAction() {
+      const p = state.products.find((x) => x.id === state.viewing);
+      const box = $('viewer-action');
+      box.textContent = '';
+      if (!p || !canOrder()) return;
+      const qty = state.cart.get(p.id) || 0;
+      if (qty) {
+        const row = el('div');
+        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px';
+        row.append(el('b', null, qty + ' in your order'), stepper(p.id, qty));
+        box.appendChild(row);
+      } else {
+        const add = el('button', 'btn theme', 'Add to order');
+        add.type = 'button';
+        add.addEventListener('click', () => setQty(p.id, 1));
+        box.appendChild(add);
+      }
+    }
+    function closeViewer() {
+      $('viewer').hidden = true;
+      state.viewing = null;
+      document.body.style.overflow = '';
+    }
+    $('viewer-close').addEventListener('click', closeViewer);
+    $('viewer').addEventListener('click', (e) => { if (e.target === $('viewer')) closeViewer(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('viewer').hidden) closeViewer(); });
+    $('viewer-slides').addEventListener('scroll', () => {
+      const s = $('viewer-slides');
+      const i = Math.round(s.scrollLeft / Math.max(1, s.clientWidth));
+      $('viewer-dots').querySelectorAll('i').forEach((d, n) => d.classList.toggle('on', n === i));
+    }, { passive: true });
+
     // ---------- checkout ----------
     function renderCheckout() {
       const box = $('checkout-lines');
@@ -371,7 +504,7 @@
         const main = el('div', 'l-main');
         main.appendChild(el('div', 'l-name', p.name));
         main.appendChild(el('div', 'l-sub', formatNaira(p.priceKobo) + ' each · ' + formatNaira(p.priceKobo * qty)));
-        line.append(main, stepper(id, qty));
+        line.append(photoTile(p, 'thumb'), main, stepper(id, qty));
         box.appendChild(line);
       });
       const t = cartTotals();
@@ -523,18 +656,19 @@
         const line = el('div', 'line');
         const main = el('div', 'l-main');
         main.appendChild(el('div', 'l-name', i.quantity + ' × ' + i.name));
-        line.append(main, el('span', null, formatNaira(i.lineTotalKobo)));
+        line.append(main, el('span', 'num', formatNaira(i.lineTotalKobo)));
         lines.appendChild(line);
       });
       if (order.deliveryFeeKobo) {
         const line = el('div', 'line');
         const main = el('div', 'l-main');
         main.appendChild(el('div', 'l-sub', 'Delivery'));
-        line.append(main, el('span', null, formatNaira(order.deliveryFeeKobo)));
+        line.append(main, el('span', 'num', formatNaira(order.deliveryFeeKobo)));
         lines.appendChild(line);
       }
       $('done-invoice').href = invoiceUrl;
       switchView('done');
+      setTimeout(() => OP.confetti(document.querySelector('.done-icon'), 110), 150);
     }
 
     // ---------- start ----------
