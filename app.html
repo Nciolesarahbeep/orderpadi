@@ -122,11 +122,75 @@
     .tab.active { color:var(--accent); }
     .toast { position:fixed; left:50%; bottom:calc(86px + env(safe-area-inset-bottom)); transform:translate(-50%, 16px); background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:999px; font-size:14px; font-weight:600; opacity:0; pointer-events:none; transition:opacity 0.2s, transform 0.2s; z-index:20; white-space:nowrap; }
     .toast.show { opacity:1; transform:translate(-50%, 0); }
+
+    /* top bar + notification bell */
+    .topbar { display:flex; align-items:center; justify-content:space-between; }
+    .bell { display:none; position:relative; width:42px; height:42px; border:1px solid var(--line); border-radius:12px; background:var(--card); color:var(--ink); cursor:pointer; align-items:center; justify-content:center; }
+    body.in-app .bell { display:flex; }
+    .bell svg { width:22px; height:22px; }
+    .bell-count { position:absolute; top:-6px; right:-6px; min-width:20px; height:20px; padding:0 5px; border-radius:10px; background:var(--bad); color:#fff; font-size:12px; font-weight:700; line-height:20px; text-align:center; }
+
+    /* status badges */
+    :root { --warn:#8a5a00; --warn-soft:#fff3d6; --info:#1d5fbf; --info-soft:#e6efff; }
+    @media (prefers-color-scheme: dark) { :root { --warn:#f2c14e; --warn-soft:#2e2510; --info:#7fb0ff; --info-soft:#14223a; } }
+    .badges { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+    .badge.b-new { background:var(--info-soft); color:var(--info); }
+    .badge.b-processing { background:var(--info-soft); color:var(--info); }
+    .badge.b-delivered, .badge.b-paid { background:var(--accent-soft); color:var(--accent); }
+    .badge.b-unpaid, .badge.b-part_paid, .badge.b-claim { background:var(--warn-soft); color:var(--warn); }
+    .badge.b-cancelled { background:var(--line); color:var(--muted); text-decoration:line-through; }
+    .badges .badge { margin-left:0; }
+
+    /* orders */
+    .chips { display:flex; gap:8px; overflow-x:auto; margin:4px -16px 0; padding:4px 16px; scrollbar-width:none; }
+    .chips::-webkit-scrollbar { display:none; }
+    .chip { flex:none; border:1px solid var(--line); background:var(--card); color:var(--ink); font:inherit; font-size:14px; font-weight:600; padding:7px 14px; border-radius:999px; cursor:pointer; }
+    .chip.active { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+    .chip span:not(:empty) { margin-left:4px; opacity:0.7; }
+    .order-row { align-items:flex-start; }
+    .order-row .row-side { text-align:right; flex:none; }
+    .order-row .row-time { font-size:13px; color:var(--muted); }
+    .stats { display:flex; gap:10px; margin:8px 0 4px; }
+    .stats div { flex:1; background:var(--bg); border-radius:12px; padding:10px 12px; }
+    .stats b { display:block; font-size:20px; font-variant-numeric:tabular-nums; }
+    .stats span { font-size:13px; color:var(--muted); }
+    .alert { margin-top:14px; padding:12px 14px; border-radius:12px; background:var(--warn-soft); color:var(--warn); font-size:14px; font-weight:600; }
+    .back { background:none; border:0; padding:4px 0; margin:20px 0 0; font:inherit; color:var(--accent); font-weight:600; cursor:pointer; }
+    .kv { display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-top:1px solid var(--line); font-variant-numeric:tabular-nums; }
+    .kv:first-child { border-top:0; }
+    .kv.strong { font-weight:700; }
+    .kv .muted { font-weight:400; }
+    .contact { display:flex; gap:10px; margin-top:10px; }
+    .contact a { flex:1; text-align:center; padding:10px; border:1px solid var(--line); border-radius:12px; color:var(--ink); text-decoration:none; font-weight:600; font-size:15px; }
+    .seg { display:flex; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:4px; gap:4px; margin-top:10px; }
+    .seg button { flex:1; border:0; background:none; color:var(--muted); font:inherit; font-size:14px; font-weight:600; padding:9px 4px; border-radius:9px; cursor:pointer; }
+    .seg button.active { background:var(--accent); color:var(--accent-ink); }
+    .seg button[disabled] { opacity:0.5; cursor:default; }
+    .pay-line { display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--line); }
+    .pay-line:first-child { border-top:0; }
+    .pay-line .row-main { font-size:15px; }
+    .x { border:0; background:none; color:var(--muted); font-size:20px; line-height:1; padding:4px 8px; cursor:pointer; }
+    select { width:100%; font:inherit; font-size:16px; color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:12px; padding:13px 14px; outline:none; -webkit-appearance:none; appearance:none; }
+    .two { display:flex; gap:10px; }
+    .two > div { flex:1; min-width:0; }
+    .btn.wa { background:#1fa855; color:#fff; text-decoration:none; text-align:center; }
+    a.btn { text-decoration:none; text-align:center; }
+    .note-row { padding:14px 16px; border-bottom:1px solid var(--line); }
+    .note-row:last-child { border-bottom:0; }
+    .note-row.unread { background:var(--accent-soft); }
+    .note-row button { all:unset; display:block; width:100%; cursor:pointer; }
+    .note-row .row-time { font-size:13px; color:var(--muted); margin-top:2px; }
   </style>
 </head>
 <body>
   <main>
-    <a class="logo" href="/">Order<span>Padi</span></a>
+    <div class="topbar">
+      <a class="logo" href="/">Order<span>Padi</span></a>
+      <button class="bell" type="button" id="bell" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span class="bell-count" id="bell-count" hidden></span>
+      </button>
+    </div>
     <div class="banner" id="banner"></div>
 
     <!-- Loading -->
@@ -238,6 +302,16 @@
           <button class="btn" type="button" id="share-link">Share</button>
         </div>
       </div>
+      <div class="card" id="orders-card" hidden>
+        <p class="card-label">Orders</p>
+        <div class="stats">
+          <div><b id="home-new">0</b><span>New</span></div>
+          <div><b id="home-unpaid">0</b><span>Unpaid</span></div>
+          <div><b id="home-owing">₦0</b><span>Owed to you</span></div>
+        </div>
+        <p class="alert" id="home-says-paid" hidden></p>
+        <button class="btn secondary" type="button" data-tab="orders" style="margin-top:12px">View orders</button>
+      </div>
       <div class="card" id="setup-card" hidden>
         <p class="card-label" id="setup-label">Set up your store</p>
         <div class="progress"><div id="setup-bar"></div></div>
@@ -249,8 +323,136 @@
       </div>
       <div class="card" id="ready-card" hidden>
         <p class="card-label">✓ Your store is set up</p>
-        <p>Products, WhatsApp and bank details are in. Taking orders through your link comes in step 4.</p>
+        <p>Share your link on WhatsApp and Instagram. Orders show up here and in the Orders tab.</p>
       </div>
+    </section>
+
+    <!-- Orders list -->
+    <section class="view" id="view-orders">
+      <div class="head-row">
+        <h1>Orders</h1>
+        <button class="btn small" type="button" id="new-order-btn">New</button>
+      </div>
+      <div class="chips" id="order-filters">
+        <button class="chip active" type="button" data-filter="all">All</button>
+        <button class="chip" type="button" data-filter="new">New<span id="chip-new"></span></button>
+        <button class="chip" type="button" data-filter="unpaid">Unpaid<span id="chip-unpaid"></span></button>
+        <button class="chip" type="button" data-filter="delivered">Delivered</button>
+      </div>
+      <div id="orders-list"></div>
+      <button class="btn secondary" type="button" id="orders-more" hidden>Load more</button>
+    </section>
+
+    <!-- One order -->
+    <section class="view" id="view-order">
+      <button class="back" type="button" data-tab="orders">‹ Orders</button>
+      <h1 id="order-title" style="margin-top:10px">Order</h1>
+      <div class="badges" id="order-badges"></div>
+      <p class="sub" id="order-meta" style="margin-top:8px"></p>
+      <p class="alert" id="order-says-paid" hidden></p>
+
+      <div class="card">
+        <p class="card-label">Customer</p>
+        <p style="margin:0;font-weight:600" id="order-customer"></p>
+        <p style="margin:2px 0 0" class="muted" id="order-address"></p>
+        <p style="margin:6px 0 0" id="order-note"></p>
+        <div class="contact">
+          <a id="order-call" href="#">Call</a>
+          <a id="order-chat" href="#" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div id="order-items"></div>
+        <div id="order-money" style="margin-top:6px"></div>
+      </div>
+
+      <p class="section-title">Status</p>
+      <div class="seg" id="order-status">
+        <button type="button" data-status="new">New</button>
+        <button type="button" data-status="processing">Processing</button>
+        <button type="button" data-status="delivered">Delivered</button>
+      </div>
+      <p class="center"><button class="link" type="button" id="order-cancel">Cancel this order</button></p>
+
+      <p class="section-title">Payments</p>
+      <div class="card" id="order-payments"></div>
+      <form id="payment-form" novalidate>
+        <div class="two">
+          <div>
+            <label for="payment-amount">Amount received</label>
+            <div class="prefix"><span>₦</span><input id="payment-amount" type="text" inputmode="decimal" autocomplete="off"></div>
+          </div>
+          <div>
+            <label for="payment-method">How</label>
+            <select id="payment-method">
+              <option value="transfer">Transfer</option>
+              <option value="cash">Cash</option>
+              <option value="pos">POS</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <label for="payment-note">Note <span class="muted">(optional)</span></label>
+        <input id="payment-note" type="text" maxlength="140" placeholder="e.g. Opay transfer from Tola">
+        <p class="error" id="payment-error"></p>
+        <button class="btn" type="submit" id="payment-save">Record payment</button>
+      </form>
+
+      <p class="section-title">Invoice</p>
+      <div class="actions">
+        <a class="btn wa" id="order-send-invoice" href="#" target="_blank" rel="noopener">Send on WhatsApp</a>
+        <button class="btn secondary" type="button" id="order-copy-invoice">Copy link</button>
+      </div>
+      <p class="center"><a class="link" id="order-open-invoice" href="#" target="_blank" rel="noopener">Open invoice</a></p>
+      <p class="error" id="order-error"></p>
+    </section>
+
+    <!-- New (manual) order -->
+    <section class="view" id="view-neworder">
+      <button class="back" type="button" data-tab="orders">‹ Orders</button>
+      <h1 style="margin-top:10px">New order</h1>
+      <p class="sub">For customers who order by WhatsApp, Instagram or phone.</p>
+      <form id="neworder-form" novalidate>
+        <p class="section-title">Customer</p>
+        <label for="neworder-name">Name</label>
+        <input id="neworder-name" type="text" maxlength="80" autocomplete="off">
+        <label for="neworder-phone">Phone number</label>
+        <input id="neworder-phone" type="tel" inputmode="tel" autocomplete="off" placeholder="0803 123 4567">
+        <label for="neworder-address">Delivery address <span class="muted">(optional)</span></label>
+        <input id="neworder-address" type="text" maxlength="300" autocomplete="off">
+
+        <p class="section-title">Items</p>
+        <div class="card" id="neworder-lines"></div>
+        <label for="neworder-product">Add a product</label>
+        <select id="neworder-product"></select>
+        <p class="center"><button class="link" type="button" id="neworder-custom-toggle">+ Add an item that isn't in your products</button></p>
+        <div id="neworder-custom" hidden>
+          <div class="two">
+            <div><label for="neworder-custom-name">Item</label><input id="neworder-custom-name" type="text" maxlength="80" autocomplete="off"></div>
+            <div><label for="neworder-custom-price">Price</label><div class="prefix"><span>₦</span><input id="neworder-custom-price" type="text" inputmode="decimal" autocomplete="off"></div></div>
+          </div>
+          <button class="btn secondary" type="button" id="neworder-custom-add">Add item</button>
+        </div>
+
+        <p class="section-title">Extras</p>
+        <div class="two">
+          <div><label for="neworder-fee">Delivery fee</label><div class="prefix"><span>₦</span><input id="neworder-fee" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
+          <div><label for="neworder-discount">Discount</label><div class="prefix"><span>₦</span><input id="neworder-discount" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
+        </div>
+        <label for="neworder-note">Note <span class="muted">(optional)</span></label>
+        <input id="neworder-note" type="text" maxlength="300" autocomplete="off">
+        <div class="card" id="neworder-totals"></div>
+        <p class="error" id="neworder-error"></p>
+        <button class="btn" type="submit" id="neworder-save">Create order</button>
+      </form>
+    </section>
+
+    <!-- Notifications -->
+    <section class="view" id="view-notifications">
+      <button class="back" type="button" id="notifications-back">‹ Back</button>
+      <h1 style="margin-top:10px">Notifications</h1>
+      <div id="notifications-list"></div>
     </section>
 
     <!-- Products -->
@@ -348,6 +550,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
         Home
       </button>
+      <button class="tab" type="button" data-tab="orders" id="tab-orders">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-3-2-2 2-2-2-2 2-2-2-3 2V4a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 12h6"/></svg>
+        Orders
+      </button>
       <button class="tab" type="button" data-tab="products" id="tab-products">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12.1a1 1 0 0 1-1 .9H7.2a1 1 0 0 1-1-.9z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg>
         Products
@@ -364,9 +570,15 @@
     const $ = (id) => document.getElementById(id);
     const state = {
       email: '', purpose: 'signup', countdown: null, slugTouched: false,
-      vendor: null, setup: null, products: null, editing: null, toastTimer: null
+      vendor: null, setup: null, products: null, editing: null, toastTimer: null,
+      filter: 'all', orders: [], hasMore: false, counts: null, order: null,
+      draft: [], unread: 0, poller: null, backTo: 'home'
     };
-    const APP_VIEWS = { home: 'home', products: 'products', product: 'products', settings: 'settings' };
+    // Logged-in screens, and which tab each one belongs to.
+    const APP_VIEWS = {
+      home: 'home', orders: 'orders', order: 'orders', neworder: 'orders',
+      products: 'products', product: 'products', settings: 'settings', notifications: ''
+    };
 
     // ---------- helpers ----------
     function switchView(name) {
@@ -659,12 +871,16 @@
       state.vendor = vendor;
       state.setup = setup || null;
       state.products = null;
+      state.counts = null;
+      state.filter = 'all';
       renderHome();
       switchView('home');
+      startPolling();
       if (!setup) {
         const { ok, data } = await api('/api/me');
         if (ok) { state.vendor = data.vendor; state.setup = data.setup; renderHome(); }
       }
+      loadOrders(true, { quiet: true });
     }
 
     function renderHome() {
@@ -685,11 +901,25 @@
       $('setup-label').textContent = 'Set up your store · ' + done + ' of 3 done';
       $('setup-bar').style.width = Math.round((done / 3) * 100) + '%';
       $('setup-card').hidden = done === 3;
-      $('ready-card').hidden = done !== 3;
+      const c = state.counts;
+      $('ready-card').hidden = done !== 3 || !!(c && c.total);
+
+      // Orders summary, once there are any.
+      $('orders-card').hidden = !(c && c.total);
+      if (c && c.total) {
+        $('home-new').textContent = c.new;
+        $('home-unpaid').textContent = c.unpaid;
+        $('home-owing').textContent = formatNaira(c.owingKobo);
+        $('home-says-paid').hidden = !c.saysPaid;
+        $('home-says-paid').textContent = c.saysPaid === 1
+          ? '1 customer says they\'ve paid. Check and confirm it.'
+          : c.saysPaid + ' customers say they\'ve paid. Check and confirm them.';
+      }
     }
 
     // If the session ends (logged out elsewhere, password reset), go to login.
     function sessionLost() {
+      stopPolling();
       state.vendor = null;
       $('login-email').value = remembered();
       switchView('login');
@@ -698,7 +928,10 @@
 
     // Tabs, checklist rows and "Back" links all use data-tab.
     async function goTab(name, focusId) {
-      if (name === 'products') {
+      if (name === 'orders') {
+        switchView('orders');
+        await loadOrders(true);
+      } else if (name === 'products') {
         switchView('products');
         await loadProducts();
       } else if (name === 'settings') {
@@ -940,12 +1173,430 @@
       }
     });
 
+    // ---------- logged in: Orders ----------
+    const STATUS_LABEL = { new: 'New', processing: 'Processing', delivered: 'Delivered', cancelled: 'Cancelled' };
+    const PAY_LABEL = { unpaid: 'Unpaid', part_paid: 'Part paid', paid: 'Paid' };
+    const METHOD_LABEL = { transfer: 'Transfer', cash: 'Cash', pos: 'POS', other: 'Other' };
+
+    function badge(text, kind) { const b = el('span', 'badge b-' + kind); b.textContent = text; return b; }
+    function el(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text != null) node.textContent = text;
+      return node;
+    }
+    function orderBadges(o) {
+      const box = el('div', 'badges');
+      box.appendChild(badge(STATUS_LABEL[o.status], o.status));
+      if (o.status !== 'cancelled') box.appendChild(badge(PAY_LABEL[o.paymentStatus], o.paymentStatus));
+      if (o.customerSaysPaid && o.status !== 'cancelled') box.appendChild(badge('Says paid', 'claim'));
+      return box;
+    }
+
+    // "just now", "5 min ago", "Today 2:30 pm", "Yesterday", "12 Oct"
+    function when(iso) {
+      const d = new Date(iso);
+      const mins = Math.round((Date.now() - d.getTime()) / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return mins + ' min ago';
+      const time = d.toLocaleTimeString('en-NG', { hour: 'numeric', minute: '2-digit' });
+      const today = new Date();
+      const yesterday = new Date(Date.now() - 86400000);
+      if (d.toDateString() === today.toDateString()) return 'Today ' + time;
+      if (d.toDateString() === yesterday.toDateString()) return 'Yesterday ' + time;
+      return d.toLocaleDateString('en-NG', { day: 'numeric', month: 'short' }) + ' ' + time;
+    }
+
+    async function loadOrders(reset, opts = {}) {
+      const before = reset ? 0 : (state.orders.length ? state.orders[state.orders.length - 1].number : 0);
+      if (reset && !opts.quiet && !state.orders.length) $('orders-list').innerHTML = '<p class="empty">Loading…</p>';
+      const { ok, status, data } = await api('/api/orders?filter=' + state.filter + (before ? '&before=' + before : ''));
+      if (status === 401) return sessionLost();
+      if (!ok) {
+        if (!opts.quiet) { $('orders-list').textContent = ''; $('orders-list').appendChild(el('p', 'empty', data.error || 'Could not load orders.')); }
+        return;
+      }
+      state.orders = reset ? data.orders : state.orders.concat(data.orders);
+      state.hasMore = data.hasMore;
+      state.counts = data.counts;
+      setUnread(data.unread);
+      renderOrders();
+      renderHome();
+    }
+
+    function renderOrders() {
+      document.querySelectorAll('#order-filters .chip').forEach((c) => c.classList.toggle('active', c.dataset.filter === state.filter));
+      const c = state.counts || {};
+      $('chip-new').textContent = c.new ? c.new : '';
+      $('chip-unpaid').textContent = c.unpaid ? c.unpaid : '';
+      const box = $('orders-list');
+      box.textContent = '';
+      $('orders-more').hidden = !state.hasMore;
+      if (!state.orders.length) {
+        const empty = el('div', 'empty');
+        empty.appendChild(el('p', null, state.filter === 'all'
+          ? 'No orders yet. Share your store link, or tap New to add an order from WhatsApp.'
+          : 'Nothing here right now.'));
+        empty.firstChild.style.margin = '0';
+        return box.appendChild(empty);
+      }
+      const wrap = el('div', 'list');
+      state.orders.forEach((o) => {
+        const row = el('button', 'row-btn order-row');
+        row.type = 'button';
+        const main = el('div', 'row-main');
+        main.appendChild(el('div', 'row-name', '#' + o.number + ' · ' + o.customerName));
+        if (o.itemsSummary) main.appendChild(el('div', 'row-sub', o.itemsSummary));
+        main.appendChild(orderBadges(o));
+        const side = el('div', 'row-side');
+        side.appendChild(el('div', 'price', formatNaira(o.totalKobo)));
+        side.appendChild(el('div', 'row-time', when(o.createdAt)));
+        row.append(main, side);
+        row.addEventListener('click', () => openOrder(o.id));
+        wrap.appendChild(row);
+      });
+      box.appendChild(wrap);
+    }
+
+    document.querySelectorAll('#order-filters .chip').forEach((chip) => chip.addEventListener('click', () => {
+      state.filter = chip.dataset.filter;
+      state.orders = [];
+      loadOrders(true);
+    }));
+    $('orders-more').addEventListener('click', () => loadOrders(false));
+
+    async function openOrder(id) {
+      const { ok, status, data } = await api('/api/orders?id=' + id);
+      if (status === 401) return sessionLost();
+      if (!ok) return toast(data.error || 'Could not open that order.');
+      renderOrder(data.order);
+      switchView('order');
+    }
+
+    function invoiceUrl(o) { return location.origin + '/i/' + o.publicId; }
+
+    function renderOrder(o) {
+      state.order = o;
+      // keep the list in step without reloading it
+      state.orders = state.orders.map((x) => (x.id === o.id ? { ...x, ...o } : x));
+
+      $('order-title').textContent = 'Order #' + o.number;
+      const badges = $('order-badges');
+      badges.replaceWith(Object.assign(orderBadges(o), { id: 'order-badges' }));
+      $('order-meta').textContent = when(o.createdAt) + ' · ' + (o.source === 'manual' ? 'added by you' : 'from your store link');
+      $('order-says-paid').hidden = !(o.customerSaysPaid && o.status !== 'cancelled');
+      $('order-says-paid').textContent = o.customerName + ' says they\'ve paid. Check your bank app, then record the payment below.';
+
+      $('order-customer').textContent = o.customerName + ' · ' + formatPhone(o.customerPhone);
+      $('order-address').textContent = o.deliveryAddress || 'No delivery address';
+      $('order-note').textContent = o.note ? 'Note: ' + o.note : '';
+      $('order-note').hidden = !o.note;
+      $('order-call').href = 'tel:+' + o.customerPhone;
+      $('order-chat').href = 'https://wa.me/' + o.customerPhone;
+
+      const items = $('order-items');
+      items.textContent = '';
+      o.items.forEach((i) => {
+        const row = el('div', 'kv');
+        row.append(el('span', null, i.quantity + ' × ' + i.name), el('span', null, formatNaira(i.lineTotalKobo)));
+        items.appendChild(row);
+      });
+      const money = $('order-money');
+      money.textContent = '';
+      const rows = [['Subtotal', o.subtotalKobo]];
+      if (o.deliveryFeeKobo) rows.push(['Delivery', o.deliveryFeeKobo]);
+      if (o.discountKobo) rows.push(['Discount', -o.discountKobo]);
+      rows.forEach(([label, k]) => {
+        const row = el('div', 'kv');
+        row.append(el('span', 'muted', label), el('span', null, (k < 0 ? '−' : '') + formatNaira(Math.abs(k))));
+        money.appendChild(row);
+      });
+      const total = el('div', 'kv strong');
+      total.append(el('span', null, 'Total'), el('span', null, formatNaira(o.totalKobo)));
+      money.appendChild(total);
+      if (o.amountPaidKobo) {
+        const paid = el('div', 'kv');
+        paid.append(el('span', 'muted', 'Paid'), el('span', null, formatNaira(o.amountPaidKobo)));
+        money.appendChild(paid);
+      }
+      if (o.status !== 'cancelled') {
+        const bal = el('div', 'kv strong');
+        bal.append(el('span', null, o.balanceKobo ? 'Still owed' : 'Fully paid'), el('span', null, formatNaira(o.balanceKobo)));
+        money.appendChild(bal);
+      }
+
+      // status
+      const cancelled = o.status === 'cancelled';
+      document.querySelectorAll('#order-status button').forEach((b) => {
+        b.classList.toggle('active', b.dataset.status === o.status);
+        b.disabled = cancelled;
+      });
+      $('order-cancel').textContent = cancelled ? 'Restore this order' : 'Cancel this order';
+
+      // payments
+      const pays = $('order-payments');
+      pays.textContent = '';
+      if (!o.payments.length) pays.appendChild(el('p', 'muted', 'No payments recorded yet.'));
+      o.payments.forEach((p) => {
+        const line = el('div', 'pay-line');
+        const main = el('div', 'row-main');
+        main.appendChild(el('div', null, formatNaira(p.amountKobo) + ' · ' + METHOD_LABEL[p.method]));
+        main.appendChild(el('div', 'row-sub', when(p.paidAt) + (p.note ? ' · ' + p.note : '')));
+        const undo = el('button', 'x', '×');
+        undo.type = 'button';
+        undo.setAttribute('aria-label', 'Remove this payment');
+        undo.addEventListener('click', () => undoPayment(p));
+        line.append(main, undo);
+        pays.appendChild(line);
+      });
+      const canPay = !cancelled && o.balanceKobo > 0;
+      $('payment-form').hidden = !canPay;
+      if (canPay) {
+        $('payment-amount').value = koboToInput(o.balanceKobo);
+        $('payment-note').value = '';
+        $('payment-save').textContent = 'Record payment';
+      }
+
+      // invoice
+      const url = invoiceUrl(o);
+      const first = o.customerName.split(' ')[0];
+      const what = o.paymentStatus === 'paid' ? 'receipt' : 'invoice';
+      const lines = ['Hi ' + first + ', here\'s your ' + what + ' for order #' + o.number + ' from ' + state.vendor.businessName + ':', url, '', 'Total: ' + formatNaira(o.totalKobo)];
+      if (o.status !== 'cancelled' && o.balanceKobo && o.amountPaidKobo) lines.push('Still to pay: ' + formatNaira(o.balanceKobo));
+      $('order-send-invoice').href = 'https://wa.me/' + o.customerPhone + '?text=' + encodeURIComponent(lines.join('\n'));
+      $('order-open-invoice').href = url;
+    }
+
+    async function orderAction(body, doneText) {
+      const { ok, status, data } = await api('/api/orders', { ...body, id: state.order.id });
+      if (status === 401) { sessionLost(); return false; }
+      if (!ok) { showError(body.action === 'payment' ? 'payment' : 'order', data.error || 'Could not update the order.', data.field); return false; }
+      renderOrder(data.order);
+      if (doneText) toast(doneText);
+      loadOrders(true, { quiet: true });
+      return true;
+    }
+
+    document.querySelectorAll('#order-status button').forEach((b) => b.addEventListener('click', () => {
+      if (b.dataset.status === state.order.status) return;
+      orderAction({ action: 'status', status: b.dataset.status }, 'Marked ' + STATUS_LABEL[b.dataset.status].toLowerCase());
+    }));
+
+    $('order-cancel').addEventListener('click', () => {
+      const o = state.order;
+      if (o.status === 'cancelled') return orderAction({ action: 'status', status: 'new' }, 'Order restored');
+      if (!confirm('Cancel order #' + o.number + '? You can restore it later.')) return;
+      orderAction({ action: 'status', status: 'cancelled' }, 'Order cancelled');
+    });
+
+    $('payment-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const amount = $('payment-amount').value.trim();
+      if (!looksLikeNaira(amount) || Number(amount.replace(/[₦,\s]/g, '')) <= 0) {
+        return showError('payment', 'Enter the amount received, like 45000.', 'amount');
+      }
+      const btn = $('payment-save');
+      busy(btn, true, 'Saving…');
+      await orderAction({ action: 'payment', amount, method: $('payment-method').value, note: $('payment-note').value }, 'Payment recorded');
+      busy(btn, false);
+    });
+
+    function undoPayment(p) {
+      if (!confirm('Remove the ' + formatNaira(p.amountKobo) + ' payment? Do this only if it was recorded by mistake.')) return;
+      orderAction({ action: 'undo-payment', paymentId: p.id }, 'Payment removed');
+    }
+
+    $('order-copy-invoice').addEventListener('click', async () => {
+      const btn = $('order-copy-invoice');
+      try { await navigator.clipboard.writeText(invoiceUrl(state.order)); btn.textContent = 'Copied!'; }
+      catch (e) { btn.textContent = 'Hold "Open invoice" to copy'; }
+      setTimeout(() => { btn.textContent = 'Copy link'; }, 2500);
+    });
+
+    // ---------- logged in: New order (from WhatsApp / DMs) ----------
+    async function openNewOrder() {
+      if (!state.products) {
+        const { ok, status, data } = await api('/api/products');
+        if (status === 401) return sessionLost();
+        state.products = ok ? data.products : [];
+      }
+      state.draft = [];
+      ['name', 'phone', 'address', 'note', 'discount', 'custom-name', 'custom-price'].forEach((f) => { $('neworder-' + f).value = ''; });
+      $('neworder-fee').value = state.vendor.deliveryFeeKobo ? koboToInput(state.vendor.deliveryFeeKobo) : '';
+      $('neworder-custom').hidden = true;
+      const select = $('neworder-product');
+      select.textContent = '';
+      select.appendChild(Object.assign(document.createElement('option'), { value: '', textContent: state.products.length ? 'Choose a product…' : 'No products yet — add a custom item below' }));
+      state.products.forEach((p) => {
+        select.appendChild(Object.assign(document.createElement('option'), { value: String(p.id), textContent: p.name + ' — ' + formatNaira(p.priceKobo) + (p.isActive ? '' : ' (hidden)') }));
+      });
+      renderDraft();
+      switchView('neworder');
+      $('neworder-name').focus();
+    }
+    $('new-order-btn').addEventListener('click', openNewOrder);
+
+    function draftTotals() {
+      const subtotal = state.draft.reduce((s, l) => s + l.priceKobo * l.quantity, 0);
+      const toKobo = (v) => (looksLikeNaira(v) ? Math.round(Number(String(v).replace(/[₦,\s]/g, '')) * 100) : 0);
+      const fee = toKobo($('neworder-fee').value.trim());
+      const discount = toKobo($('neworder-discount').value.trim());
+      return { subtotal, fee, discount, total: subtotal + fee - discount };
+    }
+
+    function renderDraft() {
+      const box = $('neworder-lines');
+      box.textContent = '';
+      if (!state.draft.length) box.appendChild(el('p', 'muted', 'No items yet. Pick a product below.'));
+      state.draft.forEach((l, index) => {
+        const line = el('div', 'pay-line');
+        const main = el('div', 'row-main');
+        main.appendChild(el('div', null, l.name));
+        main.appendChild(el('div', 'row-sub', formatNaira(l.priceKobo) + ' each'));
+        const step = el('div', 'stepper');
+        step.style.cssText = 'display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden';
+        const minus = el('button', null, '−');
+        const plus = el('button', null, '+');
+        [minus, plus].forEach((b) => { b.type = 'button'; b.style.cssText = 'width:34px;height:34px;border:0;background:var(--accent-soft);color:var(--accent);font-size:18px;font-weight:600;cursor:pointer'; });
+        minus.setAttribute('aria-label', 'One less');
+        plus.setAttribute('aria-label', 'One more');
+        minus.addEventListener('click', () => { l.quantity -= 1; if (l.quantity <= 0) state.draft.splice(index, 1); renderDraft(); });
+        plus.addEventListener('click', () => { l.quantity = Math.min(99, l.quantity + 1); renderDraft(); });
+        const qty = el('span', null, String(l.quantity));
+        qty.style.cssText = 'min-width:30px;text-align:center;font-weight:700';
+        step.append(minus, qty, plus);
+        line.append(main, step);
+        box.appendChild(line);
+      });
+      const t = draftTotals();
+      const totals = $('neworder-totals');
+      totals.textContent = '';
+      [['Subtotal', t.subtotal], ['Delivery', t.fee], ['Discount', -t.discount]].forEach(([label, k]) => {
+        if (label !== 'Subtotal' && !k) return;
+        const row = el('div', 'kv');
+        row.append(el('span', 'muted', label), el('span', null, (k < 0 ? '−' : '') + formatNaira(Math.abs(k))));
+        totals.appendChild(row);
+      });
+      const total = el('div', 'kv strong');
+      total.append(el('span', null, 'Total'), el('span', null, formatNaira(Math.max(0, t.total))));
+      totals.appendChild(total);
+    }
+
+    $('neworder-product').addEventListener('change', () => {
+      const id = Number($('neworder-product').value);
+      const p = (state.products || []).find((x) => x.id === id);
+      if (p) {
+        const existing = state.draft.find((l) => l.productId === p.id);
+        if (existing) existing.quantity = Math.min(99, existing.quantity + 1);
+        else state.draft.push({ productId: p.id, name: p.name, priceKobo: p.priceKobo, quantity: 1 });
+        renderDraft();
+      }
+      $('neworder-product').value = '';
+    });
+    $('neworder-custom-toggle').addEventListener('click', () => {
+      $('neworder-custom').hidden = !$('neworder-custom').hidden;
+      if (!$('neworder-custom').hidden) $('neworder-custom-name').focus();
+    });
+    $('neworder-custom-add').addEventListener('click', () => {
+      const name = $('neworder-custom-name').value.trim();
+      const price = $('neworder-custom-price').value.trim();
+      if (name.length < 2) return showError('neworder', 'Give the item a name.', 'custom-name');
+      if (!looksLikeNaira(price) || Number(price.replace(/[₦,\s]/g, '')) <= 0) return showError('neworder', 'Enter the item\'s price, like 4500.', 'custom-price');
+      state.draft.push({ productId: null, name, price, priceKobo: Math.round(Number(price.replace(/[₦,\s]/g, '')) * 100), quantity: 1 });
+      $('neworder-custom-name').value = '';
+      $('neworder-custom-price').value = '';
+      renderDraft();
+    });
+    ['neworder-fee', 'neworder-discount'].forEach((id) => $(id).addEventListener('input', renderDraft));
+
+    $('neworder-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!state.draft.length) return showError('neworder', 'Add at least one item.', 'product');
+      const body = {
+        action: 'create',
+        customer: { name: $('neworder-name').value, phone: $('neworder-phone').value, address: $('neworder-address').value },
+        items: state.draft.map((l) => (l.productId ? { productId: l.productId, quantity: l.quantity } : { name: l.name, price: l.price, quantity: l.quantity })),
+        deliveryFee: $('neworder-fee').value.trim(),
+        discount: $('neworder-discount').value.trim(),
+        note: $('neworder-note').value
+      };
+      const btn = $('neworder-save');
+      busy(btn, true, 'Creating…');
+      const { ok, status, data } = await api('/api/orders', body);
+      busy(btn, false);
+      if (status === 401) return sessionLost();
+      const fields = { name: 'name', phone: 'phone', address: 'address', items: 'product', deliveryFee: 'fee', discount: 'discount', note: 'note' };
+      if (!ok) return showError('neworder', data.error || 'Could not create the order.', fields[data.field]);
+      renderOrder(data.order);
+      switchView('order');
+      toast('Order #' + data.order.number + ' created');
+      loadOrders(true, { quiet: true });
+    });
+
+    // ---------- notifications ----------
+    function setUnread(n) {
+      state.unread = Number(n) || 0;
+      $('bell-count').textContent = state.unread > 9 ? '9+' : String(state.unread);
+      $('bell-count').hidden = !state.unread;
+    }
+
+    $('bell').addEventListener('click', async () => {
+      const current = document.querySelector('.view.active');
+      state.backTo = current && current.id !== 'view-notifications' ? current.id.replace('view-', '') : 'home';
+      const box = $('notifications-list');
+      box.innerHTML = '<p class="empty">Loading…</p>';
+      switchView('notifications');
+      const { ok, status, data } = await api('/api/orders?view=notifications');
+      if (status === 401) return sessionLost();
+      box.textContent = '';
+      if (!ok || !data.notifications.length) return box.appendChild(el('p', 'empty', ok ? 'No notifications yet. New orders and payment messages show up here.' : (data.error || 'Could not load notifications.')));
+      const list = el('div', 'list');
+      data.notifications.forEach((n) => {
+        const row = el('div', 'note-row' + (n.read ? '' : ' unread'));
+        const btn = el('button');
+        btn.type = 'button';
+        btn.appendChild(el('div', null, n.message));
+        btn.appendChild(el('div', 'row-time', when(n.createdAt)));
+        if (n.orderId) btn.addEventListener('click', () => openOrder(n.orderId));
+        row.appendChild(btn);
+        list.appendChild(row);
+      });
+      box.appendChild(list);
+      if (data.unread) {
+        await api('/api/orders', { action: 'notifications-read' });
+        setUnread(0);
+      }
+    });
+    $('notifications-back').addEventListener('click', () => goTab(state.backTo === 'order' || state.backTo === 'neworder' ? 'orders' : (APP_VIEWS[state.backTo] || 'home')));
+
+    // Check for new orders every 30 seconds while the app is open.
+    async function poll() {
+      if (!state.vendor || document.hidden) return;
+      const { ok, status, data } = await api('/api/orders?view=unread');
+      if (status === 401) return sessionLost();
+      if (!ok) return;
+      const grew = data.unread > state.unread;
+      setUnread(data.unread);
+      if (grew && data.latest) {
+        toast(data.latest.message.length > 60 ? data.latest.message.slice(0, 57) + '…' : data.latest.message);
+        const active = document.querySelector('.view.active');
+        if (active && (active.id === 'view-orders' || active.id === 'view-home')) loadOrders(true, { quiet: true });
+      }
+    }
+    function startPolling() { stopPolling(); state.poller = setInterval(poll, 30000); }
+    function stopPolling() { clearInterval(state.poller); state.poller = null; }
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) poll(); });
+
     $('logout').addEventListener('click', async () => {
       const btn = $('logout');
       busy(btn, true, 'Logging out…');
       await api('/api/auth', { action: 'logout' });
       busy(btn, false);
+      stopPolling();
       state.vendor = null;
+      state.orders = [];
+      state.counts = null;
+      setUnread(0);
       $('login-email').value = remembered();
       switchView('login');
     });

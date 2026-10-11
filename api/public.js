@@ -3,6 +3,8 @@
 //   POST /api/public { action: "order", store, items: [{ productId, quantity }],
 //                      customer: { name, phone, address }, note }
 //                    -> { order, store }   (store here includes bank details)
+//   GET  /api/public?invoice=<publicId>        -> { invoice, store }
+//   POST /api/public { action: "paid", invoice } -> customer says they've paid
 //
 // Prices always come from the database, never from the browser. The order,
 // its items, the customer record and the seller's notification are written
@@ -10,6 +12,7 @@
 const { sql } = require('../lib/db');
 const { HttpError, getClientIp } = require('../lib/auth');
 const { cleanSlug, cleanText, normalizeNgPhone, formatNaira } = require('../lib/format');
+const { createOrder, invoiceForCustomer } = require('../lib/orders');
 
 const MAX_LINES = 50;
 const MAX_QUANTITY = 99;
@@ -124,71 +127,84 @@ async function placeOrder(req, res, body) {
 
   const lines = [...cart.entries()].map(([id, quantity]) => {
     const p = found.get(id);
-    const unit = Number(p.price_kobo);
-    return { product_id: id, name: p.name, unit_price_kobo: unit, quantity, line_total_kobo: unit * quantity };
+    return { product_id: id, name: p.name, unit_price_kobo: Number(p.price_kobo), quantity };
   });
-  const subtotal = lines.reduce((sum, l) => sum + l.line_total_kobo, 0);
-  const deliveryFee = Number(vendor.default_delivery_fee_kobo || 0);
-  const total = subtotal + deliveryFee;
 
-  const [order] = await sql`
-    WITH seq AS (
-      UPDATE vendors SET order_seq = order_seq + 1
-      WHERE id = ${vendor.id}
-      RETURNING id, order_seq
-    ),
-    cust AS (
-      INSERT INTO customers (vendor_id, name, phone, address)
-      VALUES (${vendor.id}, ${customer.name}, ${customer.phone}, ${customer.address})
-      ON CONFLICT (vendor_id, phone) DO UPDATE
-        SET name = EXCLUDED.name, address = COALESCE(EXCLUDED.address, customers.address)
-      RETURNING id
-    ),
-    ord AS (
-      INSERT INTO orders (
-        vendor_id, customer_id, order_number, source, customer_name, customer_phone,
-        delivery_address, note, subtotal_kobo, delivery_fee_kobo, total_kobo, created_ip
-      )
-      SELECT seq.id, cust.id, seq.order_seq, 'link', ${customer.name}, ${customer.phone},
-             ${customer.address}, ${customer.note}, ${subtotal}, ${deliveryFee}, ${total}, ${ip}
-      FROM seq, cust
-      RETURNING id, order_number, public_id, created_at
-    ),
-    items AS (
-      INSERT INTO order_items (order_id, product_id, name, unit_price_kobo, quantity, line_total_kobo)
-      SELECT ord.id, i.product_id, i.name, i.unit_price_kobo, i.quantity, i.line_total_kobo
-      FROM ord, jsonb_to_recordset(${JSON.stringify(lines)}::jsonb)
-        AS i(product_id bigint, name text, unit_price_kobo bigint, quantity int, line_total_kobo bigint)
-      RETURNING id
-    ),
-    alert AS (
-      INSERT INTO notifications (vendor_id, type, message, order_id)
-      SELECT ${vendor.id}, 'new_order',
-             'New order #' || ord.order_number || ' from ' || ${customer.name} || ' · ' || ${formatNaira(total)},
-             ord.id
-      FROM ord
-      RETURNING id
-    )
-    SELECT ord.order_number, ord.public_id, ord.created_at,
-           (SELECT count(*) FROM items)::int AS item_count
-    FROM ord
-  `;
-  if (!order) throw new Error('Order insert returned no row');
+  const order = await createOrder({
+    vendorId: vendor.id,
+    customer,
+    lines,
+    deliveryFeeKobo: Number(vendor.default_delivery_fee_kobo || 0),
+    note: customer.note,
+    source: 'link',
+    ip,
+    notify: true
+  });
 
+  const { id: internalId, ...publicOrder } = order; // customers don't need our row id
   return res.status(201).json({
-    order: {
-      number: Number(order.order_number),
-      publicId: order.public_id,
-      createdAt: order.created_at,
-      items: lines.map((l) => ({ name: l.name, quantity: l.quantity, unitPriceKobo: l.unit_price_kobo, lineTotalKobo: l.line_total_kobo })),
-      subtotalKobo: subtotal,
-      deliveryFeeKobo: deliveryFee,
-      totalKobo: total,
-      customer: { name: customer.name, address: customer.address },
-      note: customer.note
-    },
+    order: { ...publicOrder, customer: { name: customer.name, address: customer.address }, note: customer.note },
     store: storeForCustomer(vendor, { withBank: true })
   });
+}
+
+// The invoice (or receipt, once paid) a customer opens from /i/<publicId>.
+async function loadInvoice(publicId) {
+  const id = String(publicId || '').toLowerCase();
+  if (!/^[0-9a-f]{16}$/.test(id)) return null;
+  const rows = await sql`
+    SELECT o.*, v.business_name, v.slug, v.whatsapp_phone, v.bank_name, v.bank_account_number,
+           v.bank_account_name, v.default_delivery_fee_kobo, v.delivery_note, v.plan
+    FROM orders o
+    JOIN vendors v ON v.id = o.vendor_id
+    WHERE o.public_id = ${id} AND v.is_suspended = FALSE
+    LIMIT 1
+  `;
+  const order = rows[0];
+  if (!order) return null;
+  const [items, payments] = await Promise.all([
+    sql`SELECT * FROM order_items WHERE order_id = ${order.id} ORDER BY id`,
+    sql`SELECT amount_kobo, paid_at FROM payments WHERE order_id = ${order.id} ORDER BY paid_at, id`
+  ]);
+  const vendorShape = {
+    business_name: order.business_name, slug: order.slug, whatsapp_phone: order.whatsapp_phone,
+    bank_name: order.bank_name, bank_account_number: order.bank_account_number, bank_account_name: order.bank_account_name,
+    default_delivery_fee_kobo: order.default_delivery_fee_kobo, delivery_note: order.delivery_note, plan: order.plan
+  };
+  return { order, items, payments, vendor: vendorShape };
+}
+
+async function getInvoice(publicId, res) {
+  const found = await loadInvoice(publicId);
+  if (!found) throw new HttpError(404, "This invoice doesn't exist. Check the link with the seller.");
+  return res.status(200).json({
+    invoice: invoiceForCustomer(found.order, found.items, found.payments),
+    store: storeForCustomer(found.vendor, { withBank: true })
+  });
+}
+
+// Customer taps "I've paid". Only the first tap notifies the seller.
+async function markPaid(body, res) {
+  const found = await loadInvoice(body.invoice);
+  if (!found) throw new HttpError(404, "This invoice doesn't exist. Check the link with the seller.");
+  const o = found.order;
+  if (o.status === 'cancelled') throw new HttpError(409, 'This order was cancelled, so there is nothing to pay.');
+  if (o.payment_status !== 'paid' && !o.customer_marked_paid_at) {
+    const balance = Math.max(0, Number(o.total_kobo) - Number(o.amount_paid_kobo));
+    await sql`
+      WITH marked AS (
+        UPDATE orders SET customer_marked_paid_at = now(), updated_at = now()
+        WHERE id = ${o.id} AND customer_marked_paid_at IS NULL
+        RETURNING id
+      )
+      INSERT INTO notifications (vendor_id, type, message, order_id)
+      SELECT ${o.vendor_id}, 'payment_claimed',
+             ${o.customer_name + ' says they paid ' + formatNaira(balance) + ' for order #' + o.order_number + '. Check your bank app, then mark it paid.'},
+             id
+      FROM marked
+    `;
+  }
+  return getInvoice(body.invoice, res);
 }
 
 module.exports = async function handler(req, res) {
@@ -200,13 +216,17 @@ module.exports = async function handler(req, res) {
 
   try {
     if (!sql) throw new HttpError(500, 'The store is not connected to its database yet.');
-    if (req.method === 'GET') return await getStore(req, res);
+    if (req.method === 'GET') {
+      const invoice = new URL(req.url || '/', 'http://x').searchParams.get('invoice');
+      return invoice !== null ? await getInvoice(invoice, res) : await getStore(req, res);
+    }
 
     if (!String(req.headers['content-type'] || '').includes('application/json')) {
       return res.status(415).json({ error: 'Send the request as JSON.' });
     }
     const body = req.body && typeof req.body === 'object' ? req.body : {};
     if (body.action === 'order') return await placeOrder(req, res, body);
+    if (body.action === 'paid') return await markPaid(body, res);
     return res.status(400).json({ error: 'Unknown action.' });
   } catch (err) {
     if (err instanceof HttpError) return res.status(err.status).json({ error: err.message, ...err.extra });
