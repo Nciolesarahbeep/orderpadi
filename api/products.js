@@ -1,7 +1,9 @@
 // The logged-in vendor's products.
 //   GET    /api/products                                 -> { products, photoLimit }
-//   POST   /api/products { name, price, description? }   -> { product }
-//   PATCH  /api/products { id, name?, price?, description?, isActive? } -> { product }
+//   POST   /api/products { name, price, description?, category?, options? }   -> { product }
+//   PATCH  /api/products { id, name?, price?, description?, isActive?, category?, options? } -> { product }
+// options: up to 2, like [{ name: "Size", choices: [{ id?, label, extra?, soldOut? }] }]
+// where extra is what that choice adds to the price, in naira (lib/catalog.js).
 //   DELETE /api/products { id }                          -> { ok }
 // Photos (shrunk on the phone first; see lib/photos.js):
 //   POST   /api/products { action: "add-photo", id, image: "data:image/jpeg;base64,..." } -> { product }
@@ -13,6 +15,7 @@ const { sql } = require('../lib/db');
 const { HttpError, getSessionVendor } = require('../lib/auth');
 const { cleanText, nairaToKobo } = require('../lib/format');
 const { photoLimit, photosByProduct, addPhoto, removePhoto, makeCover } = require('../lib/photos');
+const { readOptions, optionsOf, readCategory } = require('../lib/catalog');
 
 const MAX_PRODUCTS = 200;
 
@@ -23,6 +26,8 @@ function productForClient(p, photos = []) {
     description: p.description || '',
     priceKobo: Number(p.price_kobo),
     isActive: !!p.is_active,
+    category: p.category || '',
+    options: optionsOf(p),
     photos,
     createdAt: p.created_at
   };
@@ -57,6 +62,17 @@ function readDescription(body) {
   return text || null;
 }
 
+// "wigs" becomes "Wigs" if the seller already has a "Wigs" category.
+async function matchCategory(vendor, category) {
+  if (!category) return null;
+  const [same] = await sql`
+    SELECT category FROM products
+    WHERE vendor_id = ${vendor.id} AND lower(category) = lower(${category})
+    LIMIT 1
+  `;
+  return same ? same.category : category;
+}
+
 function readId(req, body) {
   const fromQuery = new URL(req.url || '/', 'http://x').searchParams.get('id');
   const id = Number(body.id != null ? body.id : fromQuery);
@@ -81,13 +97,15 @@ async function create(vendor, body) {
   const name = readName(body);
   const priceKobo = readPrice(body);
   const description = readDescription(body);
+  const options = readOptions(body.options);
+  const category = await matchCategory(vendor, readCategory(body.category));
   const [{ n }] = await sql`SELECT count(*)::int AS n FROM products WHERE vendor_id = ${vendor.id}`;
   if (Number(n) >= MAX_PRODUCTS) {
     throw new HttpError(400, `You can have up to ${MAX_PRODUCTS} products. Delete some you no longer sell.`);
   }
   const [row] = await sql`
-    INSERT INTO products (vendor_id, name, description, price_kobo)
-    VALUES (${vendor.id}, ${name}, ${description}, ${priceKobo})
+    INSERT INTO products (vendor_id, name, description, price_kobo, category, options)
+    VALUES (${vendor.id}, ${name}, ${description}, ${priceKobo}, ${category}, ${JSON.stringify(options)}::jsonb)
     RETURNING *
   `;
   return { product: productForClient(row, []) };
@@ -103,11 +121,14 @@ async function update(req, vendor, body) {
   const priceKobo = has('price') ? readPrice(body) : Number(current.price_kobo);
   const description = has('description') ? readDescription(body) : current.description;
   const isActive = has('isActive') ? body.isActive === true : !!current.is_active;
+  const options = has('options') ? readOptions(body.options) : optionsOf(current);
+  const category = has('category') ? await matchCategory(vendor, readCategory(body.category)) : current.category;
 
   const [row] = await sql`
     UPDATE products SET
       name = ${name}, price_kobo = ${priceKobo}, description = ${description},
-      is_active = ${isActive}, updated_at = now()
+      is_active = ${isActive}, category = ${category}, options = ${JSON.stringify(options)}::jsonb,
+      updated_at = now()
     WHERE id = ${id} AND vendor_id = ${vendor.id}
     RETURNING *
   `;

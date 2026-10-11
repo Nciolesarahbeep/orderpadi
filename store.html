@@ -36,7 +36,23 @@
     .section-row h2 { margin: 0; }
 
     /* products */
-    #product-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .pgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .cat-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 24px 0 10px; scroll-margin-top: 70px; }
+    .cat-head h3 { margin: 0; font-size: 20px; }
+    .cat-head span { color: var(--muted); font-weight: 700; font-size: 14px; }
+    .cat-bar { position: sticky; top: 0; z-index: 15; background: var(--ground); margin: 0 -16px; padding: 10px 16px 10px; }
+    .store-search { margin-bottom: 4px; }
+    .soldout-tag { position: absolute; top: 8px; left: 8px; padding: 1px 9px; border-radius: 999px; border: 2px solid var(--ink); background: var(--card); color: var(--text); font-family: var(--body); font-size: 12px; font-weight: 800; }
+    .product.is-soldout .p-photo .ph { filter: grayscale(1); opacity: .65; }
+    .in-cart { flex: none; padding: 5px 10px; border-radius: 12px; border: 2px solid var(--ink); background: var(--sun); color: #1B1530; font-size: 13px; font-weight: 800; cursor: pointer; font-family: inherit; }
+    .opt-label { font-weight: 800; margin: 14px 0 6px; }
+    .opt-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .opt-chips button { border: var(--bw) solid var(--ink); background: var(--card); color: var(--text); border-radius: 14px; padding: 7px 14px; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; box-shadow: var(--shadow-sm); transition: transform .12s; }
+    .opt-chips button small { font-weight: 700; opacity: .75; }
+    .opt-chips button[aria-pressed="true"] { background: var(--theme); color: var(--theme-ink); animation: op-pop .3s cubic-bezier(.2, .9, .3, 1.5); }
+    .opt-chips button:disabled { opacity: .45; text-decoration: line-through; box-shadow: none; cursor: default; }
+    .v-lines { margin-top: 14px; }
+    .v-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 2px solid var(--line); font-weight: 700; }
     .product { position: relative; display: flex; flex-direction: column; background: var(--card); border: var(--bw) solid var(--ink); border-radius: 20px; box-shadow: var(--shadow); overflow: hidden; }
     .p-photo { position: relative; aspect-ratio: 1; border: 0; border-bottom: var(--bw) solid var(--ink); padding: 0; width: 100%; font-size: 46px; cursor: pointer; }
     .p-photo .more { position: absolute; right: 8px; bottom: 8px; display: inline-flex; gap: 3px; }
@@ -53,7 +69,7 @@
     .stepper { flex: none; display: flex; align-items: center; border: var(--bw) solid var(--ink); border-radius: 13px; overflow: hidden; background: var(--card); animation: op-pop .35s cubic-bezier(.2, .9, .3, 1.5); }
     .stepper button { width: 32px; height: 36px; border: 0; background: var(--sun); color: #1B1530; font: inherit; font-size: 19px; font-weight: 800; cursor: pointer; padding: 0; }
     .stepper span { min-width: 26px; text-align: center; font-family: var(--display); font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; }
-    #product-list > .empty { grid-column: 1 / -1; }
+    #product-list > .empty { margin-top: 0; }
 
     /* cart bar */
     .cartbar { position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 14px calc(14px + env(safe-area-inset-bottom)); z-index: 20; pointer-events: none; animation: op-rise .45s cubic-bezier(.2, .9, .3, 1.3) both; }
@@ -70,7 +86,8 @@
     .viewer-close svg { width: 18px; height: 18px; }
     .slides { clear: both; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; margin: 8px 0 0; border-radius: 20px; scrollbar-width: none; }
     .slides::-webkit-scrollbar { display: none; }
-    .slide { flex: 0 0 100%; scroll-snap-align: center; aspect-ratio: 1; border: var(--bw) solid var(--ink); border-radius: 20px; font-size: 90px; }
+    .slide { flex: 0 0 100%; scroll-snap-align: center; aspect-ratio: 1; max-height: 44vh; border: var(--bw) solid var(--ink); border-radius: 20px; font-size: 90px; }
+    .slide.no-photo { aspect-ratio: auto; height: 120px; font-size: 56px; }
     .dots { display: flex; justify-content: center; gap: 6px; margin-top: 10px; min-height: 12px; }
     .dots i { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--ink); background: var(--card); transition: background-color .2s, transform .2s; }
     .dots i.on { background: var(--theme); transform: scale(1.2); }
@@ -145,6 +162,8 @@
       <p class="mode" id="shop-mode" hidden></p>
       <p class="error" id="shop-error"></p>
       <div class="section-row"><h2 id="products-title">Products</h2><span class="muted" id="products-count"></span></div>
+      <input type="search" id="store-search" class="store-search" placeholder="Search this store" autocomplete="off" hidden>
+      <div class="chips cat-bar" id="category-bar" hidden></div>
       <div id="product-list"></div>
     </section>
 
@@ -211,7 +230,9 @@
       <h2 id="viewer-name"></h2>
       <div class="v-price" id="viewer-price"></div>
       <p class="v-desc" id="viewer-desc"></p>
+      <div id="viewer-options"></div>
       <div id="viewer-action"></div>
+      <div class="v-lines" id="viewer-lines"></div>
     </div>
   </div>
 
@@ -219,7 +240,9 @@
     const $ = (id) => document.getElementById(id);
     const slug = decodeURIComponent(location.pathname.split('/')[2] || '').toLowerCase();
     const CART_KEY = 'op_cart_' + slug;
-    const state = { store: null, products: [], cart: new Map(), viewing: null };
+    // cart: Map(lineKey -> { productId, choices: [choiceId], qty }). lineKey is
+    // "productId" or "productId:choiceA.choiceB" (sorted), the same as the server's.
+    const state = { store: null, products: [], cart: new Map(), viewing: null, picks: {}, category: '', query: '' };
     const THEME_HEX = { green: '#12B76A', coral: '#FF8A7A', sun: '#FFD23F', sky: '#6CCFF6', grape: '#6A4CE0', night: '#1B1530' };
     const TINTS = ['t0', 't1', 't2', 't3', 't4'];
     const tintFor = (text) => TINTS[[...String(text || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % TINTS.length];
@@ -265,6 +288,42 @@
     }
     function waLink(phone, text) { return 'https://wa.me/' + phone + (text ? '?text=' + encodeURIComponent(text) : ''); }
 
+    // ---------- products, options and prices ----------
+    const productById = (id) => state.products.find((x) => x.id === id);
+    const hasOptions = (p) => (p.options || []).length > 0;
+    function lineKey(productId, choices) {
+      const ids = (choices || []).slice().sort();
+      return ids.length ? productId + ':' + ids.join('.') : String(productId);
+    }
+    // Sold out when any option has no choice left.
+    function soldOut(p) { return (p.options || []).some((g) => !g.choices.some((c) => !c.soldOut)); }
+    // "From ₦40,000" when choices change the price (sold-out choices don't count).
+    function priceLabel(p) {
+      let min = p.priceKobo;
+      let max = p.priceKobo;
+      (p.options || []).forEach((g) => {
+        const extras = g.choices.filter((c) => !c.soldOut).map((c) => c.extraKobo || 0);
+        if (extras.length) { min += Math.min(...extras); max += Math.max(...extras); }
+      });
+      return min === max ? formatNaira(min) : 'From ' + formatNaira(min);
+    }
+    // { price, text } for a cart line, or null if a choice is gone or sold out.
+    function lineInfo(line) {
+      const p = productById(line.productId);
+      if (!p) return null;
+      let price = p.priceKobo;
+      const labels = [];
+      for (const g of p.options || []) {
+        const c = g.choices.find((x) => line.choices.includes(x.id));
+        if (!c || c.soldOut) return null;
+        price += c.extraKobo || 0;
+        labels.push(c.label);
+      }
+      return { product: p, price, text: labels.join(', ') };
+    }
+    const lineName = (info) => info.product.name + (info.text ? ' (' + info.text + ')' : '');
+    const qtyOfProduct = (id) => [...state.cart.values()].filter((l) => l.productId === id).reduce((s, l) => s + l.qty, 0);
+
     // A photo, or a coloured tile with the product's first letter.
     function photoTile(p, className, index) {
       const box = el('div', className + ' ph ' + tintFor(p.name));
@@ -288,37 +347,44 @@
       try { localStorage.setItem(CART_KEY, JSON.stringify([...state.cart])); } catch (e) {}
     }
     function loadCart() {
+      state.cart = new Map();
       try {
         const saved = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
-        const live = new Set(state.products.map((p) => p.id));
-        state.cart = new Map(saved.filter(([id, qty]) => live.has(id) && qty > 0));
+        saved.forEach(([key, value]) => {
+          // Older carts saved [productId, quantity].
+          const line = typeof value === 'number'
+            ? { productId: Number(key), choices: [], qty: value }
+            : { productId: Number(value.productId), choices: Array.isArray(value.choices) ? value.choices : [], qty: Number(value.qty) };
+          if (line.qty > 0 && lineInfo(line)) state.cart.set(lineKey(line.productId, line.choices), line);
+        });
       } catch (e) { state.cart = new Map(); }
     }
     function saveCustomer(c) { try { localStorage.setItem('op_customer', JSON.stringify(c)); } catch (e) {} }
     function savedCustomer() { try { return JSON.parse(localStorage.getItem('op_customer') || '{}'); } catch (e) { return {}; } }
 
-    function setQty(id, qty) {
-      const before = state.cart.get(id) || 0;
-      if (qty <= 0) state.cart.delete(id);
-      else state.cart.set(id, Math.min(99, qty));
+    function setLineQty(productId, choices, qty) {
+      const key = lineKey(productId, choices);
+      const before = state.cart.has(key) ? state.cart.get(key).qty : 0;
+      if (qty <= 0) state.cart.delete(key);
+      else state.cart.set(key, { productId, choices: choices.slice(), qty: Math.min(99, qty) });
       saveCart();
       renderProducts();
       if ($('view-checkout').classList.contains('active')) renderCheckout();
       renderCartBar();
-      if (state.viewing === id) renderViewerAction();
+      if (state.viewing === productId) renderViewer();
       if (qty > before) { OP.replay($('cart-count'), 'bump'); OP.buzz(8); }
     }
     function onlineOrdering() { return !state.store || state.store.acceptingOrders !== false; }
     function canOrder() { return onlineOrdering() || !!(state.store && state.store.whatsappPhone); }
 
+    function cartLines() {
+      return [...state.cart.values()].map((l) => ({ line: l, info: lineInfo(l) })).filter((x) => x.info);
+    }
+
     // WhatsApp-only mode: the cart becomes a message, nothing is saved here.
     function cartMessage() {
       const t = cartTotals();
-      const lines = [];
-      state.cart.forEach((qty, id) => {
-        const p = state.products.find((x) => x.id === id);
-        if (p) lines.push(qty + ' × ' + p.name + ' — ' + formatNaira(p.priceKobo * qty));
-      });
+      const lines = cartLines().map(({ line, info }) => line.qty + ' × ' + lineName(info) + ' — ' + formatNaira(info.price * line.qty));
       return ['Hi ' + state.store.businessName + ', I\'d like to order:', '', ...lines,
         t.delivery ? 'Delivery: ' + formatNaira(t.delivery) : null,
         'Total: ' + formatNaira(t.total)].filter((x) => x !== null).join('\n');
@@ -326,24 +392,21 @@
 
     function cartTotals() {
       let count = 0, subtotal = 0;
-      state.cart.forEach((qty, id) => {
-        const p = state.products.find((x) => x.id === id);
-        if (p) { count += qty; subtotal += p.priceKobo * qty; }
-      });
+      cartLines().forEach(({ line, info }) => { count += line.qty; subtotal += info.price * line.qty; });
       const delivery = state.store ? state.store.deliveryFeeKobo : 0;
       return { count, subtotal, delivery, total: subtotal + delivery };
     }
 
-    function stepper(id, qty) {
+    function stepper(productId, choices, qty) {
       const box = el('div', 'stepper');
       const minus = el('button', null, '−');
       minus.type = 'button';
       minus.setAttribute('aria-label', 'One less');
-      minus.addEventListener('click', () => setQty(id, qty - 1));
+      minus.addEventListener('click', () => setLineQty(productId, choices, qty - 1));
       const plus = el('button', null, '+');
       plus.type = 'button';
       plus.setAttribute('aria-label', 'One more');
-      plus.addEventListener('click', () => setQty(id, qty + 1));
+      plus.addEventListener('click', () => setLineQty(productId, choices, qty + 1));
       box.append(minus, el('span', null, String(qty)), plus);
       return box;
     }
@@ -352,8 +415,13 @@
       const add = el('button', 'add');
       add.type = 'button';
       add.innerHTML = PLUS;
-      add.setAttribute('aria-label', 'Add ' + p.name);
-      add.addEventListener('click', () => setQty(p.id, 1));
+      if (hasOptions(p)) {
+        add.setAttribute('aria-label', 'Choose options for ' + p.name);
+        add.addEventListener('click', () => openViewer(p.id));
+      } else {
+        add.setAttribute('aria-label', 'Add ' + p.name);
+        add.addEventListener('click', () => setLineQty(p.id, [], 1));
+      }
       return add;
     }
 
@@ -363,6 +431,12 @@
       document.documentElement.setAttribute('data-store', id);
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute('content', THEME_HEX[id]);
+    }
+
+    function categories() {
+      const seen = new Map();
+      state.products.forEach((p) => { if (p.category && !seen.has(p.category.toLowerCase())) seen.set(p.category.toLowerCase(), p.category); });
+      return [...seen.values()];
     }
 
     function renderStore() {
@@ -386,13 +460,78 @@
       mode.textContent = s.whatsappPhone
         ? 'Orders here go straight to the seller on WhatsApp. Add what you want, then tap "Send on WhatsApp".'
         : "This store isn't taking orders online right now. Please contact the seller.";
+      $('store-search').hidden = state.products.length < 8;
+      renderCategoryBar();
       renderProducts(true);
+    }
+
+    function renderCategoryBar() {
+      const cats = categories();
+      const bar = $('category-bar');
+      bar.hidden = cats.length < 1 || state.query !== '';
+      bar.textContent = '';
+      if (bar.hidden) return;
+      [['', 'All']].concat(cats.map((c) => [c, c])).forEach(([value, label]) => {
+        const chip = el('button', 'chip' + (state.category.toLowerCase() === value.toLowerCase() ? ' active' : ''), label);
+        chip.type = 'button';
+        chip.addEventListener('click', () => {
+          state.category = value;
+          renderCategoryBar();
+          renderProducts(true);
+          const top = $('products-title').getBoundingClientRect().top + window.scrollY - 10;
+          if (window.scrollY > top) window.scrollTo({ top, behavior: OP.reducedMotion ? 'auto' : 'smooth' });
+        });
+        bar.appendChild(chip);
+      });
+    }
+
+    function productCard(p) {
+      const out = soldOut(p);
+      const card = el('div', 'product' + (out ? ' is-soldout' : ''));
+      const photo = el('button', 'p-photo');
+      photo.type = 'button';
+      photo.setAttribute('aria-label', 'See ' + p.name);
+      const tile = photoTile(p, 'p-tile');
+      tile.style.cssText = 'position:absolute;inset:0';
+      photo.appendChild(tile);
+      if ((p.photos || []).length > 1) {
+        const more = el('span', 'more');
+        p.photos.forEach(() => more.appendChild(document.createElement('i')));
+        photo.appendChild(more);
+      }
+      if (out) photo.appendChild(el('span', 'soldout-tag', 'Sold out'));
+      photo.addEventListener('click', () => openViewer(p.id));
+      card.appendChild(photo);
+      const body = el('div', 'p-body');
+      body.appendChild(el('div', 'p-name', p.name));
+      if (p.description) body.appendChild(el('div', 'p-desc', p.description));
+      const foot = el('div', 'p-foot');
+      foot.appendChild(el('div', 'p-price', priceLabel(p)));
+      if (canOrder() && !out) {
+        if (hasOptions(p)) {
+          const n = qtyOfProduct(p.id);
+          if (n) {
+            const inCart = el('button', 'in-cart', n + ' added');
+            inCart.type = 'button';
+            inCart.setAttribute('aria-label', n + ' in your order. Add more of ' + p.name);
+            inCart.addEventListener('click', () => openViewer(p.id));
+            foot.appendChild(inCart);
+          } else {
+            foot.appendChild(addButton(p));
+          }
+        } else {
+          const line = state.cart.get(String(p.id));
+          foot.appendChild(line ? stepper(p.id, [], line.qty) : addButton(p));
+        }
+      }
+      body.appendChild(foot);
+      card.appendChild(body);
+      return card;
     }
 
     function renderProducts(first) {
       const list = $('product-list');
       list.textContent = '';
-      list.classList.toggle('stagger', !!first);
       $('products-title').textContent = state.products.length ? 'Products' : '';
       $('products-count').textContent = state.products.length > 1 ? state.products.length + ' items' : '';
       if (!state.products.length) {
@@ -401,33 +540,42 @@
           : 'No products listed yet. Check back soon.'));
         return;
       }
-      state.products.forEach((p) => {
-        const card = el('div', 'product');
-        const photo = el('button', 'p-photo');
-        photo.type = 'button';
-        photo.setAttribute('aria-label', 'See ' + p.name);
-        const tile = photoTile(p, 'p-tile');
-        tile.style.cssText = 'position:absolute;inset:0';
-        photo.appendChild(tile);
-        if ((p.photos || []).length > 1) {
-          const more = el('span', 'more');
-          p.photos.forEach(() => more.appendChild(document.createElement('i')));
-          photo.appendChild(more);
+      const q = state.query.toLowerCase();
+      const cats = categories();
+      let sections;
+      if (q) {
+        const found = state.products.filter((p) => (p.name + ' ' + (p.category || '') + ' ' + (p.description || '')).toLowerCase().includes(q));
+        sections = [[null, found]];
+        if (!found.length) {
+          list.appendChild(el('div', 'empty', 'Nothing matches "' + state.query + '". Try another word, or chat with the seller.'));
+          return;
         }
-        photo.addEventListener('click', () => openViewer(p.id));
-        card.appendChild(photo);
-        const body = el('div', 'p-body');
-        body.appendChild(el('div', 'p-name', p.name));
-        if (p.description) body.appendChild(el('div', 'p-desc', p.description));
-        const foot = el('div', 'p-foot');
-        foot.appendChild(el('div', 'p-price', formatNaira(p.priceKobo)));
-        const qty = state.cart.get(p.id) || 0;
-        if (canOrder()) foot.appendChild(qty ? stepper(p.id, qty) : addButton(p));
-        body.appendChild(foot);
-        card.appendChild(body);
-        list.appendChild(card);
+      } else if (state.category) {
+        sections = [[null, state.products.filter((p) => (p.category || '').toLowerCase() === state.category.toLowerCase())]];
+      } else if (cats.length) {
+        sections = cats.map((c) => [c, state.products.filter((p) => (p.category || '').toLowerCase() === c.toLowerCase())])
+          .concat([['Other', state.products.filter((p) => !p.category)]])
+          .filter(([, items]) => items.length);
+      } else {
+        sections = [[null, state.products]];
+      }
+      sections.forEach(([title, items]) => {
+        if (title) {
+          const head = el('div', 'cat-head');
+          head.append(el('h3', null, title), el('span', null, items.length + (items.length === 1 ? ' item' : ' items')));
+          list.appendChild(head);
+        }
+        const grid = el('div', 'pgrid' + (first ? ' stagger' : ''));
+        items.forEach((p) => grid.appendChild(productCard(p)));
+        list.appendChild(grid);
       });
     }
+
+    $('store-search').addEventListener('input', () => {
+      state.query = $('store-search').value.trim();
+      renderCategoryBar();
+      renderProducts();
+    });
 
     function renderCartBar(viewName) {
       const view = viewName || (document.querySelector('.view.active') || {}).id;
@@ -440,44 +588,100 @@
       $('cart-total').textContent = formatNaira(t.total);
     }
 
-    // ---------- photo viewer ----------
+    // ---------- product sheet: photos, options, add ----------
     function openViewer(id) {
-      const p = state.products.find((x) => x.id === id);
+      const p = productById(id);
       if (!p) return;
       state.viewing = id;
+      // Pre-pick any option that has only one choice left.
+      state.picks = {};
+      (p.options || []).forEach((g, gi) => {
+        const left = g.choices.filter((c) => !c.soldOut);
+        if (left.length === 1) state.picks[gi] = left[0].id;
+      });
       const slides = $('viewer-slides');
       slides.textContent = '';
       const count = Math.max(1, (p.photos || []).length);
-      for (let i = 0; i < count; i++) slides.appendChild(photoTile(p, 'slide', i));
+      for (let i = 0; i < count; i++) slides.appendChild(photoTile(p, (p.photos || []).length ? 'slide' : 'slide no-photo', i));
       const dots = $('viewer-dots');
       dots.textContent = '';
       if (count > 1) for (let i = 0; i < count; i++) dots.appendChild(el('i', i ? '' : 'on'));
       slides.scrollLeft = 0;
       $('viewer-name').textContent = p.name;
-      $('viewer-price').textContent = formatNaira(p.priceKobo);
       $('viewer-desc').textContent = p.description || '';
-      renderViewerAction();
+      renderViewer();
       $('viewer').hidden = false;
       document.body.style.overflow = 'hidden';
       $('viewer-close').focus();
     }
-    function renderViewerAction() {
-      const p = state.products.find((x) => x.id === state.viewing);
+
+    function renderViewer() {
+      const p = productById(state.viewing);
+      if (!p) return;
+      const options = p.options || [];
+      const picked = options.map((g, gi) => g.choices.find((c) => c.id === state.picks[gi])).filter(Boolean);
+      const complete = picked.length === options.length;
+      const price = p.priceKobo + picked.reduce((s, c) => s + (c.extraKobo || 0), 0);
+      $('viewer-price').textContent = complete ? formatNaira(price) : priceLabel(p);
+
+      const opts = $('viewer-options');
+      opts.textContent = '';
+      options.forEach((g, gi) => {
+        opts.appendChild(el('div', 'opt-label', g.name));
+        const row = el('div', 'opt-chips');
+        row.setAttribute('role', 'group');
+        row.setAttribute('aria-label', g.name);
+        g.choices.forEach((c) => {
+          const b = el('button');
+          b.type = 'button';
+          b.appendChild(document.createTextNode(c.label));
+          if (c.extraKobo) b.appendChild(el('small', null, ' +' + formatNaira(c.extraKobo)));
+          b.disabled = c.soldOut;
+          if (c.soldOut) b.setAttribute('aria-label', c.label + ', sold out');
+          b.setAttribute('aria-pressed', String(state.picks[gi] === c.id));
+          b.addEventListener('click', () => { state.picks[gi] = c.id; renderViewer(); });
+          row.appendChild(b);
+        });
+        opts.appendChild(row);
+      });
+
       const box = $('viewer-action');
       box.textContent = '';
-      if (!p || !canOrder()) return;
-      const qty = state.cart.get(p.id) || 0;
-      if (qty) {
-        const row = el('div');
-        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px';
-        row.append(el('b', null, qty + ' in your order'), stepper(p.id, qty));
-        box.appendChild(row);
-      } else {
-        const add = el('button', 'btn theme', 'Add to order');
-        add.type = 'button';
-        add.addEventListener('click', () => setQty(p.id, 1));
-        box.appendChild(add);
+      const lines = $('viewer-lines');
+      lines.textContent = '';
+      if (!canOrder()) return;
+      if (soldOut(p)) { box.appendChild(el('p', 'muted', 'Sold out for now. Chat with the seller to ask when it\'s back.')); return; }
+      if (!options.length) {
+        const qty = state.cart.has(String(p.id)) ? state.cart.get(String(p.id)).qty : 0;
+        if (qty) {
+          const row = el('div');
+          row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px';
+          row.append(el('b', null, qty + ' in your order'), stepper(p.id, [], qty));
+          box.appendChild(row);
+        } else {
+          const add = el('button', 'btn theme', 'Add to order');
+          add.type = 'button';
+          add.addEventListener('click', () => setLineQty(p.id, [], 1));
+          box.appendChild(add);
+        }
+        return;
       }
+      const missing = options.find((g, gi) => !state.picks[gi]);
+      const add = el('button', 'btn theme', missing ? 'Choose a ' + missing.name.toLowerCase() : 'Add to order · ' + formatNaira(price));
+      add.type = 'button';
+      add.disabled = !!missing;
+      add.addEventListener('click', () => {
+        const choices = picked.map((c) => c.id);
+        const key = lineKey(p.id, choices);
+        setLineQty(p.id, choices, (state.cart.has(key) ? state.cart.get(key).qty : 0) + 1);
+      });
+      box.appendChild(add);
+      // What's already in the order from this product, one line per choice.
+      cartLines().filter(({ line }) => line.productId === p.id).forEach(({ line, info }) => {
+        const row = el('div', 'v-line');
+        row.append(el('span', null, info.text + ' · ' + formatNaira(info.price)), stepper(p.id, line.choices, line.qty));
+        lines.appendChild(row);
+      });
     }
     function closeViewer() {
       $('viewer').hidden = true;
@@ -497,15 +701,13 @@
     function renderCheckout() {
       const box = $('checkout-lines');
       box.textContent = '';
-      state.cart.forEach((qty, id) => {
-        const p = state.products.find((x) => x.id === id);
-        if (!p) return;
-        const line = el('div', 'line');
+      cartLines().forEach(({ line, info }) => {
+        const row = el('div', 'line');
         const main = el('div', 'l-main');
-        main.appendChild(el('div', 'l-name', p.name));
-        main.appendChild(el('div', 'l-sub', formatNaira(p.priceKobo) + ' each · ' + formatNaira(p.priceKobo * qty)));
-        line.append(photoTile(p, 'thumb'), main, stepper(id, qty));
-        box.appendChild(line);
+        main.appendChild(el('div', 'l-name', info.product.name));
+        main.appendChild(el('div', 'l-sub', (info.text ? info.text + ' · ' : '') + formatNaira(info.price) + ' each · ' + formatNaira(info.price * line.qty)));
+        row.append(photoTile(info.product, 'thumb'), main, stepper(line.productId, line.choices, line.qty));
+        box.appendChild(row);
       });
       const t = cartTotals();
       $('sum-subtotal').textContent = formatNaira(t.subtotal);
@@ -551,7 +753,7 @@
       if (customer.phone.replace(/\D/g, '').length < 10) return showError('Enter your phone number, like 0803 123 4567.', 'phone');
       if (!customer.address) return showError('Enter your delivery address, or "Pick up" if you\'ll collect it.', 'address');
 
-      const items = [...state.cart].map(([productId, quantity]) => ({ productId, quantity }));
+      const items = cartLines().map(({ line }) => ({ productId: line.productId, quantity: line.qty, options: line.choices }));
       const btn = $('checkout-submit');
       btn.disabled = true;
       btn.textContent = 'Placing order…';
@@ -565,8 +767,10 @@
           renderStore();
           return switchView('shop');
         }
-        if (status === 409 && Array.isArray(data.unavailable)) {
-          data.unavailable.forEach((id) => state.cart.delete(id));
+        if (status === 409 && (Array.isArray(data.unavailable) || Array.isArray(data.unavailableLines))) {
+          const goneProducts = new Set(data.unavailable || []);
+          const goneLines = new Set(data.unavailableLines || []);
+          [...state.cart].forEach(([key, line]) => { if (goneProducts.has(line.productId) || goneLines.has(key)) state.cart.delete(key); });
           saveCart();
           await loadStore(true);
           if (cartTotals().count === 0) {
@@ -684,6 +888,7 @@
       }
       state.store = data.store;
       state.products = data.products;
+      if (state.category && !categories().some((c) => c.toLowerCase() === state.category.toLowerCase())) state.category = '';
       loadCart();
       saveCart();
       renderStore();

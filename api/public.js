@@ -1,8 +1,10 @@
 // The customer-facing side of a store. No login: anyone with the link.
 //   GET  /api/public?store=<slug>  -> { store, products }
-//   POST /api/public { action: "order", store, items: [{ productId, quantity }],
+//   POST /api/public { action: "order", store, items: [{ productId, quantity, options?: [choiceId] }],
 //                      customer: { name, phone, address }, note }
 //                    -> { order, store }   (store here includes bank details)
+//                    409 { unavailable: [productId], unavailableLines: [lineKey] } when
+//                    something sold out (lineKey is "productId" or "productId:choiceA.choiceB")
 //   GET  /api/public?invoice=<publicId>        -> { invoice, store }
 //   POST /api/public { action: "paid", invoice } -> customer says they've paid
 //   GET  /api/public?site=contact              -> { contact: { email, whatsapp } }
@@ -19,6 +21,7 @@ const { createOrder, invoiceForCustomer } = require('../lib/orders');
 const { isPro, usage, noteUsage } = require('../lib/plan');
 const { renderPage } = require('../lib/pages');
 const { themeOf, photosByProduct, photoUrl, loadPhoto } = require('../lib/photos');
+const { optionsOf, lineKey, priceFor } = require('../lib/catalog');
 
 const MAX_LINES = 50;
 const MAX_QUANTITY = 99;
@@ -59,7 +62,7 @@ async function getStore(req, res) {
   const vendor = await findStore(slug);
   if (!vendor) throw new HttpError(404, "This store doesn't exist. Check the link with the seller.");
   const products = await sql`
-    SELECT id, name, description, price_kobo FROM products
+    SELECT id, name, description, price_kobo, category, options FROM products
     WHERE vendor_id = ${vendor.id} AND is_active = TRUE
     ORDER BY sort_order, created_at, id
   `;
@@ -73,12 +76,15 @@ async function getStore(req, res) {
       name: p.name,
       description: p.description || '',
       priceKobo: Number(p.price_kobo),
+      category: p.category || '',
+      options: optionsOf(p),
       photos: (photos.get(Number(p.id)) || []).map((ph) => ph.url)
     }))
   });
 }
 
-// Merges repeated product ids and checks quantities.
+// Merges repeated lines (same product, same choices) and checks quantities.
+// Returns Map(lineKey -> { productId, choices, quantity }).
 function readCart(items) {
   if (!Array.isArray(items) || items.length === 0) throw new HttpError(400, 'Your order is empty. Add something first.');
   const merged = new Map();
@@ -89,7 +95,11 @@ function readCart(items) {
     if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QUANTITY) {
       throw new HttpError(400, `Quantities must be between 1 and ${MAX_QUANTITY}.`);
     }
-    merged.set(id, Math.min(MAX_QUANTITY, (merged.get(id) || 0) + qty));
+    const choices = Array.isArray(item.options) ? item.options.filter((c) => typeof c === 'string' && /^[a-z0-9]{6,12}$/.test(c)).slice(0, 4) : [];
+    const key = lineKey(id, choices);
+    const line = merged.get(key) || { productId: id, choices, quantity: 0 };
+    line.quantity = Math.min(MAX_QUANTITY, line.quantity + qty);
+    merged.set(key, line);
   }
   if (merged.size > MAX_LINES) throw new HttpError(400, `An order can have up to ${MAX_LINES} different products.`);
   return merged;
@@ -127,23 +137,27 @@ async function placeOrder(req, res, body) {
     throw new HttpError(429, 'Too many orders from this phone in the last few minutes. Wait a little, or message the seller on WhatsApp.');
   }
 
-  // Current prices from the database, only for this seller's live products.
-  const ids = JSON.stringify([...cart.keys()]);
+  // Current prices and options from the database, only for this seller's live products.
+  const ids = JSON.stringify([...new Set([...cart.values()].map((l) => l.productId))]);
   const rows = await sql`
-    SELECT id, name, price_kobo FROM products
+    SELECT id, name, price_kobo, options FROM products
     WHERE vendor_id = ${vendor.id} AND is_active = TRUE
       AND id IN (SELECT jsonb_array_elements_text(${ids}::jsonb)::bigint)
   `;
   const found = new Map(rows.map((r) => [Number(r.id), r]));
-  const unavailable = [...cart.keys()].filter((id) => !found.has(id));
-  if (unavailable.length) {
-    throw new HttpError(409, 'Some items are no longer available, so we removed them. Check your order and try again.', { unavailable });
+  const unavailable = [...new Set([...cart.values()].filter((l) => !found.has(l.productId)).map((l) => l.productId))];
+  const unavailableLines = [];
+  const lines = [];
+  for (const [key, l] of cart) {
+    const p = found.get(l.productId);
+    if (!p) { unavailableLines.push(key); continue; }
+    const priced = priceFor(p, l.choices);
+    if (priced.problem) { unavailableLines.push(key); continue; }
+    lines.push({ product_id: l.productId, name: p.name, option_text: priced.optionText, unit_price_kobo: priced.unitPriceKobo, quantity: l.quantity });
   }
-
-  const lines = [...cart.entries()].map(([id, quantity]) => {
-    const p = found.get(id);
-    return { product_id: id, name: p.name, unit_price_kobo: Number(p.price_kobo), quantity };
-  });
+  if (unavailableLines.length) {
+    throw new HttpError(409, 'Some items or choices are no longer available, so we removed them. Check your order and try again.', { unavailable, unavailableLines });
+  }
 
   const order = await createOrder({
     vendorId: vendor.id,

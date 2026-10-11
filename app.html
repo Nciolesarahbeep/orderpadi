@@ -173,6 +173,38 @@
     .slot.busy .spinner { position: relative; width: 26px; height: 26px; }
     .photos-head { display: flex; align-items: baseline; gap: 6px; font-weight: 800; font-size: 16px; }
 
+    /* products: sections and search */
+    .psearch { margin-top: 12px; }
+    .psection { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 22px 0 0; }
+    .psection h2 { margin: 0; font-size: 20px; }
+    .psection span { color: var(--muted); font-weight: 700; font-size: 14px; }
+    .pgrid .popts { display: block; margin-top: 2px; font-size: 12px; font-weight: 700; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* product editor: options */
+    .opt-group { margin-top: 12px; padding: 12px; border: var(--bw) solid var(--ink); border-radius: 18px; background: var(--card-2); animation: op-pop .35s cubic-bezier(.2, .9, .3, 1.4) both; }
+    .opt-head { display: flex; gap: 8px; align-items: center; }
+    .opt-head input { font-weight: 800; }
+    .opt-suggest { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .opt-suggest button { border: 2px solid var(--ink); background: var(--card); color: var(--text); border-radius: 999px; padding: 3px 11px; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+    .choice { margin-top: 10px; padding-top: 10px; border-top: 2px dashed var(--line); }
+    .choice:first-of-type { border-top: 0; padding-top: 0; }
+    .choice-top, .choice-bottom { display: flex; gap: 8px; align-items: center; }
+    .choice-bottom { margin-top: 8px; }
+    .choice-bottom .prefix { width: 128px; flex: none; }
+    .choice-bottom .prefix span { font-size: 15px; }
+    .choice-bottom input { padding: 9px 10px 9px 38px; font-size: 16px; }
+    .choice-price { flex: 1; min-width: 0; font-family: var(--display); font-weight: 700; font-size: 15px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stock { flex: none; border: 2px solid var(--ink); border-radius: 999px; padding: 4px 11px; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; background: var(--brand); color: #1B1530; }
+    .stock[aria-pressed="true"] { background: var(--coral); }
+    .opt-add-choice { margin-top: 10px; }
+    .cat-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .cat-chips button { border: 2px solid var(--ink); background: var(--card); color: var(--text); border-radius: 999px; padding: 3px 11px; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+    .cat-chips button.on { background: var(--sun); color: #1B1530; }
+
+    /* new order: pick options */
+    .choose-card { margin-top: 12px; padding: 12px; border: var(--bw) solid var(--ink); border-radius: 18px; background: var(--sun-soft); }
+    .choose-card label:first-of-type { margin-top: 8px; }
+
     /* settings: store colour + appearance */
     .swatches { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
     .swatch { aspect-ratio: 1; border-radius: 16px; border: var(--bw) solid var(--ink); box-shadow: var(--shadow-sm); display: grid; place-items: center; padding: 0; cursor: pointer; transition: transform .25s cubic-bezier(.2, .9, .3, 1.6), box-shadow .2s; }
@@ -523,6 +555,14 @@
           <div id="neworder-lines"></div>
           <label for="neworder-product">Add a product</label>
           <select id="neworder-product"></select>
+          <div class="choose-card" id="neworder-choose" hidden>
+            <b id="neworder-choose-title"></b>
+            <div id="neworder-choose-fields"></div>
+            <div class="actions">
+              <button class="btn secondary" type="button" id="neworder-choose-cancel">Cancel</button>
+              <button class="btn" type="button" id="neworder-choose-add">Add to order</button>
+            </div>
+          </div>
           <p class="center" style="margin-top:12px"><button class="link" type="button" id="neworder-custom-toggle">+ Add an item that isn't in your products</button></p>
           <div id="neworder-custom" hidden>
             <div class="two">
@@ -597,6 +637,7 @@
         <button class="btn small sun" type="button" data-new-product>+ Add</button>
       </div>
       <p class="sub" id="products-sub">What customers can order from your store.</p>
+      <input type="search" id="products-search" class="psearch" placeholder="Search your products" autocomplete="off" hidden>
       <div id="products-list"></div>
     </section>
 
@@ -613,11 +654,21 @@
       </div>
       <form id="product-form" class="card" novalidate>
         <label for="product-name" style="margin-top:0">Name</label>
-        <input id="product-name" type="text" maxlength="80" placeholder="e.g. Bone straight wig, 22 inches">
+        <input id="product-name" type="text" maxlength="80" placeholder="e.g. Bone straight wig">
         <label for="product-price">Price</label>
         <div class="prefix"><span>₦</span><input id="product-price" type="text" inputmode="decimal" autocomplete="off" placeholder="45000"></div>
+        <label for="product-category">Category <span class="muted">(optional)</span></label>
+        <input id="product-category" type="text" maxlength="40" list="category-list" autocomplete="off" placeholder="e.g. Wigs, Hair care, Drinks">
+        <datalist id="category-list"></datalist>
+        <div class="cat-chips" id="category-chips"></div>
         <label for="product-description">Description <span class="muted">(optional)</span></label>
-        <textarea id="product-description" maxlength="300" placeholder="Colour, size, what's included…"></textarea>
+        <textarea id="product-description" maxlength="300" placeholder="Material, what's included, how to use…"></textarea>
+
+        <div class="photos-head" style="margin-top:20px">Options <span class="muted">(like Size or Colour)</span></div>
+        <p class="hint" style="margin-top:2px">Customers pick one choice from each option. Give a choice an extra price if it costs more.</p>
+        <div id="option-groups"></div>
+        <button class="btn secondary small" type="button" id="add-option" style="margin-top:12px">+ Add an option</button>
+
         <div class="switch-row">
           <div><b>Show in store</b><small>Turn off when it's sold out.</small></div>
           <label class="switch"><input type="checkbox" id="product-active" checked aria-label="Show in store"><span></span></label>
@@ -1227,6 +1278,26 @@
       renderProducts();
     }
 
+    // Lowest and highest price once option extras are added.
+    function priceRange(p) {
+      let min = p.priceKobo;
+      let max = p.priceKobo;
+      (p.options || []).forEach((g) => {
+        const extras = g.choices.map((c) => c.extraKobo || 0);
+        if (extras.length) { min += Math.min(...extras); max += Math.max(...extras); }
+      });
+      return [min, max];
+    }
+    function priceLabel(p) {
+      const [min, max] = priceRange(p);
+      return min === max ? formatNaira(min) : 'From ' + formatNaira(min);
+    }
+    function categoriesOf(list) {
+      const seen = new Map();
+      list.forEach((p) => { if (p.category && !seen.has(p.category.toLowerCase())) seen.set(p.category.toLowerCase(), p.category); });
+      return [...seen.values()];
+    }
+
     // A product's cover photo, or a coloured tile with its first letter.
     function photoBox(p, className) {
       const box = el('div', className + ' ' + tintFor(p.name));
@@ -1273,20 +1344,39 @@
         return box.appendChild(empty);
       }
 
-      const wrap = el('div', 'pgrid stagger');
-      list.forEach((p) => {
-        const row = el('button', 'row-btn' + (p.isActive ? '' : ' hidden-item'));
-        row.type = 'button';
-        row.appendChild(photoBox(p, 'ph'));
-        const body = el('div', 'pbody');
-        body.appendChild(el('div', 'row-name', p.name));
-        body.appendChild(el('span', 'price', formatNaira(p.priceKobo)));
-        row.appendChild(body);
-        row.addEventListener('click', () => openProduct(p));
-        wrap.appendChild(row);
+      // Search once the list gets long; sections once there are categories.
+      $('products-search').hidden = list.length < 8;
+      const q = $('products-search').hidden ? '' : $('products-search').value.trim().toLowerCase();
+      const shownList = q ? list.filter((p) => (p.name + ' ' + p.category + ' ' + p.description).toLowerCase().includes(q)) : list;
+      if (!shownList.length) return box.appendChild(el('p', 'empty', 'Nothing matches "' + $('products-search').value.trim() + '".'));
+      const cats = categoriesOf(shownList);
+      const sections = cats.length
+        ? cats.map((c) => [c, shownList.filter((p) => p.category && p.category.toLowerCase() === c.toLowerCase())])
+            .concat([['Other', shownList.filter((p) => !p.category)]]).filter(([, items]) => items.length)
+        : [[null, shownList]];
+      sections.forEach(([title, items]) => {
+        if (title) {
+          const head = el('div', 'psection');
+          head.append(el('h2', null, title), el('span', null, items.length + (items.length === 1 ? ' product' : ' products')));
+          box.appendChild(head);
+        }
+        const wrap = el('div', 'pgrid stagger');
+        items.forEach((p) => {
+          const row = el('button', 'row-btn' + (p.isActive ? '' : ' hidden-item'));
+          row.type = 'button';
+          row.appendChild(photoBox(p, 'ph'));
+          const body = el('div', 'pbody');
+          body.appendChild(el('div', 'row-name', p.name));
+          body.appendChild(el('span', 'price', priceLabel(p)));
+          if ((p.options || []).length) body.appendChild(el('span', 'popts', p.options.map((g) => g.choices.length + ' ' + g.name.toLowerCase()).join(' · ')));
+          row.appendChild(body);
+          row.addEventListener('click', () => openProduct(p));
+          wrap.appendChild(row);
+        });
+        box.appendChild(wrap);
       });
-      box.appendChild(wrap);
     }
+    $('products-search').addEventListener('input', renderProducts);
 
     function openProduct(p) {
       state.editing = p || null;
@@ -1294,6 +1384,10 @@
       $('product-name').value = p ? p.name : '';
       $('product-price').value = p ? koboToInput(p.priceKobo) : '';
       $('product-description').value = p ? p.description : '';
+      $('product-category').value = p ? (p.category || '') : '';
+      renderCategoryChips();
+      state.optDraft = p ? (p.options || []).map((g) => ({ name: g.name, choices: g.choices.map((c) => ({ id: c.id, label: c.label, extra: c.extraKobo ? koboToInput(c.extraKobo) : '', soldOut: c.soldOut })) })) : [];
+      renderOptions();
       $('product-active').checked = p ? p.isActive : true;
       $('product-save').textContent = p ? 'Save changes' : 'Add product';
       $('product-delete').hidden = !p;
@@ -1301,6 +1395,160 @@
       switchView('product');
       renderSlots();
       if (!p) $('product-name').focus();
+    }
+
+    // ---------- product category ----------
+    function renderCategoryChips() {
+      const cats = categoriesOf(state.products || []);
+      const list = $('category-list');
+      list.textContent = '';
+      cats.forEach((c) => list.appendChild(Object.assign(document.createElement('option'), { value: c })));
+      const box = $('category-chips');
+      box.textContent = '';
+      const current = $('product-category').value.trim().toLowerCase();
+      cats.slice(0, 12).forEach((c) => {
+        const b = el('button', c.toLowerCase() === current ? 'on' : '', c);
+        b.type = 'button';
+        b.addEventListener('click', () => {
+          $('product-category').value = c.toLowerCase() === $('product-category').value.trim().toLowerCase() ? '' : c;
+          renderCategoryChips();
+        });
+        box.appendChild(b);
+      });
+    }
+    $('product-category').addEventListener('input', renderCategoryChips);
+
+    // ---------- product options (like Size or Colour) ----------
+    // state.optDraft: [{ name, choices: [{ id?, label, extra (naira text), soldOut }] }]
+    const OPTION_NAMES = ['Size', 'Colour', 'Length', 'Flavour', 'Portion', 'Style'];
+    function basePriceKobo() {
+      const v = $('product-price').value.trim();
+      return looksLikeNaira(v) ? Math.round(Number(v.replace(/[₦,\s]/g, '')) * 100) : null;
+    }
+    function choicePriceText(choice) {
+      const base = basePriceKobo();
+      if (base === null) return '';
+      const extra = choice.extra && looksLikeNaira(choice.extra) ? Math.round(Number(String(choice.extra).replace(/[₦,\s]/g, '')) * 100) : 0;
+      return '= ' + formatNaira(base + extra);
+    }
+    function refreshChoicePrices() {
+      document.querySelectorAll('#option-groups .choice').forEach((row) => {
+        const g = state.optDraft[Number(row.dataset.g)];
+        const c = g && g.choices[Number(row.dataset.c)];
+        if (c) row.querySelector('.choice-price').textContent = choicePriceText(c);
+      });
+    }
+    $('product-price').addEventListener('input', refreshChoicePrices);
+
+    function renderOptions(focus) {
+      const box = $('option-groups');
+      box.textContent = '';
+      state.optDraft.forEach((g, gi) => {
+        const group = el('div', 'opt-group');
+        const head = el('div', 'opt-head');
+        const name = document.createElement('input');
+        name.type = 'text';
+        name.maxLength = 20;
+        name.value = g.name;
+        name.placeholder = gi === 0 ? 'Option name, like Size' : 'Option name, like Colour';
+        name.setAttribute('aria-label', 'Option name');
+        name.addEventListener('input', () => { g.name = name.value; suggest.hidden = !!name.value.trim(); });
+        const remove = el('button', 'x', '×');
+        remove.type = 'button';
+        remove.setAttribute('aria-label', 'Remove this option');
+        remove.addEventListener('click', () => { state.optDraft.splice(gi, 1); renderOptions(); });
+        head.append(name, remove);
+        group.appendChild(head);
+        const suggest = el('div', 'opt-suggest');
+        suggest.hidden = !!g.name.trim();
+        OPTION_NAMES.filter((n) => !state.optDraft.some((o) => o.name.trim().toLowerCase() === n.toLowerCase())).slice(0, 5).forEach((n) => {
+          const b = el('button', null, n);
+          b.type = 'button';
+          b.addEventListener('click', () => { g.name = n; renderOptions({ g: gi, c: 0 }); });
+          suggest.appendChild(b);
+        });
+        group.appendChild(suggest);
+        g.choices.forEach((c, ci) => {
+          const row = el('div', 'choice');
+          row.dataset.g = gi;
+          row.dataset.c = ci;
+          const top = el('div', 'choice-top');
+          const label = document.createElement('input');
+          label.type = 'text';
+          label.maxLength = 40;
+          label.value = c.label;
+          label.placeholder = (g.name.trim().toLowerCase() === 'colour' ? 'e.g. Black' : g.name.trim().toLowerCase() === 'length' ? 'e.g. 22 inches' : 'e.g. Small');
+          label.setAttribute('aria-label', 'Choice name');
+          label.addEventListener('input', () => { c.label = label.value; });
+          label.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); g.choices.push({ label: '', extra: '', soldOut: false }); renderOptions({ g: gi, c: g.choices.length - 1 }); }
+          });
+          const x = el('button', 'x', '×');
+          x.type = 'button';
+          x.setAttribute('aria-label', 'Remove this choice');
+          x.addEventListener('click', () => { g.choices.splice(ci, 1); renderOptions(); });
+          top.append(label, x);
+          const bottom = el('div', 'choice-bottom');
+          const pre = el('div', 'prefix');
+          pre.appendChild(el('span', null, '+₦'));
+          const extra = document.createElement('input');
+          extra.type = 'text';
+          extra.inputMode = 'decimal';
+          extra.value = c.extra;
+          extra.placeholder = '0';
+          extra.setAttribute('aria-label', 'Extra price for this choice');
+          extra.addEventListener('input', () => { c.extra = extra.value; price.textContent = choicePriceText(c); });
+          pre.appendChild(extra);
+          const price = el('span', 'choice-price', choicePriceText(c));
+          const stock = el('button', 'stock', c.soldOut ? 'Sold out' : 'In stock');
+          stock.type = 'button';
+          stock.setAttribute('aria-pressed', String(!!c.soldOut));
+          stock.setAttribute('aria-label', 'In stock or sold out');
+          stock.addEventListener('click', () => {
+            c.soldOut = !c.soldOut;
+            stock.textContent = c.soldOut ? 'Sold out' : 'In stock';
+            stock.setAttribute('aria-pressed', String(c.soldOut));
+          });
+          bottom.append(pre, price, stock);
+          row.append(top, bottom);
+          group.appendChild(row);
+        });
+        const addChoice = el('button', 'btn secondary small opt-add-choice', '+ Add choice');
+        addChoice.type = 'button';
+        addChoice.disabled = g.choices.length >= 20;
+        addChoice.addEventListener('click', () => { g.choices.push({ label: '', extra: '', soldOut: false }); renderOptions({ g: gi, c: g.choices.length - 1 }); });
+        group.appendChild(addChoice);
+        box.appendChild(group);
+      });
+      $('add-option').hidden = state.optDraft.length >= 2;
+      $('add-option').textContent = state.optDraft.length ? '+ Add another option' : '+ Add an option';
+      if (focus) {
+        const rows = box.querySelectorAll('.opt-group');
+        const target = rows[focus.g] && (focus.c === undefined ? rows[focus.g].querySelector('.opt-head input') : rows[focus.g].querySelectorAll('.choice-top input')[focus.c]);
+        if (target) target.focus();
+      }
+    }
+    $('add-option').addEventListener('click', () => {
+      state.optDraft.push({ name: '', choices: [{ label: '', extra: '', soldOut: false }, { label: '', extra: '', soldOut: false }] });
+      renderOptions({ g: state.optDraft.length - 1 });
+    });
+
+    // Drops empty rows; returns the options to send, or an error message.
+    function optionsForSave() {
+      const out = [];
+      for (const g of state.optDraft) {
+        const choices = g.choices.filter((c) => c.label.trim() || String(c.extra || '').trim());
+        const name = g.name.trim();
+        if (!name && !choices.length) continue;
+        if (!name) return { error: 'Give each option a name, like Size or Colour.' };
+        if (!choices.length) return { error: 'Add at least one choice to ' + name + ', or remove it.' };
+        for (const c of choices) {
+          if (!c.label.trim()) return { error: 'Give every ' + name + ' choice a name.' };
+          if (String(c.extra || '').trim() && !looksLikeNaira(c.extra)) return { error: 'Enter the extra price for "' + c.label.trim() + '" in naira, like 5000.' };
+        }
+        out.push({ name, choices: choices.map((c) => ({ id: c.id, label: c.label.trim(), extra: String(c.extra || '').trim(), soldOut: !!c.soldOut })) });
+      }
+      return { options: out };
     }
 
     // ---------- product photos ----------
@@ -1474,7 +1722,9 @@
       if (!looksLikeNaira(price) || Number(price.replace(/[₦,\s]/g, '')) <= 0) {
         return showError('product', 'Enter the price in naira, like 4500.', 'price');
       }
-      const body = { name, price, description, isActive: $('product-active').checked };
+      const opts = optionsForSave();
+      if (opts.error) return showError('product', opts.error);
+      const body = { name, price, description, category: $('product-category').value.trim(), options: opts.options, isActive: $('product-active').checked };
       const editing = state.editing;
       if (editing) body.id = editing.id;
 
@@ -2014,8 +2264,9 @@
       select.textContent = '';
       select.appendChild(Object.assign(document.createElement('option'), { value: '', textContent: state.products.length ? 'Choose a product…' : 'No products yet — add a custom item below' }));
       state.products.forEach((p) => {
-        select.appendChild(Object.assign(document.createElement('option'), { value: String(p.id), textContent: p.name + ' — ' + formatNaira(p.priceKobo) + (p.isActive ? '' : ' (hidden)') }));
+        select.appendChild(Object.assign(document.createElement('option'), { value: String(p.id), textContent: p.name + ' — ' + priceLabel(p) + (p.isActive ? '' : ' (hidden)') }));
       });
+      $('neworder-choose').hidden = true;
       renderDraft();
       switchView('neworder');
       $('neworder-name').focus();
@@ -2066,16 +2317,57 @@
       totals.appendChild(total);
     }
 
+    // Adds a product line; the same product with the same choices adds up.
+    function addDraftLine(p, picked) {
+      const choices = picked.map((c) => c.id);
+      const key = p.id + ':' + choices.slice().sort().join('.');
+      const existing = state.draft.find((l) => l.key === key);
+      if (existing) existing.quantity = Math.min(99, existing.quantity + 1);
+      else {
+        state.draft.push({
+          key, productId: p.id, options: choices, quantity: 1,
+          name: p.name + (picked.length ? ' (' + picked.map((c) => c.label).join(', ') + ')' : ''),
+          priceKobo: p.priceKobo + picked.reduce((sum, c) => sum + (c.extraKobo || 0), 0)
+        });
+      }
+      renderDraft();
+    }
+
     $('neworder-product').addEventListener('change', () => {
       const id = Number($('neworder-product').value);
       const p = (state.products || []).find((x) => x.id === id);
-      if (p) {
-        const existing = state.draft.find((l) => l.productId === p.id);
-        if (existing) existing.quantity = Math.min(99, existing.quantity + 1);
-        else state.draft.push({ productId: p.id, name: p.name, priceKobo: p.priceKobo, quantity: 1 });
-        renderDraft();
-      }
       $('neworder-product').value = '';
+      if (!p) return;
+      if (!(p.options || []).length) return addDraftLine(p, []);
+      // Ask for each option before adding the line.
+      state.choosing = p;
+      $('neworder-choose-title').textContent = 'Choose for ' + p.name;
+      const fields = $('neworder-choose-fields');
+      fields.textContent = '';
+      p.options.forEach((g, gi) => {
+        const label = el('label', null, g.name);
+        label.htmlFor = 'neworder-opt-' + gi;
+        const select = document.createElement('select');
+        select.id = 'neworder-opt-' + gi;
+        g.choices.forEach((c) => {
+          const extra = c.extraKobo ? ' (+' + formatNaira(c.extraKobo) + ')' : '';
+          select.appendChild(Object.assign(document.createElement('option'), { value: c.id, textContent: c.label + extra + (c.soldOut ? ' · sold out' : '') }));
+        });
+        const firstInStock = g.choices.find((c) => !c.soldOut);
+        if (firstInStock) select.value = firstInStock.id;
+        fields.append(label, select);
+      });
+      $('neworder-choose').hidden = false;
+      $('neworder-choose').scrollIntoView({ block: 'center' });
+    });
+    $('neworder-choose-cancel').addEventListener('click', () => { $('neworder-choose').hidden = true; state.choosing = null; });
+    $('neworder-choose-add').addEventListener('click', () => {
+      const p = state.choosing;
+      if (!p) return;
+      const picked = p.options.map((g, gi) => g.choices.find((c) => c.id === $('neworder-opt-' + gi).value)).filter(Boolean);
+      addDraftLine(p, picked);
+      $('neworder-choose').hidden = true;
+      state.choosing = null;
     });
     $('neworder-custom-toggle').addEventListener('click', () => {
       $('neworder-custom').hidden = !$('neworder-custom').hidden;
@@ -2099,7 +2391,7 @@
       const body = {
         action: 'create',
         customer: { name: $('neworder-name').value, phone: $('neworder-phone').value, address: $('neworder-address').value },
-        items: state.draft.map((l) => (l.productId ? { productId: l.productId, quantity: l.quantity } : { name: l.name, price: l.price, quantity: l.quantity })),
+        items: state.draft.map((l) => (l.productId ? { productId: l.productId, quantity: l.quantity, options: l.options || [] } : { name: l.name, price: l.price, quantity: l.quantity })),
         deliveryFee: $('neworder-fee').value.trim(),
         discount: $('neworder-discount').value.trim(),
         note: $('neworder-note').value
@@ -2471,7 +2763,7 @@
         ctx.font = B(Math.round(Math.min(40, tileW * 0.085)));
         ctx.fillText(fit(ctx, p.name, tileW - 56), 28, photoH + 62);
         ctx.font = F(Math.round(Math.min(56, tileW * 0.12)));
-        ctx.fillText(formatNaira(p.priceKobo), 28, photoH + 126);
+        ctx.fillText(fit(ctx, priceLabel(p), tileW - 56), 28, photoH + 126);
         ctx.restore();
       });
 

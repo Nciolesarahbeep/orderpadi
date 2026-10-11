@@ -81,6 +81,8 @@
           migrations.step2 ? '' : 'Run db/migrations/002_email_otps_ip.sql in the Neon SQL Editor.');
         addRow('Photos and store colours update applied', d.db === true && !!migrations.step3,
           migrations.step3 ? '' : 'Run db/migrations/003_photos_and_theme.sql in the Neon SQL Editor.');
+        addRow('Options and categories update applied', d.db === true && !!migrations.step4,
+          migrations.step4 ? '' : 'Run db/migrations/004_options_and_categories.sql in the Neon SQL Editor.');
         addRow('JWT_SECRET set', !!env.JWT_SECRET, env.JWT_SECRET ? '' : 'Add a long random string, then redeploy.');
         addRow('RESEND_API_KEY set', !!env.RESEND_API_KEY, env.RESEND_API_KEY ? '' : 'Add your Resend key, then redeploy.');
         addRow('Paystack keys set (for Pro)', !!(env.PAYSTACK_SECRET_KEY && env.PAYSTACK_PLAN_CODE),

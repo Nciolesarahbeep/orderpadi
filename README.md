@@ -5,6 +5,7 @@ Orders, invoices and payment tracking for WhatsApp and Instagram sellers in Nige
 - **Sellers** get a store link (`/s/your-shop`), invoices with their bank details, a list of who owes them, and sales numbers.
 - **Free plan:** 20 orders a month, 1 photo per product. **Pro:** ₦2,500 a month through Paystack, with unlimited orders, 3 photos per product, no branding, reports and CSV export.
 - **Look:** bold and playful, in light and dark. Sellers pick one of six store colours, add product photos, swipe an order to mark it paid, and make a WhatsApp status picture of their products.
+- **Options and categories:** a product can have up to 2 options (like Size and Colour) with up to 20 choices each. A choice can cost extra or be marked sold out. Categories group products on the store page, with search once a store has 8 or more products.
 - Plain HTML pages and Node server functions, with a Neon Postgres database. Hosted on **Netlify** (`netlify.toml`); `vercel.json` is kept so it can also run on Vercel.
 - No npm packages: the database is reached over HTTPS (`lib/db.js`), and login tokens and password hashing use Node's built-in crypto (`lib/jwt.js`, `lib/password.js`).
 
@@ -55,6 +56,7 @@ Redeploy after changing any of them (Deploys → Trigger deploy).
 
 - `002_email_otps_ip.sql`: limits email codes per device.
 - `003_photos_and_theme.sql`: product photos and store colours.
+- `004_options_and_categories.sql`: product options (like Size and Colour) and categories.
 
 Product photos are shrunk on the seller's phone (about 1000px, under 240 KB) and stored in the `product_photos` table. The admin panel shows how much space they use; Neon's free plan has 512 MB.
 

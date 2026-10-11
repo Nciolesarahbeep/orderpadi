@@ -17,6 +17,7 @@ const { sql } = require('../lib/db');
 const { HttpError, getSessionVendor } = require('../lib/auth');
 const { cleanText, nairaToKobo, normalizeNgPhone, formatNaira } = require('../lib/format');
 const { createOrder, orderSummary, orderDetail } = require('../lib/orders');
+const { priceFor } = require('../lib/catalog');
 const { isPro, usage, noteUsage, FREE_MONTHLY_ORDERS } = require('../lib/plan');
 
 const PAGE_SIZE = 50;
@@ -51,7 +52,7 @@ async function list(vendor, params) {
   const customerId = Math.max(0, Number(params.get('customer')) || 0);
   const rows = await sql`
     SELECT o.*,
-      (SELECT string_agg(i.quantity || ' × ' || i.name, ', ' ORDER BY i.id) FROM order_items i WHERE i.order_id = o.id) AS items_summary
+      (SELECT string_agg(i.quantity || ' × ' || i.name || coalesce(' (' || i.option_text || ')', ''), ', ' ORDER BY i.id) FROM order_items i WHERE i.order_id = o.id) AS items_summary
     FROM orders o
     WHERE o.vendor_id = ${vendor.id}
       AND (
@@ -201,7 +202,7 @@ async function exportCsv(vendor, res) {
   const rows = await sql`
     SELECT o.*,
       to_char(o.created_at AT TIME ZONE 'Africa/Lagos', 'YYYY-MM-DD HH24:MI') AS placed,
-      (SELECT string_agg(i.quantity || ' x ' || i.name, '; ' ORDER BY i.id) FROM order_items i WHERE i.order_id = o.id) AS items
+      (SELECT string_agg(i.quantity || ' x ' || i.name || coalesce(' (' || i.option_text || ')', ''), '; ' ORDER BY i.id) FROM order_items i WHERE i.order_id = o.id) AS items
     FROM orders o
     WHERE o.vendor_id = ${vendor.id}
     ORDER BY o.order_number DESC
@@ -277,7 +278,7 @@ async function create(vendor, body) {
   const productIds = items.filter((i) => i && i.productId != null).map((i) => Number(i.productId));
   const products = productIds.length
     ? await sql`
-        SELECT id, name, price_kobo FROM products
+        SELECT id, name, price_kobo, options FROM products
         WHERE vendor_id = ${vendor.id}
           AND id IN (SELECT jsonb_array_elements_text(${JSON.stringify(productIds)}::jsonb)::bigint)
       `
@@ -292,7 +293,10 @@ async function create(vendor, body) {
     if (i.productId != null) {
       const p = byId.get(Number(i.productId));
       if (!p) throw new HttpError(400, 'One of the products no longer exists. Remove it and try again.', { field: 'items' });
-      return { product_id: Number(p.id), name: p.name, unit_price_kobo: Number(p.price_kobo), quantity };
+      // The seller can sell a choice marked sold out (they know their stock).
+      const priced = priceFor(p, i.options, { allowSoldOut: true });
+      if (priced.problem) throw new HttpError(400, `Choose the ${priced.option.toLowerCase()} for ${p.name}.`, { field: 'items' });
+      return { product_id: Number(p.id), name: p.name, option_text: priced.optionText, unit_price_kobo: priced.unitPriceKobo, quantity };
     }
     const itemName = cleanText(i.name);
     if (itemName.length < 2 || itemName.length > 80) throw new HttpError(400, 'Give each custom item a name.', { field: 'items' });

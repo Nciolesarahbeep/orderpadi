@@ -104,12 +104,16 @@ CREATE TABLE products (
   description  TEXT,
   price_kobo   BIGINT NOT NULL CHECK (price_kobo >= 0),
   image_url    TEXT,                          -- unused; photos live in product_photos
+  category     TEXT,                          -- e.g. "Wigs"; groups products on the store page
+  options      JSONB NOT NULL DEFAULT '[]'::jsonb  -- up to 2 options like Size/Colour, see lib/catalog.js
+               CONSTRAINT products_options_is_array CHECK (jsonb_typeof(options) = 'array'),
   is_active    BOOLEAN NOT NULL DEFAULT TRUE, -- archive instead of delete
   sort_order   INTEGER NOT NULL DEFAULT 0,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX products_vendor ON products (vendor_id, is_active, sort_order);
+CREATE INDEX products_vendor_category ON products (vendor_id, category);
 
 -- Product photos (added in the redesign), shrunk on the seller's phone before
 -- upload. Served at /p/<public_id>; a replaced photo gets a new public_id.
@@ -193,6 +197,7 @@ CREATE TABLE order_items (
   order_id         BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
   product_id       BIGINT REFERENCES products(id) ON DELETE SET NULL,  -- NULL for custom manual lines
   name             TEXT NOT NULL,
+  option_text      TEXT,              -- the picked options, e.g. "22 inches, Black"
   unit_price_kobo  BIGINT NOT NULL CHECK (unit_price_kobo >= 0),
   quantity         INTEGER NOT NULL CHECK (quantity > 0),
   line_total_kobo  BIGINT NOT NULL CHECK (line_total_kobo >= 0)
