@@ -13,6 +13,7 @@ const { sql } = require('../lib/db');
 const { HttpError, getClientIp } = require('../lib/auth');
 const { cleanSlug, cleanText, normalizeNgPhone, formatNaira } = require('../lib/format');
 const { createOrder, invoiceForCustomer } = require('../lib/orders');
+const { isPro, usage, noteUsage } = require('../lib/plan');
 
 const MAX_LINES = 50;
 const MAX_QUANTITY = 99;
@@ -37,7 +38,7 @@ function storeForCustomer(v, { withBank = false } = {}) {
     whatsappPhone: v.whatsapp_phone || null,
     deliveryFeeKobo: Number(v.default_delivery_fee_kobo || 0),
     deliveryNote: v.delivery_note || null,
-    branded: v.plan !== 'pro'
+    branded: !isPro(v)
   };
   if (withBank) {
     store.bank = v.bank_name && v.bank_account_number && v.bank_account_name
@@ -56,8 +57,11 @@ async function getStore(req, res) {
     WHERE vendor_id = ${vendor.id} AND is_active = TRUE
     ORDER BY sort_order, created_at, id
   `;
+  // On the free plan, after 20 orders this month the store takes orders on
+  // WhatsApp only (the page builds the message; nothing is saved).
+  const { capReached } = await usage(vendor);
   return res.status(200).json({
-    store: storeForCustomer(vendor),
+    store: { ...storeForCustomer(vendor), acceptingOrders: !capReached },
     products: products.map((p) => ({
       id: Number(p.id),
       name: p.name,
@@ -104,6 +108,10 @@ async function placeOrder(req, res, body) {
   const customer = readCustomer(body);
   const ip = getClientIp(req);
 
+  if ((await usage(vendor)).capReached) {
+    throw new HttpError(403, 'This store is taking orders on WhatsApp right now. Tap the button to send your order to the seller.', { capReached: true });
+  }
+
   const [recent] = await sql`
     SELECT count(*)::int AS n FROM orders
     WHERE created_ip = ${ip} AND created_at > now() - make_interval(mins => ${ORDER_WINDOW_MINUTES})
@@ -140,6 +148,7 @@ async function placeOrder(req, res, body) {
     ip,
     notify: true
   });
+  await noteUsage(vendor);
 
   const { id: internalId, ...publicOrder } = order; // customers don't need our row id
   return res.status(201).json({
@@ -154,7 +163,7 @@ async function loadInvoice(publicId) {
   if (!/^[0-9a-f]{16}$/.test(id)) return null;
   const rows = await sql`
     SELECT o.*, v.business_name, v.slug, v.whatsapp_phone, v.bank_name, v.bank_account_number,
-           v.bank_account_name, v.default_delivery_fee_kobo, v.delivery_note, v.plan
+           v.bank_account_name, v.default_delivery_fee_kobo, v.delivery_note, v.plan, v.plan_renews_at
     FROM orders o
     JOIN vendors v ON v.id = o.vendor_id
     WHERE o.public_id = ${id} AND v.is_suspended = FALSE
@@ -169,7 +178,8 @@ async function loadInvoice(publicId) {
   const vendorShape = {
     business_name: order.business_name, slug: order.slug, whatsapp_phone: order.whatsapp_phone,
     bank_name: order.bank_name, bank_account_number: order.bank_account_number, bank_account_name: order.bank_account_name,
-    default_delivery_fee_kobo: order.default_delivery_fee_kobo, delivery_note: order.delivery_note, plan: order.plan
+    default_delivery_fee_kobo: order.default_delivery_fee_kobo, delivery_note: order.delivery_note, plan: order.plan,
+    plan_renews_at: order.plan_renews_at
   };
   return { order, items, payments, vendor: vendorShape };
 }

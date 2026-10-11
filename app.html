@@ -180,6 +180,29 @@
     .note-row.unread { background:var(--accent-soft); }
     .note-row button { all:unset; display:block; width:100%; cursor:pointer; }
     .note-row .row-time { font-size:13px; color:var(--muted); margin-top:2px; }
+
+    /* plan, sales, customers, report */
+    .stats.money b { font-size:17px; overflow-wrap:anywhere; }
+    .big-figure { display:flex; align-items:baseline; flex-wrap:wrap; gap:2px 10px; margin:0 0 6px; }
+    .big-figure b { font-size:30px; letter-spacing:-0.02em; font-variant-numeric:tabular-nums; }
+    .big-figure span { color:var(--muted); font-size:14px; }
+    .card-label + .kv { border-top:0; }
+    .progress.warn div { background:var(--warn); }
+    .perks { margin:10px 0 0; padding-left:20px; }
+    .perks li { margin:4px 0; }
+    .pro-tag { display:inline-block; font-size:12px; font-weight:800; letter-spacing:0.06em; padding:2px 8px; border-radius:6px; background:var(--accent); color:var(--accent-ink); vertical-align:2px; margin-left:6px; }
+    .cust-row { padding:12px 16px; border-top:1px solid var(--line); }
+    .cust-row:first-child { border-top:0; }
+    .cust-top { display:flex; align-items:center; gap:12px; }
+    .cust-top button { all:unset; flex:1; min-width:0; cursor:pointer; }
+    .owing { font-weight:700; color:var(--warn); white-space:nowrap; font-variant-numeric:tabular-nums; }
+    .paid-up { color:var(--muted); font-size:14px; white-space:nowrap; }
+    .remind { display:inline-block; margin-top:8px; font-size:14px; font-weight:600; color:#1fa855; text-decoration:none; }
+    .bars { display:flex; align-items:flex-end; gap:3px; height:140px; margin-top:12px; }
+    .bars div { flex:1; background:var(--accent); border-radius:3px 3px 0 0; min-height:2px; opacity:0.9; }
+    .bars div.zero { background:var(--line); }
+    .bar-axis { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-top:6px; }
+    .filter-chip { display:inline-flex; align-items:center; gap:6px; margin-top:10px; padding:6px 12px; border-radius:999px; background:var(--accent-soft); color:var(--accent); font-size:14px; font-weight:600; border:0; font-family:inherit; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -302,6 +325,25 @@
           <button class="btn" type="button" id="share-link">Share</button>
         </div>
       </div>
+      <div class="card" id="plan-card" hidden>
+        <p class="card-label" id="plan-label">Free plan</p>
+        <div class="progress" id="plan-progress"><div id="plan-bar"></div></div>
+        <p id="plan-text" style="margin:6px 0 0"></p>
+        <button class="btn" type="button" data-upgrade style="margin-top:12px">Upgrade to Pro · ₦2,500/month</button>
+      </div>
+      <div class="card" id="sales-card" hidden>
+        <p class="card-label">Sales today</p>
+        <p class="big-figure"><b id="sales-today">₦0</b><span id="sales-today-label">0 orders</span></p>
+        <div class="stats">
+          <div><b id="sales-week">₦0</b><span>This week</span></div>
+          <div><b id="sales-month">₦0</b><span>This month</span></div>
+        </div>
+        <p class="muted" id="sales-received" style="margin:6px 0 0;font-size:14px"></p>
+        <div class="actions">
+          <button class="btn secondary" type="button" id="open-customers">Who owes you</button>
+          <button class="btn secondary" type="button" id="open-report">Full report</button>
+        </div>
+      </div>
       <div class="card" id="orders-card" hidden>
         <p class="card-label">Orders</p>
         <div class="stats">
@@ -339,6 +381,7 @@
         <button class="chip" type="button" data-filter="unpaid">Unpaid<span id="chip-unpaid"></span></button>
         <button class="chip" type="button" data-filter="delivered">Delivered</button>
       </div>
+      <button class="filter-chip" type="button" id="customer-filter" hidden></button>
       <div id="orders-list"></div>
       <button class="btn secondary" type="button" id="orders-more" hidden>Load more</button>
     </section>
@@ -448,6 +491,21 @@
       </form>
     </section>
 
+    <!-- Customers -->
+    <section class="view" id="view-customers">
+      <button class="back" type="button" data-tab="home">‹ Home</button>
+      <h1 style="margin-top:10px">Customers</h1>
+      <p class="sub" id="customers-sub">Everyone who has ordered, and who still owes you.</p>
+      <div id="customers-list"></div>
+    </section>
+
+    <!-- Report (Pro) -->
+    <section class="view" id="view-report">
+      <button class="back" type="button" data-tab="home">‹ Home</button>
+      <h1 style="margin-top:10px">Last 30 days</h1>
+      <div id="report-body"></div>
+    </section>
+
     <!-- Notifications -->
     <section class="view" id="view-notifications">
       <button class="back" type="button" id="notifications-back">‹ Back</button>
@@ -533,6 +591,20 @@
         <button class="btn" type="submit" id="settings-save">Save changes</button>
       </form>
 
+      <p class="section-title">Plan</p>
+      <div class="card" id="plan-settings">
+        <p class="card-label" id="ps-label">Your plan</p>
+        <p id="ps-text" style="margin:2px 0 0">Loading…</p>
+        <ul class="perks" id="ps-perks">
+          <li>Unlimited orders every month</li>
+          <li>No "Made with OrderPadi" on your store and invoices</li>
+          <li>30-day sales report and order export (CSV)</li>
+        </ul>
+        <button class="btn" type="button" data-upgrade id="ps-upgrade">Upgrade to Pro · ₦2,500/month</button>
+        <button class="btn secondary" type="button" id="ps-manage" hidden>Change card or cancel</button>
+        <p class="muted" id="ps-note" style="font-size:14px;margin:10px 0 0" hidden></p>
+      </div>
+
       <p class="section-title">Account</p>
       <div class="card">
         <p class="card-label">Logged in as</p>
@@ -572,12 +644,14 @@
       email: '', purpose: 'signup', countdown: null, slugTouched: false,
       vendor: null, setup: null, products: null, editing: null, toastTimer: null,
       filter: 'all', orders: [], hasMore: false, counts: null, order: null,
-      draft: [], unread: 0, poller: null, backTo: 'home'
+      draft: [], unread: 0, poller: null, backTo: 'home',
+      stats: null, billing: null, customerFilter: null
     };
     // Logged-in screens, and which tab each one belongs to.
     const APP_VIEWS = {
       home: 'home', orders: 'orders', order: 'orders', neworder: 'orders',
-      products: 'products', product: 'products', settings: 'settings', notifications: ''
+      products: 'products', product: 'products', settings: 'settings', notifications: '',
+      customers: 'home', report: 'home'
     };
 
     // ---------- helpers ----------
@@ -881,6 +955,13 @@
         if (ok) { state.vendor = data.vendor; state.setup = data.setup; renderHome(); }
       }
       loadOrders(true, { quiet: true });
+      loadStats();
+    }
+
+    async function loadStats() {
+      const { ok, status, data } = await api('/api/orders?view=stats');
+      if (status === 401) return sessionLost();
+      if (ok) { state.stats = data; renderHome(); }
     }
 
     function renderHome() {
@@ -903,6 +984,28 @@
       $('setup-card').hidden = done === 3;
       const c = state.counts;
       $('ready-card').hidden = done !== 3 || !!(c && c.total);
+
+      // Plan (free only) and sales, from /api/orders?view=stats
+      const st = state.stats;
+      const u = st && st.usage;
+      $('plan-card').hidden = !(u && u.plan === 'free');
+      if (u && u.plan === 'free') {
+        const pct = Math.min(100, Math.round((u.used / u.limit) * 100));
+        $('plan-bar').style.width = pct + '%';
+        $('plan-progress').classList.toggle('warn', u.remaining <= 5);
+        $('plan-label').textContent = 'Free plan · ' + u.used + ' of ' + u.limit + ' orders this month';
+        $('plan-text').textContent = u.capReached
+          ? 'You\'ve used all your free orders this month. Your store link is taking orders on WhatsApp only until next month.'
+          : u.remaining + (u.remaining === 1 ? ' free order' : ' free orders') + ' left this month. Pro gives you unlimited orders.';
+      }
+      $('sales-card').hidden = !(st && c && c.total);
+      if (st) {
+        $('sales-today').textContent = formatNaira(st.today.salesKobo);
+        $('sales-today-label').textContent = st.today.orders + (st.today.orders === 1 ? ' order' : ' orders');
+        $('sales-week').textContent = formatNaira(st.week.salesKobo);
+        $('sales-month').textContent = formatNaira(st.month.salesKobo);
+        $('sales-received').textContent = 'Received this month: ' + formatNaira(st.month.receivedKobo);
+      }
 
       // Orders summary, once there are any.
       $('orders-card').hidden = !(c && c.total);
@@ -927,8 +1030,11 @@
     }
 
     // Tabs, checklist rows and "Back" links all use data-tab.
+    let keepCustomerFilter = false;
     async function goTab(name, focusId) {
       if (name === 'orders') {
+        if (!focusId && !keepCustomerFilter) state.customerFilter = null;
+        keepCustomerFilter = false;
         switchView('orders');
         await loadOrders(true);
       } else if (name === 'products') {
@@ -937,9 +1043,11 @@
       } else if (name === 'settings') {
         fillSettings();
         switchView('settings');
+        loadBilling();
       } else {
         renderHome();
         switchView('home');
+        loadStats();
       }
       if (focusId) {
         const el = $(focusId);
@@ -1210,7 +1318,8 @@
     async function loadOrders(reset, opts = {}) {
       const before = reset ? 0 : (state.orders.length ? state.orders[state.orders.length - 1].number : 0);
       if (reset && !opts.quiet && !state.orders.length) $('orders-list').innerHTML = '<p class="empty">Loading…</p>';
-      const { ok, status, data } = await api('/api/orders?filter=' + state.filter + (before ? '&before=' + before : ''));
+      const customer = state.customerFilter ? '&customer=' + state.customerFilter.id : '';
+      const { ok, status, data } = await api('/api/orders?filter=' + state.filter + customer + (before ? '&before=' + before : ''));
       if (status === 401) return sessionLost();
       if (!ok) {
         if (!opts.quiet) { $('orders-list').textContent = ''; $('orders-list').appendChild(el('p', 'empty', data.error || 'Could not load orders.')); }
@@ -1232,6 +1341,8 @@
       const box = $('orders-list');
       box.textContent = '';
       $('orders-more').hidden = !state.hasMore;
+      $('customer-filter').hidden = !state.customerFilter;
+      if (state.customerFilter) $('customer-filter').textContent = state.customerFilter.name + "'s orders  ×";
       if (!state.orders.length) {
         const empty = el('div', 'empty');
         empty.appendChild(el('p', null, state.filter === 'all'
@@ -1264,6 +1375,11 @@
       loadOrders(true);
     }));
     $('orders-more').addEventListener('click', () => loadOrders(false));
+    $('customer-filter').addEventListener('click', () => {
+      state.customerFilter = null;
+      state.orders = [];
+      loadOrders(true);
+    });
 
     async function openOrder(id) {
       const { ok, status, data } = await api('/api/orders?id=' + id);
@@ -1558,6 +1674,7 @@
         btn.appendChild(el('div', null, n.message));
         btn.appendChild(el('div', 'row-time', when(n.createdAt)));
         if (n.orderId) btn.addEventListener('click', () => openOrder(n.orderId));
+        else if (/^(cap_|plan_)/.test(n.type || '')) btn.addEventListener('click', () => goTab('settings', 'plan-settings'));
         row.appendChild(btn);
         list.appendChild(row);
       });
@@ -1587,6 +1704,208 @@
     function stopPolling() { clearInterval(state.poller); state.poller = null; }
     document.addEventListener('visibilitychange', () => { if (!document.hidden) poll(); });
 
+    // ---------- plan & billing ----------
+    async function startCheckout() {
+      const buttons = document.querySelectorAll('[data-upgrade]');
+      buttons.forEach((b) => busy(b, true, 'Opening Paystack…'));
+      const { ok, status, data } = await api('/api/billing', { action: 'checkout' });
+      if (status === 401) return sessionLost();
+      if (ok && data.url) { window.location.href = data.url; return; }
+      buttons.forEach((b) => busy(b, false));
+      toast(data.error && data.error.length < 70 ? data.error : 'Could not open Paystack. Try again.');
+      if (data.error && data.error.length >= 70) { $('ps-note').textContent = data.error; $('ps-note').hidden = false; }
+    }
+
+    async function loadBilling() {
+      const { ok, status, data } = await api('/api/billing');
+      if (status === 401) return sessionLost();
+      if (!ok) { $('ps-text').textContent = data.error || 'Could not load your plan.'; return; }
+      state.billing = data;
+      renderBilling();
+    }
+
+    function renderBilling() {
+      const b = state.billing;
+      const pro = b.plan === 'pro';
+      $('ps-label').innerHTML = pro ? 'Your plan <span class="pro-tag">PRO</span>' : 'Your plan';
+      if (pro) {
+        const renews = b.planRenewsAt ? new Date(b.planRenewsAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'long' }) : null;
+        $('ps-text').textContent = 'Pro · unlimited orders' + (renews ? '. Renews ' + renews + '.' : '.');
+      } else {
+        $('ps-text').textContent = 'Free · ' + b.used + ' of ' + b.freeLimit + ' orders used this month.';
+      }
+      $('ps-perks').hidden = pro;
+      $('ps-upgrade').hidden = pro;
+      $('ps-manage').hidden = !(pro && b.hasSubscription);
+      $('ps-note').hidden = b.configured;
+      if (!b.configured) $('ps-note').textContent = 'Online payments for Pro aren\'t switched on yet.';
+    }
+
+    $('ps-manage').addEventListener('click', async () => {
+      const btn = $('ps-manage');
+      busy(btn, true, 'Opening Paystack…');
+      const { ok, status, data } = await api('/api/billing', { action: 'manage' });
+      if (status === 401) return sessionLost();
+      if (ok && data.url) { window.location.href = data.url; return; }
+      busy(btn, false);
+      toast(data.error || 'Could not open Paystack.');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('[data-upgrade]')) startCheckout();
+    });
+
+    // Back from Paystack: /app?reference=… — confirm the payment, then tidy the URL.
+    async function finishCheckout(reference) {
+      history.replaceState(null, '', '/app');
+      toast('Checking your payment…');
+      const { ok, data } = await api('/api/billing', { action: 'verify', reference });
+      if (ok && data.plan === 'pro') toast('You\'re on Pro. Enjoy unlimited orders!');
+      else if (ok) toast('Payment not completed. You can try again from Settings.');
+      else toast(data.error || 'Could not check the payment yet. It will update shortly.');
+      const me = await api('/api/me');
+      if (me.ok) { state.vendor = me.data.vendor; state.setup = me.data.setup; }
+      loadStats();
+    }
+
+    // ---------- customers ----------
+    $('open-customers').addEventListener('click', loadCustomers);
+
+    async function loadCustomers() {
+      switchView('customers');
+      const box = $('customers-list');
+      box.innerHTML = '<p class="empty">Loading…</p>';
+      const { ok, status, data } = await api('/api/orders?view=customers');
+      if (status === 401) return sessionLost();
+      box.textContent = '';
+      if (!ok) return box.appendChild(el('p', 'empty', data.error || 'Could not load customers.'));
+      if (!data.customers.length) return box.appendChild(el('p', 'empty', 'No customers yet. They appear here after their first order.'));
+      const owing = data.customers.filter((c) => c.owingKobo > 0);
+      const total = owing.reduce((s, c) => s + c.owingKobo, 0);
+      $('customers-sub').textContent = owing.length
+        ? owing.length + (owing.length === 1 ? ' customer owes you ' : ' customers owe you ') + formatNaira(total) + ' in total.'
+        : 'Nobody owes you anything right now.';
+      const list = el('div', 'list');
+      data.customers.forEach((c) => {
+        const row = el('div', 'cust-row');
+        const top = el('div', 'cust-top');
+        const main = el('button');
+        main.type = 'button';
+        main.appendChild(el('div', 'row-name', c.name));
+        main.appendChild(el('div', 'row-sub', c.orderCount + (c.orderCount === 1 ? ' order' : ' orders') + (c.lastOrderAt ? ' · last ' + when(c.lastOrderAt) : '')));
+        main.addEventListener('click', () => {
+          state.customerFilter = { id: c.id, name: c.name };
+          state.filter = 'all';
+          state.orders = [];
+          keepCustomerFilter = true;
+          goTab('orders');
+        });
+        top.append(main, c.owingKobo > 0 ? el('span', 'owing', formatNaira(c.owingKobo)) : el('span', 'paid-up', 'Paid up'));
+        row.appendChild(top);
+        if (c.owingKobo > 0) {
+          const first = c.name.split(' ')[0];
+          const msg = 'Hi ' + first + ', a quick reminder from ' + state.vendor.businessName + ': ' + formatNaira(c.owingKobo) + ' is still outstanding on your order. Thank you!';
+          const remind = el('a', 'remind', 'Remind on WhatsApp');
+          remind.href = 'https://wa.me/' + c.phone + '?text=' + encodeURIComponent(msg);
+          remind.target = '_blank';
+          remind.rel = 'noopener';
+          row.appendChild(remind);
+        }
+        list.appendChild(row);
+      });
+      box.appendChild(list);
+    }
+
+    // ---------- report (Pro) ----------
+    $('open-report').addEventListener('click', loadReport);
+
+    async function loadReport() {
+      switchView('report');
+      const box = $('report-body');
+      box.innerHTML = '<p class="empty">Loading…</p>';
+      const { ok, status, data } = await api('/api/orders?view=report');
+      if (status === 401) return sessionLost();
+      box.textContent = '';
+      if (status === 402) {
+        const card = el('div', 'card');
+        card.appendChild(el('p', 'card-label', 'Reports are part of Pro'));
+        card.appendChild(el('p', null, 'See your sales day by day, your best-selling products, and download every order as a spreadsheet.'));
+        const ul = el('ul', 'perks');
+        ['Unlimited orders every month', 'No "Made with OrderPadi" branding', '30-day report and CSV export'].forEach((x) => ul.appendChild(el('li', null, x)));
+        card.appendChild(ul);
+        const up = el('button', 'btn', 'Upgrade to Pro · ₦2,500/month');
+        up.type = 'button';
+        up.dataset.upgrade = '';
+        card.appendChild(up);
+        return box.appendChild(card);
+      }
+      if (!ok) return box.appendChild(el('p', 'empty', data.error || 'Could not load the report.'));
+
+      const fmt = (s) => new Date(s + 'T12:00:00').toLocaleDateString('en-NG', { day: 'numeric', month: 'short' });
+      const totals = el('div', 'card');
+      totals.appendChild(el('p', 'card-label', 'Sales'));
+      const big = el('p', 'big-figure');
+      big.append(el('b', null, formatNaira(data.totals.salesKobo)), el('span', null, data.totals.orders + (data.totals.orders === 1 ? ' order' : ' orders')));
+      totals.appendChild(big);
+      const best = data.days.reduce((a, d) => (d.salesKobo > a.salesKobo ? d : a), data.days[0]);
+      const stats = el('div', 'stats');
+      [[formatNaira(data.totals.orders ? Math.round(data.totals.salesKobo / data.totals.orders) : 0), 'Average order'],
+       [best.salesKobo ? formatNaira(best.salesKobo) : '—', best.salesKobo ? 'Best day · ' + fmt(best.day) : 'Best day']].forEach(([v, l]) => {
+        const d = el('div'); d.append(el('b', null, v), el('span', null, l)); stats.appendChild(d);
+      });
+      totals.appendChild(stats);
+
+      const max = Math.max(1, ...data.days.map((d) => d.salesKobo));
+      const bars = el('div', 'bars');
+      data.days.forEach((d) => {
+        const bar = el('div', d.salesKobo ? '' : 'zero');
+        bar.style.height = Math.max(2, Math.round((d.salesKobo / max) * 100)) + '%';
+        bar.title = d.day + ': ' + formatNaira(d.salesKobo) + ' · ' + d.orders + ' orders';
+        bars.appendChild(bar);
+      });
+      totals.appendChild(bars);
+      const axis = el('div', 'bar-axis');
+      axis.append(el('span', null, fmt(data.days[0].day)), el('span', null, fmt(data.days[data.days.length - 1].day)));
+      totals.appendChild(axis);
+      box.appendChild(totals);
+
+      const top = el('div', 'card');
+      top.appendChild(el('p', 'card-label', 'Best sellers'));
+      if (!data.topProducts.length) top.appendChild(el('p', 'muted', 'No sales in the last 30 days.'));
+      data.topProducts.forEach((p) => {
+        const row = el('div', 'kv');
+        row.append(el('span', null, p.name + ' · ' + p.quantity + ' sold'), el('span', null, formatNaira(p.salesKobo)));
+        top.appendChild(row);
+      });
+      box.appendChild(top);
+
+      const dl = el('button', 'btn secondary', 'Download all orders (CSV)');
+      dl.type = 'button';
+      dl.addEventListener('click', downloadCsv);
+      box.appendChild(dl);
+    }
+
+    async function downloadCsv(e) {
+      const btn = e.currentTarget;
+      busy(btn, true, 'Preparing…');
+      try {
+        const res = await fetch('/api/orders?view=export', { credentials: 'same-origin', cache: 'no-store' });
+        if (!res.ok) throw new Error('failed');
+        const blob = await res.blob();
+        const match = /filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') || '');
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = match ? match[1] : 'orderpadi-orders.csv';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+        toast('Download started');
+      } catch (err) {
+        toast('Could not download the file. Try again.');
+      }
+      busy(btn, false);
+    }
+
     $('logout').addEventListener('click', async () => {
       const btn = $('logout');
       busy(btn, true, 'Logging out…');
@@ -1596,6 +1915,9 @@
       state.vendor = null;
       state.orders = [];
       state.counts = null;
+      state.stats = null;
+      state.billing = null;
+      state.customerFilter = null;
       setUnread(0);
       $('login-email').value = remembered();
       switchView('login');
@@ -1603,8 +1925,14 @@
 
     // ---------- start ----------
     (async function start() {
+      const params0 = new URLSearchParams(location.search);
+      const reference = params0.get('reference') || params0.get('trxref');
       const { ok, status, data } = await api('/api/me');
-      if (ok && data.vendor) return enterApp(data.vendor, data.setup);
+      if (ok && data.vendor) {
+        await enterApp(data.vendor, data.setup);
+        if (reference) finishCheckout(reference);
+        return;
+      }
       if (status !== 401) {
         const banner = $('banner');
         banner.textContent = (data.error || 'The server is not responding.') + ' ';

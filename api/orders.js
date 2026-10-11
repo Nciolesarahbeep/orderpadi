@@ -3,6 +3,11 @@
 //   GET  /api/orders?id=<id>                    -> { order }   (items + payments)
 //   GET  /api/orders?view=notifications         -> { notifications, unread }
 //   GET  /api/orders?view=unread                -> { unread, latest }   (polled by the bell)
+//   GET  /api/orders?view=stats                 -> today / week / month sales, owed, plan usage
+//   GET  /api/orders?view=customers             -> customers with what they've paid and owe
+//   GET  /api/orders?view=report                -> last 30 days by day + top products   (Pro)
+//   GET  /api/orders?view=export                -> all orders as a CSV file              (Pro)
+//   GET  /api/orders?customer=<id>              -> the list, for one customer
 //   POST /api/orders { action: "create", customer, items, deliveryFee, discount, note } -> { order }
 //   POST /api/orders { action: "status", id, status }                    -> { order }
 //   POST /api/orders { action: "payment", id, amount, method, note }     -> { order }
@@ -12,6 +17,7 @@ const { sql } = require('../lib/db');
 const { HttpError, getSessionVendor } = require('../lib/auth');
 const { cleanText, nairaToKobo, normalizeNgPhone, formatNaira } = require('../lib/format');
 const { createOrder, orderSummary, orderDetail } = require('../lib/orders');
+const { isPro, usage, noteUsage, FREE_MONTHLY_ORDERS } = require('../lib/plan');
 
 const PAGE_SIZE = 50;
 const FILTERS = ['all', 'new', 'unpaid', 'delivered'];
@@ -42,6 +48,7 @@ async function loadOrder(vendorId, id) {
 async function list(vendor, params) {
   const filter = FILTERS.includes(params.get('filter')) ? params.get('filter') : 'all';
   const before = Math.max(0, Number(params.get('before')) || 0);
+  const customerId = Math.max(0, Number(params.get('customer')) || 0);
   const rows = await sql`
     SELECT o.*,
       (SELECT string_agg(i.quantity || ' × ' || i.name, ', ' ORDER BY i.id) FROM order_items i WHERE i.order_id = o.id) AS items_summary
@@ -54,6 +61,7 @@ async function list(vendor, params) {
         OR (${filter} = 'delivered' AND o.status = 'delivered')
       )
       AND (${before} = 0 OR o.order_number < ${before})
+      AND (${customerId} = 0 OR o.customer_id = ${customerId})
     ORDER BY o.order_number DESC
     LIMIT ${PAGE_SIZE + 1}
   `;
@@ -78,6 +86,144 @@ async function list(vendor, params) {
     },
     unread: await unreadCount(vendor.id)
   };
+}
+
+// ---------- numbers ----------
+// Day, week (from Monday) and month boundaries are in Lagos time. "Sales"
+// is the value of orders placed (not cancelled); "received" is money recorded.
+async function stats(vendor) {
+  const [s] = await sql`
+    WITH b AS (
+      SELECT
+        date_trunc('day', now() AT TIME ZONE 'Africa/Lagos') AT TIME ZONE 'Africa/Lagos' AS today,
+        date_trunc('week', now() AT TIME ZONE 'Africa/Lagos') AT TIME ZONE 'Africa/Lagos' AS week,
+        date_trunc('month', now() AT TIME ZONE 'Africa/Lagos') AT TIME ZONE 'Africa/Lagos' AS month
+    )
+    SELECT
+      (SELECT count(*) FROM orders o WHERE o.vendor_id = ${vendor.id} AND o.status <> 'cancelled' AND o.created_at >= b.today)::int AS today_orders,
+      (SELECT coalesce(sum(total_kobo), 0) FROM orders o WHERE o.vendor_id = ${vendor.id} AND o.status <> 'cancelled' AND o.created_at >= b.today)::bigint AS today_sales,
+      (SELECT count(*) FROM orders o WHERE o.vendor_id = ${vendor.id} AND o.status <> 'cancelled' AND o.created_at >= b.week)::int AS week_orders,
+      (SELECT coalesce(sum(total_kobo), 0) FROM orders o WHERE o.vendor_id = ${vendor.id} AND o.status <> 'cancelled' AND o.created_at >= b.week)::bigint AS week_sales,
+      (SELECT count(*) FROM orders o WHERE o.vendor_id = ${vendor.id} AND o.status <> 'cancelled' AND o.created_at >= b.month)::int AS month_orders,
+      (SELECT coalesce(sum(total_kobo), 0) FROM orders o WHERE o.vendor_id = ${vendor.id} AND o.status <> 'cancelled' AND o.created_at >= b.month)::bigint AS month_sales,
+      (SELECT coalesce(sum(amount_kobo), 0) FROM payments p WHERE p.vendor_id = ${vendor.id} AND p.paid_at >= b.month)::bigint AS month_received,
+      (SELECT coalesce(sum(total_kobo - amount_paid_kobo), 0) FROM orders o WHERE o.vendor_id = ${vendor.id} AND o.status <> 'cancelled' AND o.payment_status <> 'paid')::bigint AS owing
+    FROM b
+  `;
+  return {
+    today: { orders: Number(s.today_orders), salesKobo: Number(s.today_sales) },
+    week: { orders: Number(s.week_orders), salesKobo: Number(s.week_sales) },
+    month: { orders: Number(s.month_orders), salesKobo: Number(s.month_sales), receivedKobo: Number(s.month_received) },
+    owingKobo: Number(s.owing),
+    usage: await usage(vendor)
+  };
+}
+
+async function customers(vendor) {
+  const rows = await sql`
+    SELECT customer_id, name, phone, order_count, total_paid_kobo, owing_kobo, last_order_at
+    FROM customer_balances
+    WHERE vendor_id = ${vendor.id}
+    ORDER BY owing_kobo DESC, last_order_at DESC NULLS LAST
+    LIMIT 200
+  `;
+  return {
+    customers: rows.map((c) => ({
+      id: Number(c.customer_id),
+      name: c.name,
+      phone: c.phone,
+      orderCount: Number(c.order_count),
+      totalPaidKobo: Number(c.total_paid_kobo),
+      owingKobo: Number(c.owing_kobo),
+      lastOrderAt: c.last_order_at
+    }))
+  };
+}
+
+function requirePro(vendor, what) {
+  if (!isPro(vendor)) throw new HttpError(402, `${what} are part of Pro.`, { upgrade: true });
+}
+
+async function report(vendor) {
+  requirePro(vendor, 'Sales reports');
+  const days = await sql`
+    SELECT to_char(d, 'YYYY-MM-DD') AS day,
+           count(o.id)::int AS orders,
+           coalesce(sum(o.total_kobo), 0)::bigint AS sales
+    FROM generate_series(
+      date_trunc('day', now() AT TIME ZONE 'Africa/Lagos') - interval '29 days',
+      date_trunc('day', now() AT TIME ZONE 'Africa/Lagos'),
+      interval '1 day'
+    ) AS d
+    LEFT JOIN orders o
+      ON o.vendor_id = ${vendor.id} AND o.status <> 'cancelled'
+     AND date_trunc('day', o.created_at AT TIME ZONE 'Africa/Lagos') = d
+    GROUP BY d
+    ORDER BY d
+  `;
+  const top = await sql`
+    SELECT i.name, sum(i.quantity)::int AS quantity, sum(i.line_total_kobo)::bigint AS sales
+    FROM order_items i
+    JOIN orders o ON o.id = i.order_id
+    WHERE o.vendor_id = ${vendor.id} AND o.status <> 'cancelled'
+      AND o.created_at >= now() - interval '30 days'
+    GROUP BY i.name
+    ORDER BY sales DESC, quantity DESC
+    LIMIT 5
+  `;
+  const list = days.map((d) => ({ day: d.day, orders: Number(d.orders), salesKobo: Number(d.sales) }));
+  return {
+    days: list,
+    totals: {
+      orders: list.reduce((s, d) => s + d.orders, 0),
+      salesKobo: list.reduce((s, d) => s + d.salesKobo, 0)
+    },
+    topProducts: top.map((t) => ({ name: t.name, quantity: Number(t.quantity), salesKobo: Number(t.sales) }))
+  };
+}
+
+// CSV cells: quote everything, and stop spreadsheet apps treating a value
+// that starts with = + - @ as a formula.
+function csvCell(value) {
+  let text = value == null ? '' : String(value);
+  if (/^[=+\-@\t\r]/.test(text)) text = "'" + text;
+  return '"' + text.replace(/"/g, '""') + '"';
+}
+
+const CSV_LABELS = {
+  unpaid: 'Unpaid', part_paid: 'Part paid', paid: 'Paid',
+  new: 'New', processing: 'Processing', delivered: 'Delivered', cancelled: 'Cancelled',
+  link: 'Store link', manual: 'Added by you'
+};
+
+async function exportCsv(vendor, res) {
+  requirePro(vendor, 'Exports');
+  const rows = await sql`
+    SELECT o.*,
+      to_char(o.created_at AT TIME ZONE 'Africa/Lagos', 'YYYY-MM-DD HH24:MI') AS placed,
+      (SELECT string_agg(i.quantity || ' x ' || i.name, '; ' ORDER BY i.id) FROM order_items i WHERE i.order_id = o.id) AS items
+    FROM orders o
+    WHERE o.vendor_id = ${vendor.id}
+    ORDER BY o.order_number DESC
+    LIMIT 5000
+  `;
+  const naira = (k) => (Number(k) / 100).toFixed(2);
+  // 2348031234567 -> 0803 123 4567 (spaces stop spreadsheets turning it into a number)
+  const phone = (p) => (/^234\d{10}$/.test(p || '') ? `0${p.slice(3, 6)} ${p.slice(6, 9)} ${p.slice(9)}` : p || '');
+  const header = ['Order', 'Date', 'Customer', 'Phone', 'Items', 'Total (NGN)', 'Paid (NGN)', 'Balance (NGN)', 'Payment', 'Status', 'Source', 'Address', 'Note'];
+  const lines = [header.map(csvCell).join(',')];
+  rows.forEach((o) => {
+    lines.push([
+      o.order_number, o.placed, o.customer_name, phone(o.customer_phone), o.items || '',
+      naira(o.total_kobo), naira(o.amount_paid_kobo), naira(Math.max(0, Number(o.total_kobo) - Number(o.amount_paid_kobo))),
+      CSV_LABELS[o.payment_status] || o.payment_status, CSV_LABELS[o.status] || o.status,
+      CSV_LABELS[o.source] || o.source, o.delivery_address || '', o.note || ''
+    ].map(csvCell).join(','));
+  });
+  const date = new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' });
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="orderpadi-orders-${date}.csv"`);
+  return res.status(200).send('﻿' + lines.join('\r\n'));
 }
 
 async function notifications(vendor) {
@@ -164,6 +310,10 @@ async function create(vendor, body) {
     throw new HttpError(400, 'The discount must be less than the order total.', { field: 'discount' });
   }
 
+  if ((await usage(vendor)).capReached) {
+    throw new HttpError(403, `You've used your ${FREE_MONTHLY_ORDERS} free orders this month. Upgrade to Pro for unlimited orders.`, { upgrade: true });
+  }
+
   const created = await createOrder({
     vendorId: vendor.id,
     customer: { name, phone, address: address || null },
@@ -174,6 +324,7 @@ async function create(vendor, body) {
     source: 'manual',
     notify: false
   });
+  await noteUsage(vendor);
   return { order: await loadOrder(vendor.id, created.id) };
 }
 
@@ -284,6 +435,10 @@ module.exports = async function handler(req, res) {
       if (params.get('id')) return res.status(200).json({ order: await loadOrder(vendor.id, readId(params.get('id'))) });
       if (params.get('view') === 'notifications') return res.status(200).json(await notifications(vendor));
       if (params.get('view') === 'unread') return res.status(200).json(await unread(vendor));
+      if (params.get('view') === 'stats') return res.status(200).json(await stats(vendor));
+      if (params.get('view') === 'customers') return res.status(200).json(await customers(vendor));
+      if (params.get('view') === 'report') return res.status(200).json(await report(vendor));
+      if (params.get('view') === 'export') return await exportCsv(vendor, res);
       return res.status(200).json(await list(vendor, params));
     }
 

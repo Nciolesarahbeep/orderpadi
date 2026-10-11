@@ -21,7 +21,10 @@ module.exports = async function handler(req, res) {
   const env = {
     DATABASE_URL: Boolean(process.env.DATABASE_URL || process.env.POSTGRES_URL),
     JWT_SECRET: Boolean(process.env.JWT_SECRET),
-    RESEND_API_KEY: Boolean(process.env.RESEND_API_KEY)
+    RESEND_API_KEY: Boolean(process.env.RESEND_API_KEY),
+    // Only needed for Pro billing (step 7); not counted in "ok".
+    PAYSTACK_SECRET_KEY: Boolean(process.env.PAYSTACK_SECRET_KEY),
+    PAYSTACK_PLAN_CODE: Boolean(process.env.PAYSTACK_PLAN_CODE)
   };
 
   if (!sql) {
