@@ -971,12 +971,14 @@
 
     async function loadStats() {
       const { ok, status, data } = await api('/api/orders?view=stats');
+      if (!state.vendor) return;
       if (status === 401) return sessionLost();
       if (ok) { state.stats = data; renderHome(); }
     }
 
     function renderHome() {
       const v = state.vendor;
+      if (!v) return; // logged out while a request was still on its way
       $('home-title').textContent = 'Hi, ' + v.businessName;
       const url = storeUrl(v.slug);
       $('home-link').href = url;
@@ -1332,6 +1334,7 @@
       if (reset && !opts.quiet && !state.orders.length) $('orders-list').innerHTML = '<p class="empty">Loading…</p>';
       const customer = state.customerFilter ? '&customer=' + state.customerFilter.id : '';
       const { ok, status, data } = await api('/api/orders?filter=' + state.filter + customer + (before ? '&before=' + before : ''));
+      if (!state.vendor) return; // logged out meanwhile
       if (status === 401) return sessionLost();
       if (!ok) {
         if (!opts.quiet) { $('orders-list').textContent = ''; $('orders-list').appendChild(el('p', 'empty', data.error || 'Could not load orders.')); }
@@ -1702,6 +1705,7 @@
     async function poll() {
       if (!state.vendor || document.hidden) return;
       const { ok, status, data } = await api('/api/orders?view=unread');
+      if (!state.vendor) return;
       if (status === 401) return sessionLost();
       if (!ok) return;
       const grew = data.unread > state.unread;

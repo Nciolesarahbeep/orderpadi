@@ -5,6 +5,7 @@ Orders, invoices and payment tracking for WhatsApp and Instagram sellers in Nige
 - **Sellers** get a store link (`/s/your-shop`), invoices with their bank details, a list of who owes them, and sales numbers.
 - **Free plan:** 20 orders a month. **Pro:** ₦2,500 a month through Paystack, with unlimited orders, no branding, reports and CSV export.
 - Plain HTML pages and Node server functions, with a Neon Postgres database. Hosted on **Netlify** (`netlify.toml`); `vercel.json` is kept so it can also run on Vercel.
+- No npm packages: the database is reached over HTTPS (`lib/db.js`), and login tokens and password hashing use Node's built-in crypto (`lib/jwt.js`, `lib/password.js`).
 
 ## Pages
 

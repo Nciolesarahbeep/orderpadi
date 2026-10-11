@@ -5,7 +5,7 @@
 //
 // POST /api/auth  { action: "signup" | "verify" | "resend" | "login" | "logout"
 //                           | "forgot" | "reset" | "check-slug", ...fields }
-const bcrypt = require('bcryptjs');
+const { hashPassword, checkPassword: passwordMatches } = require('../lib/password');
 const { sql } = require('../lib/db');
 const {
   HttpError, normalizeEmail, getClientIp,
@@ -23,7 +23,13 @@ function checkEmail(email) {
   }
 }
 
-// bcrypt only reads the first 72 characters, so cap it there.
+let dummy = null;
+async function dummyHash() {
+  if (!dummy) dummy = await hashPassword('not-a-real-password-' + Math.random());
+  return dummy;
+}
+
+// Long enough to be safe; capped so a huge password can't slow the server down.
 function checkPassword(password) {
   if (typeof password !== 'string' || password.length < 8) {
     throw new HttpError(400, 'Use a password of at least 8 characters.', { field: 'password' });
@@ -72,7 +78,7 @@ async function signup(req, res, body) {
     throw new HttpError(409, 'That store link is taken. Try another.', { field: 'slug' });
   }
 
-  const passwordHash = await bcrypt.hash(body.password, 10);
+  const passwordHash = await hashPassword(body.password);
   if (mine) {
     // Same email signing up again before confirming: take the new details.
     await sql`
@@ -137,7 +143,8 @@ async function login(req, res, body) {
 
   const rows = await sql`SELECT * FROM vendors WHERE email = ${email} LIMIT 1`;
   const vendor = rows[0];
-  const passwordOk = vendor ? await bcrypt.compare(password, vendor.password_hash) : false;
+  // Check a password even when the email is unknown, so timing doesn't reveal which emails have accounts.
+  const passwordOk = (await passwordMatches(password, vendor ? vendor.password_hash : await dummyHash())) && !!vendor;
   if (!passwordOk) {
     await recordLoginAttempt({ email, ip, success: false });
     throw new HttpError(401, 'Wrong email or password.');
@@ -187,7 +194,7 @@ async function reset(req, res, body) {
   checkPassword(body.password); // before the code, so a weak password doesn't use up a try
   await verifyCode({ email, purpose: 'reset', code: body.code });
 
-  const passwordHash = await bcrypt.hash(body.password, 10);
+  const passwordHash = await hashPassword(body.password);
   const rows = await sql`
     UPDATE vendors
     SET password_hash = ${passwordHash}, email_verified = TRUE, updated_at = now()
