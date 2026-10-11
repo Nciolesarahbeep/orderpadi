@@ -1,12 +1,15 @@
 # Netlify settings. The static pages are copied into public/ at build time;
 # netlify/functions/app.mjs serves the API and the link-preview pages.
 [build]
-  command = "mkdir -p public && cp *.html *.png *.svg *.txt *.webmanifest public/"
+  # Install the three server packages, then copy the static pages to public/.
+  command = "npm install --no-audit --no-fund && mkdir -p public && cp *.html *.png *.svg *.txt *.webmanifest public/"
   publish = "public"
 
 [functions]
   node_bundler = "esbuild"
   included_files = ["*.html"]
+  # Ship these packages alongside the function instead of bundling them.
+  external_node_modules = ["@neondatabase/serverless", "bcryptjs", "jsonwebtoken"]
 
 [[redirects]]
   from = "/index"
