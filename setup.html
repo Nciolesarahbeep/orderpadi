@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
   <title>OrderPadi — Setup check</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <style>
     :root { --bg:#f6f6f3; --card:#ffffff; --ink:#141414; --muted:#6b6b66; --line:#e4e4de; --accent:#0a7d4f; --good:#0a7d4f; --bad:#c0392b; }
     @media (prefers-color-scheme: dark) {
@@ -87,6 +88,12 @@
         addRow('RESEND_API_KEY set', !!env.RESEND_API_KEY, env.RESEND_API_KEY ? '' : 'Add your Resend key, then redeploy.');
         addRow('Paystack keys set (for Pro)', !!(env.PAYSTACK_SECRET_KEY && env.PAYSTACK_PLAN_CODE),
           env.PAYSTACK_SECRET_KEY && env.PAYSTACK_PLAN_CODE ? '' : 'Optional until you charge for Pro: add PAYSTACK_SECRET_KEY and PAYSTACK_PLAN_CODE, then redeploy.');
+        addRow('ADMIN_EMAILS set (opens /admin for you)', !!env.ADMIN_EMAILS,
+          env.ADMIN_EMAILS ? '' : 'Add the email you sign up with, then redeploy.');
+        addRow('EMAIL_FROM set (before launch)', !!env.EMAIL_FROM,
+          env.EMAIL_FROM ? '' : 'Until you verify a domain on Resend, sign-up codes only reach your own email. Verify a domain, then add EMAIL_FROM like: OrderPadi <no-reply@yourdomain.com>');
+        addRow('Support contact set (before launch)', !!env.SUPPORT_CONTACT,
+          env.SUPPORT_CONTACT ? '' : 'Add SUPPORT_EMAIL and/or SUPPORT_WHATSAPP. They show on the home, terms and privacy pages (Paystack checks for them).');
       })
       .catch(() => {
         box.innerHTML = '';

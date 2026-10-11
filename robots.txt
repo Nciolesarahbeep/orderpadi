@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /admin
+Disallow: /setup
+Disallow: /api/
+Disallow: /i/
+Disallow: /home
+Disallow: /store
+Disallow: /invoice

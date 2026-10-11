@@ -5,6 +5,8 @@
 //                    -> { order, store }   (store here includes bank details)
 //   GET  /api/public?invoice=<publicId>        -> { invoice, store }
 //   POST /api/public { action: "paid", invoice } -> customer says they've paid
+//   GET  /api/public?site=contact              -> { contact: { email, whatsapp } }
+//   GET  /api/public?render=home|store|invoice -> the page itself, with link-preview tags
 //
 // Prices always come from the database, never from the browser. The order,
 // its items, the customer record and the seller's notification are written
@@ -14,6 +16,7 @@ const { HttpError, getClientIp } = require('../lib/auth');
 const { cleanSlug, cleanText, normalizeNgPhone, formatNaira } = require('../lib/format');
 const { createOrder, invoiceForCustomer } = require('../lib/orders');
 const { isPro, usage, noteUsage } = require('../lib/plan');
+const { renderPage } = require('../lib/pages');
 
 const MAX_LINES = 50;
 const MAX_QUANTITY = 99;
@@ -49,7 +52,7 @@ function storeForCustomer(v, { withBank = false } = {}) {
 }
 
 async function getStore(req, res) {
-  const slug = new URL(req.url || '/', 'http://x').searchParams.get('store');
+  const slug = param(req, 'store');
   const vendor = await findStore(slug);
   if (!vendor) throw new HttpError(404, "This store doesn't exist. Check the link with the seller.");
   const products = await sql`
@@ -217,6 +220,26 @@ async function markPaid(body, res) {
   return getInvoice(body.invoice, res);
 }
 
+// Query values, whether the platform parsed them (req.query) or not.
+function param(req, name) {
+  if (req.query && typeof req.query[name] === 'string') return req.query[name];
+  return new URL(req.url || '/', 'http://x').searchParams.get(name);
+}
+
+// How customers reach the business behind OrderPadi (SUPPORT_EMAIL and
+// SUPPORT_WHATSAPP in Vercel). Shown on the home, terms and privacy pages.
+function contact(res) {
+  const email = String(process.env.SUPPORT_EMAIL || '').trim().toLowerCase();
+  const whatsapp = normalizeNgPhone(process.env.SUPPORT_WHATSAPP || '');
+  res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=300');
+  return res.status(200).json({
+    contact: {
+      email: /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(email) ? email : null,
+      whatsapp: whatsapp || null
+    }
+  });
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -224,10 +247,19 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  if (req.method === 'GET') {
+    // Pages with link previews: "/", "/s/<slug>", "/i/<id>" (see lib/pages.js).
+    const render = param(req, 'render');
+    if (render === 'home') return renderPage(req, res, 'home');
+    if (render === 'store') return renderPage(req, res, 'store', param(req, 'slug'));
+    if (render === 'invoice') return renderPage(req, res, 'invoice', param(req, 'id'));
+    if (param(req, 'site') === 'contact') return contact(res);
+  }
+
   try {
     if (!sql) throw new HttpError(500, 'The store is not connected to its database yet.');
     if (req.method === 'GET') {
-      const invoice = new URL(req.url || '/', 'http://x').searchParams.get('invoice');
+      const invoice = param(req, 'invoice');
       return invoice !== null ? await getInvoice(invoice, res) : await getStore(req, res);
     }
 

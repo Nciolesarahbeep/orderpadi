@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex">
   <title>OrderPadi</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#0a7d4f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="OrderPadi">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <style>
     :root {
       --bg:#f6f6f3; --card:#ffffff; --ink:#141414; --muted:#6b6b66; --line:#e4e4de;
@@ -610,6 +618,7 @@
         <p class="card-label">Logged in as</p>
         <p id="settings-email"></p>
       </div>
+      <a class="btn secondary" id="admin-link" href="/admin" hidden style="text-align:center;text-decoration:none">Open admin panel</a>
       <button class="btn secondary" type="button" id="logout">Log out</button>
     </section>
 
@@ -956,6 +965,8 @@
       }
       loadOrders(true, { quiet: true });
       loadStats();
+      // Came from the admin panel's "Log in" button.
+      if (new URLSearchParams(location.search).get('next') === 'admin' && state.vendor.isAdmin) location.replace('/admin');
     }
 
     async function loadStats() {
@@ -1226,6 +1237,7 @@
       $('settings-fee').value = v.deliveryFeeKobo ? koboToInput(v.deliveryFeeKobo) : '';
       $('settings-note').value = v.deliveryNote || '';
       $('settings-email').textContent = v.email;
+      $('admin-link').hidden = !v.isAdmin;
       setHint('settings-slug-hint', 'Your current link: ' + location.host + '/s/' + v.slug);
     }
 

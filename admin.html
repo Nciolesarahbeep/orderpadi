@@ -2,31 +2,575 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex">
-  <title>Admin — OrderPadi</title>
+  <title>Admin · OrderPadi</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <style>
-    :root { --bg:#f6f6f3; --card:#ffffff; --ink:#141414; --muted:#6b6b66; --line:#e4e4de; --accent:#0a7d4f; }
-    @media (prefers-color-scheme: dark) {
-      :root { --bg:#101010; --card:#1a1a1a; --ink:#f2f2ef; --muted:#a3a39d; --line:#2a2a28; --accent:#2fbf7f; }
+    :root {
+      --bg:#f6f6f3; --card:#ffffff; --ink:#141414; --muted:#6b6b66; --line:#e4e4de;
+      --accent:#0a7d4f; --accent-ink:#ffffff; --accent-soft:#e7f4ee; --bad:#b42318; --bad-soft:#fdecea;
+      --warn:#9a5b00; --warn-soft:#fff4e0;
     }
-    * { box-sizing: border-box; }
-    body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height:1.5; }
-    main { max-width:480px; margin:0 auto; padding:40px 16px; }
-    .logo { font-weight:700; font-size:20px; letter-spacing:-0.02em; }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:#101010; --card:#1a1a1a; --ink:#f2f2ef; --muted:#a3a39d; --line:#2a2a28;
+        --accent:#2fbf7f; --accent-ink:#0b1f15; --accent-soft:#14291f; --bad:#ff7a6b; --bad-soft:#2c1714;
+        --warn:#f0b54a; --warn-soft:#2b2110;
+      }
+    }
+    * { box-sizing:border-box; }
+    [hidden] { display:none !important; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height:1.5; -webkit-text-size-adjust:100%; }
+    main { max-width:720px; margin:0 auto; padding:20px 16px calc(48px + env(safe-area-inset-bottom)); }
+    a { color:var(--accent); }
+    :focus-visible { outline:3px solid var(--accent); outline-offset:2px; border-radius:6px; }
+
+    .top { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .logo { font-weight:800; font-size:20px; letter-spacing:-0.02em; color:var(--ink); text-decoration:none; }
     .logo span { color:var(--accent); }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px; margin-top:24px; }
-    h1 { font-size:24px; margin:0 0 8px; }
-    p { color:var(--muted); margin:0; }
+    .logo .tag { display:inline-block; margin-left:8px; font-size:12px; font-weight:700; letter-spacing:0; padding:2px 8px; border-radius:6px; background:var(--ink); color:var(--bg); vertical-align:3px; }
+    .top a.back { font-weight:600; text-decoration:none; font-size:15px; }
+
+    .tabs { display:flex; gap:6px; margin:20px 0 4px; padding:4px; background:var(--card); border:1px solid var(--line); border-radius:14px; }
+    .tabs button { flex:1; border:0; background:none; padding:10px 6px; border-radius:10px; font:inherit; font-size:15px; font-weight:600; color:var(--muted); cursor:pointer; }
+    .tabs button.active { background:var(--accent-soft); color:var(--accent); }
+
+    .view { display:none; }
+    .view.active { display:block; }
+    h1 { font-size:24px; line-height:1.2; letter-spacing:-0.02em; margin:24px 0 4px; overflow-wrap:anywhere; }
+    .sub { color:var(--muted); margin:0 0 8px; overflow-wrap:anywhere; }
+
+    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; margin-top:14px; }
+    .card-label { font-size:13px; color:var(--muted); margin:0 0 4px; }
+    .big { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 10px; margin:0 0 4px; }
+    .big b { font-size:30px; letter-spacing:-0.02em; font-variant-numeric:tabular-nums; }
+    .big span { color:var(--muted); font-size:14px; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+    .grid > div, .grid > button { background:var(--bg); border-radius:12px; padding:10px 12px; border:0; text-align:left; font:inherit; color:inherit; }
+    .grid > button { cursor:pointer; }
+    .grid b { display:block; font-size:20px; font-variant-numeric:tabular-nums; }
+    .grid span { font-size:13px; color:var(--muted); }
+    .grid > button span::after { content:" ›"; }
+    .bars { display:flex; align-items:flex-end; gap:4px; height:90px; margin-top:12px; }
+    .bars div { flex:1; background:var(--accent); border-radius:3px 3px 0 0; min-height:2px; }
+    .bars div.zero { background:var(--line); }
+    .axis { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-top:4px; }
+    .check { display:flex; gap:10px; padding:8px 0; border-top:1px solid var(--line); font-size:15px; }
+    .check:first-of-type { border-top:0; }
+    .check i { font-style:normal; font-weight:800; width:18px; flex:none; }
+    .check.ok i { color:var(--accent); }
+    .check.no i { color:var(--bad); }
+    .check.opt i { color:var(--warn); }
+
+    input[type=search], textarea { width:100%; font:inherit; font-size:16px; color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; outline:none; -webkit-appearance:none; }
+    input[type=search]:focus, textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+    textarea { min-height:80px; resize:vertical; }
+    .chips { display:flex; gap:8px; overflow-x:auto; padding:12px 0 2px; -webkit-overflow-scrolling:touch; }
+    .chips button { flex:none; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:999px; padding:7px 14px; font:inherit; font-size:14px; cursor:pointer; }
+    .chips button.active { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+
+    .list { background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden; margin-top:12px; }
+    .row { display:flex; width:100%; gap:12px; align-items:center; padding:13px 16px; border:0; border-top:1px solid var(--line); background:none; text-align:left; font:inherit; color:inherit; cursor:pointer; }
+    .row:first-child { border-top:0; }
+    .row .main { flex:1; min-width:0; }
+    .row .name { font-weight:600; overflow-wrap:anywhere; }
+    .row .meta { font-size:13px; color:var(--muted); overflow-wrap:anywhere; }
+    .row .num { text-align:right; font-variant-numeric:tabular-nums; font-weight:600; white-space:nowrap; }
+    .row .num small { display:block; font-weight:400; color:var(--muted); font-size:12px; }
+    .event { padding:11px 16px; border-top:1px solid var(--line); font-size:15px; }
+    .event:first-child { border-top:0; }
+    .event .meta { font-size:13px; color:var(--muted); }
+    .badge { display:inline-block; font-size:12px; font-weight:700; padding:1px 7px; border-radius:6px; margin-left:6px; vertical-align:1px; background:var(--line); color:var(--ink); }
+    .badge.pro { background:var(--accent); color:var(--accent-ink); }
+    .badge.given { background:var(--accent-soft); color:var(--accent); }
+    .badge.bad { background:var(--bad-soft); color:var(--bad); }
+    .badge.warn { background:var(--warn-soft); color:var(--warn); }
+    .badge:first-child { margin-left:0; }
+
+    .kv { display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-top:1px solid var(--line); font-size:15px; }
+    .kv:first-of-type { border-top:0; }
+    .kv span:last-child { text-align:right; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+    .kv span:first-child { color:var(--muted); }
+
+    .btn { display:block; width:100%; margin-top:12px; padding:13px; border:0; border-radius:12px; background:var(--accent); color:var(--accent-ink); font:inherit; font-size:15px; font-weight:600; cursor:pointer; text-align:center; text-decoration:none; }
+    .btn.secondary { background:var(--card); color:var(--ink); border:1px solid var(--line); }
+    .btn.danger { background:none; color:var(--bad); border:1px solid var(--line); }
+    .btn[disabled] { opacity:0.6; cursor:default; }
+    .btn-row { display:flex; gap:8px; }
+    .btn-row .btn { margin-top:8px; }
+    .msg { margin:12px 0 0; padding:10px 12px; border-radius:10px; font-size:14px; }
+    .msg.bad { background:var(--bad-soft); color:var(--bad); }
+    .msg.warn { background:var(--warn-soft); color:var(--warn); }
+    .empty { padding:28px 16px; text-align:center; color:var(--muted); }
+    .back-link { background:none; border:0; padding:0; margin-top:18px; font:inherit; font-weight:600; color:var(--accent); cursor:pointer; }
+
+    .toast { position:fixed; left:50%; bottom:calc(24px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(20px); background:var(--ink); color:var(--bg); padding:11px 18px; border-radius:999px; font-size:15px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; width:max-content; max-width:calc(100% - 32px); text-align:center; }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
   <main>
-    <div class="logo">Order<span>Padi</span></div>
-    <div class="card">
-      <h1>Admin</h1>
-      <p>Placeholder. Vendor management, plans and suspensions come in step 8.</p>
+    <div class="top">
+      <a class="logo" href="/admin">Order<span>Padi</span><span class="tag">Admin</span></a>
+      <a class="back" href="/app">Back to app</a>
     </div>
+
+    <section class="view active" id="view-loading"><p class="empty">Loading…</p></section>
+
+    <section class="view" id="view-login">
+      <h1>Log in first</h1>
+      <p class="sub">The admin panel uses your OrderPadi login.</p>
+      <a class="btn" href="/app?next=admin">Log in</a>
+    </section>
+
+    <section class="view" id="view-denied">
+      <h1>This page isn't available</h1>
+      <p class="sub">Your account doesn't have admin access. To give an account access, add its email to ADMIN_EMAILS in Vercel and redeploy.</p>
+      <a class="btn secondary" href="/app">Back to the app</a>
+    </section>
+
+    <nav class="tabs" id="tabs" hidden>
+      <button type="button" data-view="overview" class="active">Overview</button>
+      <button type="button" data-view="sellers">Sellers</button>
+      <button type="button" data-view="events">Payments</button>
+    </nav>
+
+    <!-- Overview -->
+    <section class="view" id="view-overview">
+      <div class="card">
+        <p class="card-label">Monthly revenue from Pro</p>
+        <p class="big"><b id="ov-mrr">₦0</b><span id="ov-paying"></span></p>
+        <p class="sub" id="ov-collected" style="margin:0"></p>
+      </div>
+      <div class="card">
+        <p class="card-label">Sellers</p>
+        <p class="big"><b id="ov-sellers">0</b><span id="ov-new"></span></p>
+        <div class="grid">
+          <div><b id="ov-active">0</b><span>Took an order this week</span></div>
+          <button type="button" data-open-filter="limit"><b id="ov-limit">0</b><span>At the free limit</span></button>
+          <button type="button" data-open-filter="unverified"><b id="ov-unverified">0</b><span>Didn't verify email</span></button>
+          <button type="button" data-open-filter="suspended"><b id="ov-suspended">0</b><span>Suspended</span></button>
+        </div>
+      </div>
+      <div class="card">
+        <p class="card-label">Orders across all stores</p>
+        <div class="grid" style="grid-template-columns:repeat(3, 1fr)">
+          <div><b id="ov-orders-today">0</b><span>Today</span></div>
+          <div><b id="ov-orders-week">0</b><span>7 days</span></div>
+          <div><b id="ov-orders-month">0</b><span>This month</span></div>
+        </div>
+        <p class="sub" id="ov-value" style="margin:10px 0 0"></p>
+      </div>
+      <div class="card">
+        <p class="card-label">Sign-ups, last 14 days</p>
+        <div class="bars" id="ov-bars"></div>
+        <div class="axis"><span id="ov-axis-start"></span><span>Today</span></div>
+      </div>
+      <div class="card">
+        <p class="card-label">System</p>
+        <div id="ov-health"></div>
+      </div>
+    </section>
+
+    <!-- Sellers -->
+    <section class="view" id="view-sellers">
+      <input type="search" id="seller-search" placeholder="Search name, email or store link" autocomplete="off" autocapitalize="none" spellcheck="false" style="margin-top:14px">
+      <div class="chips" id="seller-filters">
+        <button type="button" data-filter="all" class="active">All</button>
+        <button type="button" data-filter="pro">Pro</button>
+        <button type="button" data-filter="free">Free</button>
+        <button type="button" data-filter="limit">At limit</button>
+        <button type="button" data-filter="suspended">Suspended</button>
+        <button type="button" data-filter="unverified">Unverified</button>
+      </div>
+      <div id="sellers-list"></div>
+      <button class="btn secondary" type="button" id="sellers-more" hidden>Load more</button>
+    </section>
+
+    <!-- One seller -->
+    <section class="view" id="view-seller">
+      <button class="back-link" type="button" id="seller-back">‹ Sellers</button>
+      <h1 id="s-name"></h1>
+      <p class="sub" id="s-badges"></p>
+      <div class="card">
+        <div id="s-info"></div>
+        <a class="btn secondary" id="s-store" target="_blank" rel="noopener">Open their store</a>
+      </div>
+      <div class="card">
+        <p class="card-label">Activity</p>
+        <div class="grid" id="s-stats"></div>
+      </div>
+      <div class="card">
+        <p class="card-label">Plan</p>
+        <p id="s-plan" style="margin:0"></p>
+        <p class="sub" style="margin:10px 0 0;font-size:14px">Give Pro free (for a friend, a refund, or a launch offer):</p>
+        <div class="btn-row">
+          <button class="btn secondary" type="button" data-grant="1">1 month</button>
+          <button class="btn secondary" type="button" data-grant="3">3 months</button>
+          <button class="btn secondary" type="button" data-grant="12">1 year</button>
+        </div>
+        <button class="btn danger" type="button" id="s-end-pro">End Pro now</button>
+        <p class="msg warn" id="s-warning" hidden></p>
+      </div>
+      <div class="card">
+        <p class="card-label">Account</p>
+        <button class="btn secondary" type="button" id="s-signout">Log them out everywhere</button>
+        <div id="s-suspend-box">
+          <textarea id="s-reason" placeholder="Reason for suspending (kept in the account history)" maxlength="300" style="margin-top:12px"></textarea>
+          <button class="btn danger" type="button" id="s-suspend">Suspend account</button>
+          <p class="sub" style="font-size:13px;margin:8px 0 0">Suspending takes their store link and invoices offline and logs them out. You can undo it.</p>
+        </div>
+        <button class="btn" type="button" id="s-unsuspend" hidden>Unsuspend account</button>
+        <p class="msg bad" id="s-error" hidden></p>
+      </div>
+      <div class="card">
+        <p class="card-label">Account history</p>
+        <div id="s-events"></div>
+      </div>
+    </section>
+
+    <!-- Payments and admin actions -->
+    <section class="view" id="view-events">
+      <h1>Payments and changes</h1>
+      <p class="sub">The latest Paystack events and admin actions, newest first.</p>
+      <div id="events-list"></div>
+    </section>
   </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const state = { view: 'overview', filter: 'all', q: '', sellers: [], nextBefore: null, seller: null };
+
+    function el(tag, cls, text) {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text != null) e.textContent = text;
+      return e;
+    }
+    const naira = (kobo) => '₦' + Math.round(Number(kobo || 0) / 100).toLocaleString('en-NG');
+    const date = (v) => (v ? new Date(v).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
+    const dateTime = (v) => (v ? new Date(v).toLocaleString('en-NG', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '—');
+    const plural = (n, word) => n + ' ' + word + (n === 1 ? '' : 's');
+
+    let toastTimer;
+    function toast(text) {
+      const t = $('toast');
+      t.textContent = text;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+    }
+
+    async function api(url, body) {
+      try {
+        const res = await fetch(url, body
+          ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(body) }
+          : { credentials: 'same-origin', cache: 'no-store' });
+        let data = {};
+        try { data = await res.json(); } catch (e) { data = {}; }
+        return { ok: res.ok, status: res.status, data };
+      } catch (err) {
+        return { ok: false, status: 0, data: { error: 'No connection. Check your internet and try again.' } };
+      }
+    }
+
+    function show(name) {
+      document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === 'view-' + name));
+      const tabbed = ['overview', 'sellers', 'seller', 'events'].includes(name);
+      $('tabs').hidden = !tabbed;
+      const tab = name === 'seller' ? 'sellers' : name;
+      document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.view === tab));
+      window.scrollTo(0, 0);
+    }
+
+    // 401 -> log in, 404 -> not an admin. Returns true if the page should stop.
+    function gate(status) {
+      if (status === 401) { show('login'); return true; }
+      if (status === 404 && !state.allowed) { show('denied'); return true; }
+      return false;
+    }
+
+    // ---------- overview ----------
+    async function loadOverview() {
+      const { ok, status, data } = await api('/api/admin');
+      if (gate(status)) return;
+      state.allowed = true;
+      if (!ok) { show('overview'); return toast(data.error || 'Could not load the numbers.'); }
+      const s = data.sellers, p = data.pro, o = data.orders;
+      $('ov-mrr').textContent = naira(p.mrrKobo);
+      $('ov-paying').textContent = plural(p.paying, 'paying seller') + (p.given ? ', ' + p.given + ' with Pro given free' : '');
+      $('ov-collected').textContent = 'Collected through Paystack in the last 30 days: ' + naira(p.collected30dKobo);
+      $('ov-sellers').textContent = s.total;
+      $('ov-new').textContent = '+' + s.today + ' today, +' + s.week + ' this week, +' + s.month + ' in 30 days';
+      $('ov-active').textContent = s.activeWeek;
+      $('ov-limit').textContent = s.atLimit;
+      $('ov-unverified').textContent = s.unverified;
+      $('ov-suspended').textContent = s.suspended;
+      $('ov-orders-today').textContent = o.today;
+      $('ov-orders-week').textContent = o.week;
+      $('ov-orders-month').textContent = o.month;
+      $('ov-value').textContent = 'Value of orders this month: ' + naira(o.valueMonthKobo);
+      const bars = $('ov-bars');
+      bars.textContent = '';
+      const max = Math.max(1, ...data.signups.map((d) => d.count));
+      data.signups.forEach((d) => {
+        const b = el('div', d.count ? '' : 'zero');
+        b.style.height = Math.max(3, Math.round((d.count / max) * 100)) + '%';
+        b.title = d.day + ': ' + plural(d.count, 'sign-up');
+        bars.appendChild(b);
+      });
+      $('ov-axis-start').textContent = data.signups.length ? new Date(data.signups[0].day + 'T12:00:00').toLocaleDateString('en-NG', { day: 'numeric', month: 'short' }) : '';
+      renderHealth(data.health);
+      show('overview');
+    }
+
+    function renderHealth(h) {
+      const box = $('ov-health');
+      box.textContent = '';
+      const env = h.env || {};
+      const rows = [
+        ['Database connected', h.db, true],
+        ['All tables in place', h.db && (h.missing || []).length === 0, true],
+        ['Database updates applied', h.db && h.migrations && h.migrations.step2, true],
+        ['Login secret (JWT_SECRET)', env.JWT_SECRET, true],
+        ['Email sending (RESEND_API_KEY)', env.RESEND_API_KEY, true],
+        ['Own email domain (EMAIL_FROM)', env.EMAIL_FROM, false],
+        ['Paystack keys', env.PAYSTACK_SECRET_KEY && env.PAYSTACK_PLAN_CODE, false],
+        ['Support contact on public pages', env.SUPPORT_CONTACT, false]
+      ];
+      rows.forEach(([label, ok, required]) => {
+        const r = el('div', 'check ' + (ok ? 'ok' : required ? 'no' : 'opt'));
+        r.append(el('i', null, ok ? '✓' : required ? '✗' : '!'), el('span', null, label + (ok || required ? '' : ' (needed before launch)')));
+        box.appendChild(r);
+      });
+    }
+
+    document.querySelectorAll('[data-open-filter]').forEach((b) => b.addEventListener('click', () => {
+      setFilter(b.dataset.openFilter);
+      openSellers();
+    }));
+
+    // ---------- sellers ----------
+    function setFilter(f) {
+      state.filter = f;
+      document.querySelectorAll('#seller-filters button').forEach((b) => b.classList.toggle('active', b.dataset.filter === f));
+    }
+
+    async function openSellers() {
+      show('sellers');
+      await loadSellers(true);
+    }
+
+    async function loadSellers(reset) {
+      if (reset) { state.sellers = []; state.nextBefore = null; $('sellers-list').innerHTML = '<p class="empty">Loading…</p>'; }
+      const params = new URLSearchParams({ view: 'sellers', filter: state.filter, q: state.q });
+      if (!reset && state.nextBefore) params.set('before', state.nextBefore);
+      const asked = params.toString();
+      state.lastAsked = asked;
+      const { ok, status, data } = await api('/api/admin?' + asked);
+      if (state.lastAsked !== asked) return; // a newer search has started
+      if (gate(status)) return;
+      if (!ok) { $('sellers-list').innerHTML = ''; return $('sellers-list').appendChild(el('p', 'empty', data.error || 'Could not load sellers.')); }
+      state.sellers = state.sellers.concat(data.sellers);
+      state.nextBefore = data.nextBefore;
+      renderSellers(data.hasMore);
+    }
+
+    function badges(s) {
+      const out = [];
+      if (s.plan === 'pro') out.push(s.paying ? ['Pro', 'pro'] : ['Pro, given', 'given']);
+      if (s.plan !== 'pro' && s.ordersThisMonth >= 20) out.push(['At limit', 'warn']);
+      if (s.suspended) out.push(['Suspended', 'bad']);
+      if (!s.verified) out.push(['Unverified', '']);
+      if (s.admin) out.push(['Admin', '']);
+      return out;
+    }
+
+    function renderSellers(hasMore) {
+      const box = $('sellers-list');
+      box.textContent = '';
+      $('sellers-more').hidden = !hasMore;
+      if (!state.sellers.length) return box.appendChild(el('p', 'empty', state.q ? 'No sellers match "' + state.q + '".' : 'No sellers here yet.'));
+      const list = el('div', 'list');
+      state.sellers.forEach((s) => {
+        const row = el('button', 'row');
+        row.type = 'button';
+        const main = el('div', 'main');
+        const name = el('div', 'name', s.businessName);
+        badges(s).forEach(([t, c]) => name.appendChild(el('span', 'badge ' + c, t)));
+        main.append(name, el('div', 'meta', s.email + ' · joined ' + date(s.joinedAt)));
+        const num = el('div', 'num', String(s.ordersThisMonth));
+        num.appendChild(el('small', null, 'this month'));
+        row.append(main, num);
+        row.addEventListener('click', () => openSeller(s.id));
+        list.appendChild(row);
+      });
+      box.appendChild(list);
+    }
+
+    let searchTimer;
+    $('seller-search').addEventListener('input', (e) => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => { state.q = e.target.value.trim(); loadSellers(true); }, 300);
+    });
+    document.querySelectorAll('#seller-filters button').forEach((b) => b.addEventListener('click', () => {
+      setFilter(b.dataset.filter);
+      loadSellers(true);
+    }));
+    $('sellers-more').addEventListener('click', () => loadSellers(false));
+
+    // ---------- one seller ----------
+    async function openSeller(id) {
+      $('s-warning').hidden = true;
+      $('s-error').hidden = true;
+      $('s-reason').value = '';
+      const { ok, status, data } = await api('/api/admin?id=' + encodeURIComponent(id));
+      if (gate(status)) return;
+      if (!ok) return toast(data.error || 'Could not open that seller.');
+      renderSeller(data);
+      show('seller');
+    }
+
+    const EVENT_NAMES = {
+      'charge.success': (e) => 'Paid ' + naira(e.amountKobo),
+      'subscription.create': () => 'Pro subscription started',
+      'subscription.not_renew': () => 'Cancelled renewal (keeps Pro until the end of the month)',
+      'subscription.disable': () => 'Pro subscription ended',
+      'invoice.payment_failed': () => 'Card payment failed',
+      'admin.grant-pro': (e) => 'Given Pro for ' + (e.months === 12 ? '1 year' : plural(e.months || 0, 'month')),
+      'admin.end-pro': () => 'Pro ended by an admin',
+      'admin.suspend': (e) => 'Suspended' + (e.reason ? ': ' + e.reason : ''),
+      'admin.unsuspend': () => 'Unsuspended',
+      'admin.sign-out': () => 'Logged out everywhere by an admin'
+    };
+    const eventName = (e) => (EVENT_NAMES[e.event] ? EVENT_NAMES[e.event](e) : e.event);
+
+    function renderSeller(data) {
+      const s = data.seller;
+      state.seller = s;
+      $('s-name').textContent = s.businessName;
+      const b = $('s-badges');
+      b.textContent = '';
+      const list = badges(s);
+      if (!list.length) b.appendChild(el('span', 'badge', 'Free'));
+      list.forEach(([t, c]) => b.appendChild(el('span', 'badge ' + c, t)));
+
+      const info = $('s-info');
+      info.textContent = '';
+      [
+        ['Email', s.email],
+        ['Store link', '/s/' + s.slug],
+        ['WhatsApp', s.whatsappPhone ? '+' + s.whatsappPhone : 'Not added'],
+        ['Bank details', s.hasBank ? 'Added' : 'Not added'],
+        ['Joined', date(s.joinedAt)],
+        ['Last login', dateTime(s.lastLoginAt)],
+        ['Logged in on', plural(s.liveSessions, 'device')]
+      ].forEach(([k, v]) => { const r = el('div', 'kv'); r.append(el('span', null, k), el('span', null, v)); info.appendChild(r); });
+      $('s-store').href = '/s/' + s.slug;
+      $('s-store').hidden = s.suspended || !s.verified;
+
+      const stats = $('s-stats');
+      stats.textContent = '';
+      [
+        [s.ordersThisMonth, 'Orders this month'], [s.ordersTotal, 'Orders in total'],
+        [s.products, 'Products'], [s.customers, 'Customers'],
+        [naira(s.receivedKobo), 'Money recorded'], [naira(s.owedKobo), 'Still owed to them']
+      ].forEach(([v, l]) => { const d = el('div'); d.append(el('b', null, String(v)), el('span', null, l)); stats.appendChild(d); });
+
+      $('s-plan').textContent = s.plan === 'pro'
+        ? (s.paying ? 'Pro, paying through Paystack' : 'Pro, given free') + (s.planRenewsAt ? '. ' + (s.paying ? 'Renews ' : 'Ends ') + date(s.planRenewsAt) + '.' : '.')
+        : 'Free plan. ' + s.ordersThisMonth + ' of 20 orders used this month.';
+      $('s-end-pro').hidden = s.plan !== 'pro';
+      $('s-suspend-box').hidden = s.suspended || s.admin;
+      $('s-unsuspend').hidden = !s.suspended;
+
+      const ev = $('s-events');
+      ev.textContent = '';
+      if (!data.events.length) ev.appendChild(el('p', 'sub', 'Nothing yet.'));
+      else {
+        const box = el('div', 'list');
+        box.style.marginTop = '4px';
+        data.events.forEach((e) => {
+          const row = el('div', 'event', eventName(e));
+          row.appendChild(el('div', 'meta', dateTime(e.at) + (e.by ? ' · by ' + e.by : '')));
+          box.appendChild(row);
+        });
+        ev.appendChild(box);
+      }
+    }
+
+    async function act(body, button, doneText) {
+      $('s-error').hidden = true;
+      $('s-warning').hidden = true;
+      button.disabled = true;
+      const { ok, status, data } = await api('/api/admin', { id: state.seller.id, ...body });
+      button.disabled = false;
+      if (gate(status)) return;
+      if (!ok) { $('s-error').textContent = data.error || 'That didn\'t work. Try again.'; $('s-error').hidden = false; return; }
+      renderSeller(data);
+      if (data.warning) { $('s-warning').textContent = data.warning; $('s-warning').hidden = false; }
+      toast(doneText);
+    }
+
+    document.querySelectorAll('[data-grant]').forEach((b) => b.addEventListener('click', () => {
+      const months = Number(b.dataset.grant);
+      if (!confirm('Give ' + state.seller.businessName + ' Pro for ' + (months === 12 ? '1 year' : plural(months, 'month')) + '? They won\'t be charged.')) return;
+      act({ action: 'grant-pro', months }, b, 'Pro given for ' + (months === 12 ? '1 year' : plural(months, 'month')));
+    }));
+    $('s-end-pro').addEventListener('click', (e) => {
+      if (!confirm('End Pro for ' + state.seller.businessName + ' now? Their Paystack subscription is cancelled too, so they won\'t be charged again.')) return;
+      act({ action: 'end-pro' }, e.currentTarget, 'Pro ended');
+    });
+    $('s-signout').addEventListener('click', (e) => {
+      if (!confirm('Log ' + state.seller.businessName + ' out on every device?')) return;
+      act({ action: 'sign-out' }, e.currentTarget, 'Logged out everywhere');
+    });
+    $('s-suspend').addEventListener('click', (e) => {
+      const reason = $('s-reason').value.trim();
+      if (reason.length < 3) { $('s-error').textContent = 'Write a short reason first, so there is a record of why.'; $('s-error').hidden = false; $('s-reason').focus(); return; }
+      if (!confirm('Suspend ' + state.seller.businessName + '? Their store and invoices go offline and they are logged out.')) return;
+      act({ action: 'suspend', reason }, e.currentTarget, 'Account suspended');
+    });
+    $('s-unsuspend').addEventListener('click', (e) => act({ action: 'unsuspend' }, e.currentTarget, 'Account unsuspended'));
+    $('seller-back').addEventListener('click', () => { show('sellers'); loadSellers(true); });
+
+    // ---------- payments ----------
+    async function loadEvents() {
+      show('events');
+      const box = $('events-list');
+      box.innerHTML = '<p class="empty">Loading…</p>';
+      const { ok, status, data } = await api('/api/admin?view=events');
+      if (gate(status)) return;
+      box.textContent = '';
+      if (!ok) return box.appendChild(el('p', 'empty', data.error || 'Could not load payments.'));
+      if (!data.events.length) return box.appendChild(el('p', 'empty', 'No payments yet. They appear here when sellers pay for Pro.'));
+      const list = el('div', 'list');
+      data.events.forEach((e) => {
+        const row = el(e.sellerId ? 'button' : 'div', e.sellerId ? 'row' : 'event');
+        if (e.sellerId) {
+          row.type = 'button';
+          const main = el('div', 'main');
+          main.append(el('div', 'name', eventName(e)), el('div', 'meta', (e.businessName || 'Unknown seller') + ' · ' + dateTime(e.at) + (e.by ? ' · by ' + e.by : '')));
+          row.appendChild(main);
+          row.addEventListener('click', () => openSeller(e.sellerId));
+        } else {
+          row.textContent = eventName(e);
+          row.appendChild(el('div', 'meta', 'No matching seller · ' + dateTime(e.at)));
+        }
+        list.appendChild(row);
+      });
+      box.appendChild(list);
+    }
+
+    document.querySelectorAll('#tabs button').forEach((b) => b.addEventListener('click', () => {
+      if (b.dataset.view === 'overview') loadOverview();
+      else if (b.dataset.view === 'sellers') openSellers();
+      else loadEvents();
+    }));
+
+    loadOverview();
+  </script>
 </body>
 </html>
