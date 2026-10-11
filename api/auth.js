@@ -13,31 +13,9 @@ const {
 } = require('../lib/auth');
 const { sendCode, verifyCode } = require('../lib/otp');
 const { checkLoginRateLimit, recordLoginAttempt, clearLoginFailures, pruneOldAttempts } = require('../lib/rateLimit');
+const { cleanSlug, slugProblem } = require('../lib/format');
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const RESERVED_SLUGS = new Set([
-  'admin', 'api', 'app', 'www', 'help', 'support', 'login', 'signup', 'settings',
-  'billing', 'orderpadi', 'store', 'shop', 'invoice', 'setup', 'test', 'static', 'assets'
-]);
-
-// "Ada's Wigs & More!" -> "adas-wigs-and-more". The page uses the same rules.
-function cleanSlug(input) {
-  return String(input || '')
-    .toLowerCase()
-    .normalize('NFKD').replace(/[̀-ͯ]/g, '')
-    .replace(/&/g, ' and ')
-    .replace(/['’]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 40)
-    .replace(/-+$/g, '');
-}
-
-function slugProblem(slug) {
-  if (slug.length < 3) return 'Your store link needs at least 3 letters or numbers.';
-  if (RESERVED_SLUGS.has(slug)) return 'That store link is reserved. Try another.';
-  return null;
-}
 
 function checkEmail(email) {
   if (!EMAIL_RE.test(email) || email.length > 254) {

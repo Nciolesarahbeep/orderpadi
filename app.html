@@ -17,6 +17,7 @@
       }
     }
     * { box-sizing:border-box; }
+    [hidden] { display:none !important; }
     body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height:1.5; -webkit-text-size-adjust:100%; }
     main { max-width:440px; margin:0 auto; padding:28px 16px calc(40px + env(safe-area-inset-bottom)); }
     .logo { font-weight:700; font-size:20px; letter-spacing:-0.02em; color:var(--ink); text-decoration:none; }
@@ -62,6 +63,65 @@
     .loading { padding:80px 0; text-align:center; color:var(--muted); }
     footer { margin-top:48px; text-align:center; font-size:13px; color:var(--muted); }
     footer a { color:var(--muted); }
+    .muted { color:var(--muted); font-weight:400; }
+
+    textarea { width:100%; min-height:88px; font:inherit; font-size:16px; color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:12px; padding:13px 14px; outline:none; resize:vertical; -webkit-appearance:none; }
+    textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+    textarea.invalid { border-color:var(--bad); }
+    .prefix { position:relative; }
+    .prefix span { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:16px; pointer-events:none; }
+    .prefix input { padding-left:30px; }
+    .section-title { font-size:13px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); margin:32px 0 0; }
+    .head-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:28px 0 6px; }
+    .head-row h1 { margin:0; }
+    .btn.small { width:auto; margin:0; padding:10px 18px; font-size:15px; border-radius:12px; }
+    .btn.danger { background:none; color:var(--bad); border:1px solid var(--line); }
+
+    /* setup checklist on Home */
+    .progress { height:6px; border-radius:3px; background:var(--line); margin:10px 0 4px; overflow:hidden; }
+    .progress div { height:100%; background:var(--accent); border-radius:3px; transition:width 0.3s; }
+    .checklist { list-style:none; margin:0; padding:0; }
+    .checklist button { display:flex; align-items:center; gap:12px; width:100%; padding:13px 0; background:none; border:0; border-top:1px solid var(--line); font:inherit; color:var(--ink); text-align:left; cursor:pointer; }
+    .checklist li:first-child button { border-top:0; }
+    .tick { flex:none; width:26px; height:26px; border-radius:13px; border:2px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--muted); }
+    .checklist .done .tick { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+    .checklist .done .item-text { color:var(--muted); text-decoration:line-through; }
+    .chev { margin-left:auto; color:var(--muted); font-size:20px; line-height:1; }
+
+    /* product list */
+    .list { margin-top:16px; background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden; }
+    .row-btn { display:flex; align-items:center; gap:12px; width:100%; padding:14px 16px; background:none; border:0; border-top:1px solid var(--line); font:inherit; color:var(--ink); text-align:left; cursor:pointer; }
+    .row-btn:first-child { border-top:0; }
+    .row-main { flex:1; min-width:0; }
+    .row-name { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .row-sub { font-size:14px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .row-btn.hidden-item .row-name, .row-btn.hidden-item .price { color:var(--muted); }
+    .price { font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .badge { display:inline-block; font-size:12px; font-weight:600; padding:1px 8px; border-radius:999px; background:var(--line); color:var(--muted); margin-left:6px; vertical-align:1px; }
+    .empty { text-align:center; padding:36px 16px; color:var(--muted); background:var(--card); border:1px dashed var(--line); border-radius:16px; margin-top:16px; }
+    .empty .btn { width:auto; display:inline-block; padding:12px 22px; margin-top:14px; }
+
+    /* on/off switch */
+    .switch-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:20px; padding:14px 16px; background:var(--card); border:1px solid var(--line); border-radius:12px; }
+    .switch-row small { display:block; color:var(--muted); font-size:13px; }
+    .switch { position:relative; flex:none; width:50px; height:30px; margin:0; }
+    .switch input { position:absolute; inset:0; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; }
+    .switch span { position:absolute; inset:0; border-radius:15px; background:var(--line); transition:background 0.2s; pointer-events:none; }
+    .switch span::after { content:''; position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:12px; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.25); transition:transform 0.2s; }
+    .switch input:checked + span { background:var(--accent); }
+    .switch input:checked + span::after { transform:translateX(20px); }
+
+    /* bottom tab bar + toast (only when logged in) */
+    body.in-app main { padding-bottom:calc(110px + env(safe-area-inset-bottom)); }
+    body.in-app footer { display:none; }
+    .tabbar { position:fixed; left:0; right:0; bottom:0; display:none; background:var(--card); border-top:1px solid var(--line); padding:6px 8px calc(6px + env(safe-area-inset-bottom)); z-index:10; }
+    body.in-app .tabbar { display:block; }
+    .tabbar-inner { display:flex; max-width:440px; margin:0 auto; }
+    .tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 0; background:none; border:0; font:inherit; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; }
+    .tab svg { width:24px; height:24px; }
+    .tab.active { color:var(--accent); }
+    .toast { position:fixed; left:50%; bottom:calc(86px + env(safe-area-inset-bottom)); transform:translate(-50%, 16px); background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:999px; font-size:14px; font-weight:600; opacity:0; pointer-events:none; transition:opacity 0.2s, transform 0.2s; z-index:20; white-space:nowrap; }
+    .toast.show { opacity:1; transform:translate(-50%, 0); }
   </style>
 </head>
 <body>
@@ -164,10 +224,12 @@
       <p class="center"><button class="link" type="button" data-go="login">Back to log in</button></p>
     </section>
 
-    <!-- Logged in -->
+    <!-- ===== Logged in ===== -->
+
+    <!-- Home -->
     <section class="view" id="view-home">
       <h1 id="home-title">Hi</h1>
-      <p class="sub">Your store is live. Share your link so customers can order.</p>
+      <p class="sub">Share your store link so customers can order.</p>
       <div class="card">
         <p class="card-label">Your store link</p>
         <a class="store-link" id="home-link" href="#" target="_blank" rel="noopener"></a>
@@ -176,9 +238,103 @@
           <button class="btn" type="button" id="share-link">Share</button>
         </div>
       </div>
+      <div class="card" id="setup-card" hidden>
+        <p class="card-label" id="setup-label">Set up your store</p>
+        <div class="progress"><div id="setup-bar"></div></div>
+        <ul class="checklist">
+          <li id="check-whatsapp"><button type="button" data-tab="settings" data-focus="settings-whatsapp"><span class="tick">1</span><span class="item-text">Add your WhatsApp number</span><span class="chev">›</span></button></li>
+          <li id="check-bank"><button type="button" data-tab="settings" data-focus="settings-bank"><span class="tick">2</span><span class="item-text">Add your bank details</span><span class="chev">›</span></button></li>
+          <li id="check-products"><button type="button" data-new-product><span class="tick">3</span><span class="item-text">Add your first product</span><span class="chev">›</span></button></li>
+        </ul>
+      </div>
+      <div class="card" id="ready-card" hidden>
+        <p class="card-label">✓ Your store is set up</p>
+        <p>Products, WhatsApp and bank details are in. Taking orders through your link comes in step 4.</p>
+      </div>
+    </section>
+
+    <!-- Products -->
+    <section class="view" id="view-products">
+      <div class="head-row">
+        <h1>Products</h1>
+        <button class="btn small" type="button" data-new-product>Add</button>
+      </div>
+      <p class="sub" id="products-sub">What customers can order from your store.</p>
+      <div id="products-list"></div>
+    </section>
+
+    <!-- Add / edit a product -->
+    <section class="view" id="view-product">
+      <h1 id="product-title">Add product</h1>
+      <form id="product-form" novalidate>
+        <label for="product-name">Name</label>
+        <input id="product-name" type="text" maxlength="80" placeholder="e.g. Bone straight wig, 22 inches">
+        <label for="product-price">Price</label>
+        <div class="prefix"><span>₦</span><input id="product-price" type="text" inputmode="decimal" autocomplete="off" placeholder="45000"></div>
+        <label for="product-description">Description <span class="muted">(optional)</span></label>
+        <textarea id="product-description" maxlength="300" placeholder="Colour, size, what's included…"></textarea>
+        <div class="switch-row">
+          <div><b>Show in store</b><small>Turn off when it's sold out.</small></div>
+          <label class="switch"><input type="checkbox" id="product-active" checked aria-label="Show in store"><span></span></label>
+        </div>
+        <p class="error" id="product-error"></p>
+        <button class="btn" type="submit" id="product-save">Add product</button>
+      </form>
+      <button class="btn danger" type="button" id="product-delete" hidden>Delete product</button>
+      <p class="center"><button class="link" type="button" data-tab="products">Back to products</button></p>
+    </section>
+
+    <!-- Settings -->
+    <section class="view" id="view-settings">
+      <h1>Settings</h1>
+      <p class="sub">What customers see on your store and invoices.</p>
+      <form id="settings-form" novalidate>
+        <p class="section-title">Store</p>
+        <label for="settings-name">Business name</label>
+        <input id="settings-name" type="text" maxlength="60" autocomplete="organization">
+        <label for="settings-slug">Store link</label>
+        <input id="settings-slug" type="text" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="40">
+        <p class="hint" id="settings-slug-hint"></p>
+
+        <p class="section-title">WhatsApp</p>
+        <label for="settings-whatsapp">WhatsApp number</label>
+        <input id="settings-whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="0803 123 4567">
+        <p class="hint">Customers tap a button to send you their order here.</p>
+
+        <p class="section-title">Bank details for transfers</p>
+        <label for="settings-bank">Bank</label>
+        <input id="settings-bank" type="text" list="bank-list" autocomplete="off" placeholder="e.g. Opay, GTBank">
+        <datalist id="bank-list">
+          <option value="Access Bank"><option value="Citibank"><option value="Ecobank"><option value="Fidelity Bank">
+          <option value="First Bank"><option value="FCMB"><option value="Globus Bank"><option value="GTBank">
+          <option value="Jaiz Bank"><option value="Keystone Bank"><option value="Kuda"><option value="Lotus Bank">
+          <option value="Moniepoint"><option value="Opay"><option value="PalmPay"><option value="Parallex Bank">
+          <option value="Polaris Bank"><option value="PremiumTrust Bank"><option value="Providus Bank">
+          <option value="Stanbic IBTC"><option value="Standard Chartered"><option value="Sterling Bank">
+          <option value="Taj Bank"><option value="Titan Trust Bank"><option value="UBA"><option value="Union Bank">
+          <option value="Unity Bank"><option value="VFD Microfinance Bank"><option value="Wema Bank (ALAT)">
+          <option value="Zenith Bank">
+        </datalist>
+        <label for="settings-account-number">Account number</label>
+        <input id="settings-account-number" type="text" inputmode="numeric" autocomplete="off" placeholder="10 digits">
+        <label for="settings-account-name">Account name</label>
+        <input id="settings-account-name" type="text" maxlength="80" autocomplete="off">
+        <p class="hint">Shown on invoices so customers know where to pay.</p>
+
+        <p class="section-title">Delivery</p>
+        <label for="settings-fee">Delivery fee</label>
+        <div class="prefix"><span>₦</span><input id="settings-fee" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+        <label for="settings-note">Delivery note <span class="muted">(optional)</span></label>
+        <input id="settings-note" type="text" maxlength="140" placeholder="e.g. Same-day delivery within Ondo">
+
+        <p class="error" id="settings-error"></p>
+        <button class="btn" type="submit" id="settings-save">Save changes</button>
+      </form>
+
+      <p class="section-title">Account</p>
       <div class="card">
-        <p class="card-label">Next up</p>
-        <p>Add your products and bank details so customers can order and pay. Coming in step 3.</p>
+        <p class="card-label">Logged in as</p>
+        <p id="settings-email"></p>
       </div>
       <button class="btn secondary" type="button" id="logout">Log out</button>
     </section>
@@ -186,16 +342,63 @@
     <footer><a href="/setup">Setup check</a></footer>
   </main>
 
+  <nav class="tabbar" aria-label="Main">
+    <div class="tabbar-inner">
+      <button class="tab" type="button" data-tab="home" id="tab-home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
+        Home
+      </button>
+      <button class="tab" type="button" data-tab="products" id="tab-products">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12.1a1 1 0 0 1-1 .9H7.2a1 1 0 0 1-1-.9z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg>
+        Products
+      </button>
+      <button class="tab" type="button" data-tab="settings" id="tab-settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg>
+        Settings
+      </button>
+    </div>
+  </nav>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
   <script>
     const $ = (id) => document.getElementById(id);
-    const state = { email: '', purpose: 'signup', vendor: null, slugTouched: false, slugTimer: null, slugRequest: 0, countdown: null };
+    const state = {
+      email: '', purpose: 'signup', countdown: null, slugTouched: false,
+      vendor: null, setup: null, products: null, editing: null, toastTimer: null
+    };
+    const APP_VIEWS = { home: 'home', products: 'products', product: 'products', settings: 'settings' };
 
     // ---------- helpers ----------
     function switchView(name) {
       document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === 'view-' + name));
       document.querySelectorAll('.error').forEach((e) => { e.textContent = ''; e.classList.remove('show'); });
-      document.querySelectorAll('input.invalid').forEach((i) => i.classList.remove('invalid'));
+      document.querySelectorAll('.invalid').forEach((i) => i.classList.remove('invalid'));
+      // The tab bar shows only on logged-in screens.
+      document.body.classList.toggle('in-app', name in APP_VIEWS);
+      document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === APP_VIEWS[name]));
       window.scrollTo(0, 0);
+    }
+
+    function toast(text) {
+      const el = $('toast');
+      el.textContent = text;
+      el.classList.add('show');
+      clearTimeout(state.toastTimer);
+      state.toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+    }
+
+    // Money: the server stores kobo; people type and read naira.
+    function formatNaira(kobo) {
+      const decimals = kobo % 100 === 0 ? 0 : 2;
+      return '₦' + (kobo / 100).toLocaleString('en-NG', { minimumFractionDigits: decimals, maximumFractionDigits: 2 });
+    }
+    function koboToInput(kobo) { return kobo % 100 === 0 ? String(kobo / 100) : (kobo / 100).toFixed(2); }
+    function looksLikeNaira(text) { return /^\d{1,9}(\.\d{1,2})?$/.test(String(text).replace(/[₦,\s]/g, '')); }
+
+    // "2348031234567" -> "0803 123 4567"
+    function formatPhone(p) {
+      const local = String(p || '').replace(/^234/, '0');
+      return local.length === 11 ? local.slice(0, 4) + ' ' + local.slice(4, 7) + ' ' + local.slice(7) : local;
     }
 
     function showError(view, message, field) {
@@ -211,11 +414,15 @@
       else { button.textContent = button.dataset.label || button.textContent; button.disabled = false; }
     }
 
-    async function api(path, body) {
+    // api(path) GETs; api(path, body) POSTs; api(path, body, 'PATCH') etc.
+    async function api(path, body, method) {
       try {
-        const res = await fetch(path, body
-          ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), credentials: 'same-origin' }
-          : { credentials: 'same-origin', cache: 'no-store' });
+        const options = { method: method || (body ? 'POST' : 'GET'), credentials: 'same-origin', cache: 'no-store' };
+        if (body) {
+          options.headers = { 'Content-Type': 'application/json' };
+          options.body = JSON.stringify(body);
+        }
+        const res = await fetch(path, options);
         let data = {};
         try { data = await res.json(); } catch (e) { data = {}; }
         return { ok: res.ok, status: res.status, data };
@@ -230,7 +437,7 @@
     // Same rules as the server: "Ada's Wigs & More!" -> "adas-wigs-and-more"
     function toSlug(text) {
       return String(text || '').toLowerCase()
-        .normalize('NFKD').replace(/[̀-ͯ]/g, '')
+        .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
         .replace(/&/g, ' and ').replace(/['’]/g, '')
         .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
         .slice(0, 40).replace(/-+$/g, '');
@@ -245,6 +452,15 @@
       if (target === 'forgot') $('forgot-email').value = $('login-email').value || state.email || remembered();
       switchView(target);
     }));
+
+    // Start fixing a field and its error message goes away.
+    document.addEventListener('input', (e) => {
+      const view = e.target.closest('.view');
+      if (!view) return;
+      e.target.classList.remove('invalid');
+      const error = view.querySelector('.error.show');
+      if (error) { error.classList.remove('show'); error.textContent = ''; }
+    });
 
     document.querySelectorAll('[data-toggle]').forEach((btn) => btn.addEventListener('click', () => {
       const input = $(btn.dataset.toggle);
@@ -267,40 +483,48 @@
       remember(email);
       $('login-password').value = '';
       if (data.verify) return openCodeStep(data);
-      showHome(data.vendor);
+      enterApp(data.vendor);
     });
 
-    // ---------- sign up ----------
-    function setSlugHint(text, tone) {
-      const hint = $('slug-hint');
+    // ---------- store link check (sign-up and settings) ----------
+    function setHint(id, text, tone) {
+      const hint = $(id);
       hint.textContent = text;
       hint.className = 'hint' + (tone ? ' ' + tone : '');
     }
 
-    function queueSlugCheck() {
-      clearTimeout(state.slugTimer);
-      const slug = toSlug($('signup-slug').value);
-      if (!slug) return setSlugHint("Letters, numbers and dashes. You'll share this link with customers.");
-      if (slug.length < 3) return setSlugHint('Your store link needs at least 3 letters or numbers.', 'bad');
-      setSlugHint('Checking ' + location.host + '/s/' + slug + '…');
-      state.slugTimer = setTimeout(async () => {
-        const ticket = ++state.slugRequest;
+    // Live "is this link free?" while typing. `current` is the vendor's own
+    // link in Settings, so keeping it doesn't show as taken.
+    const slugChecks = {};
+    function queueSlugCheck(inputId, hintId, opts) {
+      const check = slugChecks[inputId] || (slugChecks[inputId] = { timer: null, ticket: 0 });
+      clearTimeout(check.timer);
+      const slug = toSlug($(inputId).value);
+      const link = location.host + '/s/' + slug;
+      if (!slug) return setHint(hintId, opts.empty);
+      if (slug.length < 3) return setHint(hintId, 'Your store link needs at least 3 letters or numbers.', 'bad');
+      if (opts.current && slug === opts.current) return setHint(hintId, 'Your current link: ' + link);
+      setHint(hintId, 'Checking ' + link + '…');
+      check.timer = setTimeout(async () => {
+        const ticket = ++check.ticket;
         const { ok, data } = await api('/api/auth', { action: 'check-slug', slug });
-        if (ticket !== state.slugRequest) return; // a newer check is on its way
-        if (!ok) return setSlugHint(location.host + '/s/' + slug);
-        if (data.available) setSlugHint('✓ ' + location.host + '/s/' + data.slug + ' is free', 'good');
-        else setSlugHint(data.message || 'That store link is taken.', 'bad');
+        if (ticket !== check.ticket) return; // a newer check is on its way
+        if (!ok) return setHint(hintId, link);
+        if (data.available) setHint(hintId, '✓ ' + location.host + '/s/' + data.slug + ' is free' + (opts.freeSuffix || ''), 'good');
+        else setHint(hintId, data.message || 'That store link is taken.', 'bad');
       }, 400);
     }
 
+    // ---------- sign up ----------
+    const SIGNUP_SLUG = { empty: "Letters, numbers and dashes. You'll share this link with customers." };
     $('signup-name').addEventListener('input', () => {
       if (state.slugTouched) return;
       $('signup-slug').value = toSlug($('signup-name').value);
-      queueSlugCheck();
+      queueSlugCheck('signup-slug', 'slug-hint', SIGNUP_SLUG);
     });
     $('signup-slug').addEventListener('input', () => {
       state.slugTouched = $('signup-slug').value.trim() !== '';
-      queueSlugCheck();
+      queueSlugCheck('signup-slug', 'slug-hint', SIGNUP_SLUG);
     });
     $('signup-slug').addEventListener('blur', () => {
       $('signup-slug').value = toSlug($('signup-slug').value);
@@ -397,7 +621,7 @@
         if (data.restart) return switchView('signup');
         return showError('verify', data.error || 'That code did not work.', 'code');
       }
-      showHome(data.vendor);
+      enterApp(data.vendor);
     });
 
     // ---------- forgot / reset password ----------
@@ -426,19 +650,277 @@
       busy(btn, false);
       if (!ok) return showError('reset', data.error || 'Could not reset your password.', data.field);
       $('reset-password').value = '';
-      showHome(data.vendor);
+      enterApp(data.vendor);
     });
 
-    // ---------- logged in ----------
-    function showHome(vendor) {
+    // ---------- logged in: Home ----------
+    async function enterApp(vendor, setup) {
       clearInterval(state.countdown);
       state.vendor = vendor;
-      $('home-title').textContent = 'Hi, ' + vendor.businessName;
-      const url = storeUrl(vendor.slug);
+      state.setup = setup || null;
+      state.products = null;
+      renderHome();
+      switchView('home');
+      if (!setup) {
+        const { ok, data } = await api('/api/me');
+        if (ok) { state.vendor = data.vendor; state.setup = data.setup; renderHome(); }
+      }
+    }
+
+    function renderHome() {
+      const v = state.vendor;
+      $('home-title').textContent = 'Hi, ' + v.businessName;
+      const url = storeUrl(v.slug);
       $('home-link').href = url;
       $('home-link').textContent = url.replace(/^https?:\/\//, '');
-      switchView('home');
+
+      const s = state.setup;
+      if (!s) { $('setup-card').hidden = true; $('ready-card').hidden = true; return; }
+      const steps = [['check-whatsapp', s.whatsapp], ['check-bank', s.bank], ['check-products', s.products > 0]];
+      const done = steps.filter(([, ok]) => ok).length;
+      steps.forEach(([id, ok], i) => {
+        $(id).classList.toggle('done', ok);
+        $(id).querySelector('.tick').textContent = ok ? '✓' : String(i + 1);
+      });
+      $('setup-label').textContent = 'Set up your store · ' + done + ' of 3 done';
+      $('setup-bar').style.width = Math.round((done / 3) * 100) + '%';
+      $('setup-card').hidden = done === 3;
+      $('ready-card').hidden = done !== 3;
     }
+
+    // If the session ends (logged out elsewhere, password reset), go to login.
+    function sessionLost() {
+      state.vendor = null;
+      $('login-email').value = remembered();
+      switchView('login');
+      showError('login', 'Your session ended. Please log in again.');
+    }
+
+    // Tabs, checklist rows and "Back" links all use data-tab.
+    async function goTab(name, focusId) {
+      if (name === 'products') {
+        switchView('products');
+        await loadProducts();
+      } else if (name === 'settings') {
+        fillSettings();
+        switchView('settings');
+      } else {
+        renderHome();
+        switchView('home');
+      }
+      if (focusId) {
+        const el = $(focusId);
+        el.scrollIntoView({ block: 'center' });
+        el.focus({ preventScroll: true });
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      const tab = e.target.closest('[data-tab]');
+      if (tab) return goTab(tab.dataset.tab, tab.dataset.focus);
+      if (e.target.closest('[data-new-product]')) return openProduct(null);
+    });
+
+    // ---------- logged in: Products ----------
+    async function loadProducts() {
+      if (!state.products) $('products-list').innerHTML = '<p class="empty">Loading…</p>';
+      const { ok, status, data } = await api('/api/products');
+      if (status === 401) return sessionLost();
+      if (!ok) {
+        $('products-list').innerHTML = '';
+        const p = document.createElement('p');
+        p.className = 'empty';
+        p.textContent = data.error || 'Could not load your products.';
+        return $('products-list').appendChild(p);
+      }
+      state.products = data.products;
+      renderProducts();
+    }
+
+    function renderProducts() {
+      const box = $('products-list');
+      const list = state.products || [];
+      box.textContent = '';
+      const shown = list.filter((p) => p.isActive).length;
+      const hidden = list.length - shown;
+      $('products-sub').textContent = list.length
+        ? shown + ' in your store' + (hidden ? ' · ' + hidden + ' hidden' : '')
+        : 'What customers can order from your store.';
+
+      if (!list.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.innerHTML = '<p style="margin:0">No products yet. Add the things you sell so customers can order them.</p>';
+        const add = document.createElement('button');
+        add.type = 'button';
+        add.className = 'btn';
+        add.dataset.newProduct = '';
+        add.textContent = 'Add your first product';
+        empty.appendChild(add);
+        return box.appendChild(empty);
+      }
+
+      const wrap = document.createElement('div');
+      wrap.className = 'list';
+      list.forEach((p) => {
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'row-btn' + (p.isActive ? '' : ' hidden-item');
+        const main = document.createElement('div');
+        main.className = 'row-main';
+        const name = document.createElement('div');
+        name.className = 'row-name';
+        name.textContent = p.name;
+        if (!p.isActive) {
+          const badge = document.createElement('span');
+          badge.className = 'badge';
+          badge.textContent = 'Hidden';
+          name.appendChild(badge);
+        }
+        main.appendChild(name);
+        if (p.description) {
+          const sub = document.createElement('div');
+          sub.className = 'row-sub';
+          sub.textContent = p.description;
+          main.appendChild(sub);
+        }
+        const price = document.createElement('span');
+        price.className = 'price';
+        price.textContent = formatNaira(p.priceKobo);
+        const chev = document.createElement('span');
+        chev.className = 'chev';
+        chev.textContent = '›';
+        row.append(main, price, chev);
+        row.addEventListener('click', () => openProduct(p));
+        wrap.appendChild(row);
+      });
+      box.appendChild(wrap);
+    }
+
+    function openProduct(p) {
+      state.editing = p || null;
+      $('product-title').textContent = p ? 'Edit product' : 'Add product';
+      $('product-name').value = p ? p.name : '';
+      $('product-price').value = p ? koboToInput(p.priceKobo) : '';
+      $('product-description').value = p ? p.description : '';
+      $('product-active').checked = p ? p.isActive : true;
+      $('product-save').textContent = p ? 'Save changes' : 'Add product';
+      $('product-delete').hidden = !p;
+      switchView('product');
+      if (!p) $('product-name').focus();
+    }
+
+    function countActive() { return (state.products || []).filter((p) => p.isActive).length; }
+
+    $('product-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = $('product-name').value.trim();
+      const price = $('product-price').value.trim();
+      const description = $('product-description').value.trim();
+      if (name.length < 2) return showError('product', 'Give the product a name.', 'name');
+      if (!looksLikeNaira(price) || Number(price.replace(/[₦,\s]/g, '')) <= 0) {
+        return showError('product', 'Enter the price in naira, like 4500.', 'price');
+      }
+      const body = { name, price, description, isActive: $('product-active').checked };
+      const editing = state.editing;
+      if (editing) body.id = editing.id;
+
+      const btn = $('product-save');
+      busy(btn, true, 'Saving…');
+      const { ok, status, data } = await api('/api/products', body, editing ? 'PATCH' : 'POST');
+      busy(btn, false);
+      if (status === 401) return sessionLost();
+      if (!ok) return showError('product', data.error || 'Could not save the product.', data.field);
+
+      if (!state.products) state.products = [];
+      if (editing) state.products = state.products.map((p) => (p.id === data.product.id ? data.product : p));
+      else state.products.push(data.product);
+      state.products.sort((a, b) => Number(b.isActive) - Number(a.isActive));
+      if (state.setup) state.setup.products = countActive();
+      toast(editing ? 'Saved' : 'Product added');
+      renderProducts();
+      switchView('products');
+    });
+
+    $('product-delete').addEventListener('click', async () => {
+      const p = state.editing;
+      if (!p) return;
+      if (!confirm('Delete "' + p.name + '"? Customers won\'t see it any more. Past orders keep their details.')) return;
+      const btn = $('product-delete');
+      busy(btn, true, 'Deleting…');
+      const { ok, status, data } = await api('/api/products', { id: p.id }, 'DELETE');
+      busy(btn, false);
+      if (status === 401) return sessionLost();
+      if (!ok) return showError('product', data.error || 'Could not delete the product.');
+      state.products = (state.products || []).filter((x) => x.id !== p.id);
+      if (state.setup) state.setup.products = countActive();
+      toast('Product deleted');
+      renderProducts();
+      switchView('products');
+    });
+
+    $('product-price').addEventListener('blur', () => {
+      const el = $('product-price');
+      el.value = el.value.replace(/[₦,\s]/g, '');
+    });
+
+    // ---------- logged in: Settings ----------
+    const SETTINGS_FIELDS = {
+      businessName: 'name', slug: 'slug', whatsappPhone: 'whatsapp', bankName: 'bank',
+      bankAccountNumber: 'account-number', bankAccountName: 'account-name', deliveryFee: 'fee', deliveryNote: 'note'
+    };
+
+    function settingsSlugOpts() {
+      return { empty: 'Letters, numbers and dashes.', current: state.vendor.slug, freeSuffix: '. Your old link will stop working.' };
+    }
+
+    function fillSettings() {
+      const v = state.vendor;
+      $('settings-name').value = v.businessName;
+      $('settings-slug').value = v.slug;
+      $('settings-whatsapp').value = v.whatsappPhone ? formatPhone(v.whatsappPhone) : '';
+      $('settings-bank').value = v.bankName || '';
+      $('settings-account-number').value = v.bankAccountNumber || '';
+      $('settings-account-name').value = v.bankAccountName || '';
+      $('settings-fee').value = v.deliveryFeeKobo ? koboToInput(v.deliveryFeeKobo) : '';
+      $('settings-note').value = v.deliveryNote || '';
+      $('settings-email').textContent = v.email;
+      setHint('settings-slug-hint', 'Your current link: ' + location.host + '/s/' + v.slug);
+    }
+
+    $('settings-slug').addEventListener('input', () => queueSlugCheck('settings-slug', 'settings-slug-hint', settingsSlugOpts()));
+    $('settings-slug').addEventListener('blur', () => { $('settings-slug').value = toSlug($('settings-slug').value); });
+    $('settings-account-number').addEventListener('input', () => {
+      const el = $('settings-account-number');
+      el.value = el.value.replace(/\D/g, '').slice(0, 10);
+    });
+
+    $('settings-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fee = $('settings-fee').value.trim();
+      if (fee && !looksLikeNaira(fee)) return showError('settings', 'Enter the delivery fee in naira, like 1500.', 'fee');
+      const body = {
+        businessName: $('settings-name').value,
+        slug: toSlug($('settings-slug').value),
+        whatsappPhone: $('settings-whatsapp').value,
+        bankName: $('settings-bank').value,
+        bankAccountNumber: $('settings-account-number').value,
+        bankAccountName: $('settings-account-name').value,
+        deliveryFee: fee,
+        deliveryNote: $('settings-note').value
+      };
+      const btn = $('settings-save');
+      busy(btn, true, 'Saving…');
+      const { ok, status, data } = await api('/api/me', body, 'PATCH');
+      busy(btn, false);
+      if (status === 401) return sessionLost();
+      if (!ok) return showError('settings', data.error || 'Could not save your settings.', SETTINGS_FIELDS[data.field]);
+      state.vendor = data.vendor;
+      state.setup = data.setup;
+      fillSettings();
+      renderHome();
+      toast('Saved');
+    });
 
     $('copy-link').addEventListener('click', async () => {
       const url = storeUrl(state.vendor.slug);
@@ -471,7 +953,7 @@
     // ---------- start ----------
     (async function start() {
       const { ok, status, data } = await api('/api/me');
-      if (ok && data.vendor) return showHome(data.vendor);
+      if (ok && data.vendor) return enterApp(data.vendor, data.setup);
       if (status !== 401) {
         const banner = $('banner');
         banner.textContent = (data.error || 'The server is not responding.') + ' ';
