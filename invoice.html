@@ -61,6 +61,24 @@
     .row b { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; text-align: right; }
     .copy { border: 2px solid var(--ink); background: var(--sun); color: #1B1530; font: inherit; font-size: 13px; font-weight: 800; padding: 3px 10px; border-radius: 9px; cursor: pointer; margin-left: 8px; }
     .error { display: block; }
+
+    /* review */
+    .review-card .card-label { color: var(--muted); }
+    .stars { display: flex; gap: 6px; margin-top: 6px; }
+    .stars button { flex: 1; max-width: 62px; aspect-ratio: 1; padding: 6px; border: var(--bw) solid var(--ink); border-radius: 16px; background: var(--card-2); color: var(--muted); cursor: pointer; transition: transform .15s, background-color .15s; }
+    .stars button svg { width: 100%; height: 100%; display: block; }
+    .stars button.on { background: var(--sun); color: #1B1530; }
+    .stars button.on svg path { fill: currentColor; }
+    .stars button:active { transform: scale(.9); }
+    .star-word { margin: 8px 0 0; font-family: var(--display); font-weight: 700; font-size: 18px; min-height: 24px; }
+    .stars-show { display: flex; gap: 2px; color: #F5A400; }
+    .stars-show svg { width: 22px; height: 22px; }
+    .stars-show svg.off { color: var(--line); }
+    .review-text { margin: 8px 0 0; font-weight: 600; white-space: pre-line; overflow-wrap: anywhere; }
+    .seller-reply { margin-top: 12px; padding: 10px 12px; border-radius: 14px; border: 2px solid var(--ink); background: var(--card-2); }
+    .seller-reply b { display: block; font-size: 14px; }
+    .seller-reply p { margin: 2px 0 0; font-weight: 600; white-space: pre-line; overflow-wrap: anywhere; }
+    .review-card .fine { font-size: 13px; color: var(--muted); text-align: center; margin: 10px 0 0; font-weight: 600; }
     .missing { text-align: center; margin-top: 60px; }
     .missing svg { width: 110px; height: 110px; margin-bottom: 8px; }
     footer { margin-top: 30px; text-align: center; }
@@ -121,6 +139,25 @@
         <p class="error" id="paid-error" hidden></p>
       </div>
 
+      <div class="card no-print review-card" id="review" hidden>
+        <p class="card-label" id="review-label">How was your order?</p>
+        <div id="review-view" hidden>
+          <div class="stars-show" id="review-stars"></div>
+          <p class="review-text" id="review-text"></p>
+          <div class="seller-reply" id="review-reply" hidden><b id="review-reply-name"></b><p id="review-reply-text"></p></div>
+          <p class="center" style="margin:10px 0 0"><button class="link" type="button" id="review-edit" hidden>Change my review</button></p>
+        </div>
+        <form id="review-form" novalidate hidden>
+          <div class="stars" id="star-pick" role="radiogroup" aria-label="Your rating"></div>
+          <p class="star-word" id="star-word">Tap a star</p>
+          <label for="review-body">Tell others about it <span class="muted">(optional)</span></label>
+          <textarea id="review-body" maxlength="500" placeholder="What did you buy? How was the delivery?"></textarea>
+          <p class="error" id="review-error" hidden></p>
+          <button class="btn theme" type="submit" id="review-submit">Post review</button>
+          <p class="fine" id="review-fine"></p>
+        </form>
+      </div>
+
       <div class="no-print">
         <a class="btn wa" id="chat-btn" target="_blank" rel="noopener" hidden>
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>
@@ -136,7 +173,9 @@
   <script>
     const $ = (id) => document.getElementById(id);
     const publicId = decodeURIComponent(location.pathname.split('/')[2] || '').toLowerCase();
-    const state = { invoice: null, store: null, wasPaid: null };
+    const state = { invoice: null, store: null, wasPaid: null, rating: 0, editingReview: false, scrolled: false };
+    const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
+    const STAR_WORDS = ['Tap a star', 'Poor', 'Not great', 'Okay', 'Good', 'Excellent!'];
     const THEME_HEX = { green: '#12B76A', coral: '#FF8A7A', sun: '#FFD23F', sky: '#6CCFF6', grape: '#6A4CE0', night: '#1B1530' };
     const TINTS = ['t0', 't1', 't2', 't3', 't4'];
     const tintFor = (text) => TINTS[[...String(text || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % TINTS.length];
@@ -225,7 +264,7 @@
       totals.textContent = '';
       totals.appendChild(kv('Subtotal', formatNaira(inv.subtotalKobo), 'sub'));
       if (inv.deliveryFeeKobo || inv.deliveryZone) totals.appendChild(kv('Delivery' + (inv.deliveryZone ? ' · ' + inv.deliveryZone : ''), formatNaira(inv.deliveryFeeKobo), 'sub'));
-      if (inv.discountKobo) totals.appendChild(kv('Discount', '−' + formatNaira(inv.discountKobo), 'sub'));
+      if (inv.discountKobo) totals.appendChild(kv('Discount' + (inv.promoCode ? ' · ' + inv.promoCode : ''), '−' + formatNaira(inv.discountKobo), 'sub'));
       totals.appendChild(kv('Total', formatNaira(inv.totalKobo), 'total'));
       if (inv.amountPaidKobo && !cancelled) {
         totals.appendChild(kv('Paid', formatNaira(inv.amountPaidKobo), 'sub'));
@@ -287,7 +326,12 @@
         $('chat-btn').hidden = false;
       }
       $('branding').hidden = !store.branded;
+      renderReview();
       switchView('invoice');
+      if (!state.scrolled && location.hash === '#review' && !$('review').hidden) {
+        state.scrolled = true;
+        setTimeout(() => $('review').scrollIntoView({ block: 'center', behavior: OP.reducedMotion ? 'auto' : 'smooth' }), 150);
+      }
       // Celebrate when the receipt turns paid while it's open.
       if (state.wasPaid === false && paid) OP.confetti($('stamp'));
       state.wasPaid = paid;
@@ -313,6 +357,93 @@
     });
 
     $('print-btn').addEventListener('click', () => window.print());
+
+    // ---------- rating the order ----------
+    function starsShow(n) {
+      const box = el('div', 'stars-show');
+      box.setAttribute('aria-label', n + ' out of 5 stars');
+      for (let i = 1; i <= 5; i++) {
+        const s = document.createElement('span');
+        s.innerHTML = STAR.replace('fill="none"', 'fill="currentColor"');
+        if (i > n) s.firstChild.classList.add('off');
+        box.appendChild(s.firstChild);
+      }
+      return box;
+    }
+    function paintStars() {
+      document.querySelectorAll('#star-pick button').forEach((b, i) => {
+        b.classList.toggle('on', i < state.rating);
+        b.setAttribute('aria-checked', String(i + 1 === state.rating));
+      });
+      $('star-word').textContent = STAR_WORDS[state.rating];
+    }
+    for (let i = 1; i <= 5; i++) {
+      const b = el('button');
+      b.type = 'button';
+      b.setAttribute('role', 'radio');
+      b.setAttribute('aria-label', i + (i === 1 ? ' star' : ' stars'));
+      b.innerHTML = STAR;
+      b.addEventListener('click', () => {
+        state.rating = i;
+        paintStars();
+        OP.buzz(8);
+        OP.replay(b, 'bump');
+        $('review-error').hidden = true;
+      });
+      $('star-pick').appendChild(b);
+    }
+    function renderReview() {
+      const inv = state.invoice;
+      const r = inv.review;
+      const can = !!inv.canReview;
+      $('review').hidden = !(can || r);
+      if ($('review').hidden) return;
+      const editing = can && (!r || state.editingReview);
+      $('review-view').hidden = editing;
+      $('review-form').hidden = !editing;
+      $('review-label').textContent = editing ? (r ? 'Change your review' : 'How was your order?') : 'Your review';
+      if (!editing) {
+        $('review-stars').replaceWith(Object.assign(starsShow(r.rating), { id: 'review-stars' }));
+        $('review-text').textContent = r.body;
+        $('review-text').hidden = !r.body;
+        $('review-reply').hidden = !r.reply;
+        $('review-reply-name').textContent = 'Reply from ' + state.store.businessName;
+        $('review-reply-text').textContent = r.reply;
+        $('review-edit').hidden = !can;
+      } else {
+        $('review-fine').textContent = 'Other shoppers see it on the store with your first name.';
+        $('review-submit').textContent = r ? 'Save my review' : 'Post review';
+        paintStars();
+      }
+    }
+    $('review-edit').addEventListener('click', () => {
+      const r = state.invoice.review;
+      state.editingReview = true;
+      state.rating = r.rating;
+      $('review-body').value = r.body;
+      renderReview();
+    });
+    $('review-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const showErr = (t) => { $('review-error').textContent = t; $('review-error').hidden = false; };
+      if (!state.rating) return showErr('Tap the stars to choose a rating.');
+      const btn = $('review-submit');
+      const label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Posting…';
+      const { ok, data } = await api('/api/public', { action: 'review', invoice: publicId, rating: state.rating, body: $('review-body').value });
+      btn.disabled = false;
+      btn.textContent = label;
+      if (!ok) return showErr(data.error || 'Could not post your review. Please try again.');
+      $('review-error').hidden = true;
+      const first = !state.invoice.review;
+      state.invoice = data.invoice;
+      state.store = data.store;
+      state.editingReview = false;
+      render();
+      if (first) OP.confetti($('review'));
+      OP.buzz(15);
+    });
 
     // While money is owed, check now and then so the receipt appears as soon
     // as the seller confirms the payment.

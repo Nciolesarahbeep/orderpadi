@@ -11,6 +11,8 @@
 //   POST /api/admin { action: "suspend", id, reason }     store and invoices go offline, logged out
 //   POST /api/admin { action: "unsuspend", id }
 //   POST /api/admin { action: "sign-out", id }            ends every login session
+//   POST /api/admin { action: "hide-review", id, reviewId }  takes a review off the store
+//   POST /api/admin { action: "show-review", id, reviewId }
 //
 // Every action is written to billing_events as "admin.<action>" with who did it.
 const crypto = require('crypto');
@@ -154,11 +156,14 @@ async function sellerDetail(id) {
     WHERE v.id = ${id}
   `;
   if (!v) throw new HttpError(404, 'No seller with that id.');
-  const events = await sql`
-    SELECT event, amount_kobo, payload->>'by' AS by, payload->>'reason' AS reason, payload->>'months' AS months, created_at
-    FROM billing_events WHERE vendor_id = ${id}
-    ORDER BY id DESC LIMIT 30
-  `;
+  const [events, reviews] = await Promise.all([
+    sql`
+      SELECT event, amount_kobo, payload->>'by' AS by, payload->>'reason' AS reason, payload->>'months' AS months, created_at
+      FROM billing_events WHERE vendor_id = ${id}
+      ORDER BY id DESC LIMIT 30
+    `,
+    sql`SELECT id, rating, body, customer_name, is_hidden, created_at FROM reviews WHERE vendor_id = ${id} ORDER BY created_at DESC, id DESC LIMIT 30`
+  ]);
   return {
     seller: {
       ...sellerRow(v),
@@ -173,6 +178,9 @@ async function sellerDetail(id) {
       lastLoginAt: v.last_login_at || null,
       liveSessions: Number(v.live_sessions)
     },
+    reviews: reviews.map((r) => ({
+      id: Number(r.id), rating: Number(r.rating), body: r.body || '', name: r.customer_name, hidden: !!r.is_hidden, at: r.created_at
+    })),
     events: events.map((e) => ({
       event: e.event,
       amountKobo: e.amount_kobo == null ? null : Number(e.amount_kobo),
@@ -301,6 +309,15 @@ async function unsuspend(admin, target) {
   return {};
 }
 
+async function setReviewHidden(admin, target, reviewId, hidden) {
+  const rid = Number(reviewId);
+  if (!Number.isInteger(rid) || rid <= 0) throw new HttpError(400, 'Which review?');
+  const rows = await sql`UPDATE reviews SET is_hidden = ${hidden}, updated_at = now() WHERE id = ${rid} AND vendor_id = ${target.id} RETURNING id`;
+  if (!rows.length) throw new HttpError(404, 'No review with that id for this seller.');
+  await logAction(admin, target.id, hidden ? 'hide-review' : 'show-review', { review: rid });
+  return {};
+}
+
 async function signOut(admin, target) {
   await endAllSessions(target.id);
   await logAction(admin, target.id, 'sign-out');
@@ -336,7 +353,9 @@ module.exports = async function handler(req, res) {
       'end-pro': (t) => endPro(admin, t),
       suspend: (t) => suspend(admin, t, body.reason),
       unsuspend: (t) => unsuspend(admin, t),
-      'sign-out': (t) => signOut(admin, t)
+      'sign-out': (t) => signOut(admin, t),
+      'hide-review': (t) => setReviewHidden(admin, t, body.reviewId, true),
+      'show-review': (t) => setReviewHidden(admin, t, body.reviewId, false)
     };
     const run = actions[body.action];
     if (!run) return res.status(400).json({ error: 'Unknown action.' });

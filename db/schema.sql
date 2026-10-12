@@ -41,6 +41,13 @@ CREATE TABLE vendors (
   quick_replies               JSONB NOT NULL DEFAULT '[]'::jsonb,  -- [{id, title, body}] saved WhatsApp messages
   away_message                TEXT,                               -- shown on the store while away
 
+  -- directory listing at /stores
+  bio                         TEXT,          -- a line about the store, up to 160 characters
+  store_category              TEXT,          -- one of the directory categories (lib/directory.js)
+  state                       TEXT,          -- Nigerian state, or FCT
+  city                        TEXT,
+  in_directory                BOOLEAN NOT NULL DEFAULT FALSE,
+
   -- plan & billing
   plan                        TEXT NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'pro')),
   plan_renews_at              TIMESTAMPTZ,   -- next Paystack charge date; revert to free after this if cancelled
@@ -56,6 +63,7 @@ CREATE TABLE vendors (
   created_at                  TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at                  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE INDEX vendors_directory ON vendors (store_category, state) WHERE in_directory;
 
 
 -- ---------------------------------------------------------------------
@@ -191,6 +199,7 @@ CREATE TABLE orders (
                              CHECK (status IN ('new', 'processing', 'delivered', 'cancelled')),
   customer_marked_paid_at  TIMESTAMPTZ,       -- buyer tapped "I've paid" on the invoice; vendor still confirms
   delivery_zone            TEXT,              -- the delivery area picked, if the seller has areas
+  promo_code               TEXT,              -- the promo code used, if any (discount_kobo has the amount)
   stock_state              TEXT NOT NULL DEFAULT 'none',  -- 'taken' once stock came off, 'returned' after a cancel
 
   created_ip               TEXT,              -- rate-limits the public order form
@@ -251,6 +260,43 @@ CREATE TABLE payments (
 );
 CREATE INDEX payments_order          ON payments (order_id);
 CREATE INDEX payments_vendor_recent  ON payments (vendor_id, paid_at DESC);
+
+
+-- One review per order, left by the customer from their invoice link once
+-- the order is paid or delivered. The seller can reply; only an admin can hide one.
+CREATE TABLE reviews (
+  id             BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  vendor_id      BIGINT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+  order_id       BIGINT NOT NULL UNIQUE REFERENCES orders(id) ON DELETE CASCADE,
+  rating         SMALLINT NOT NULL CONSTRAINT reviews_rating_check CHECK (rating BETWEEN 1 AND 5),
+  body           TEXT,
+  customer_name  TEXT NOT NULL,   -- shown as "Tola A."
+  reply          TEXT,
+  replied_at     TIMESTAMPTZ,
+  is_hidden      BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX reviews_vendor ON reviews (vendor_id, created_at DESC);
+
+-- Promo codes: a percentage or a naira amount off the items (not delivery).
+-- The check on uses stops a code going past its limit even when two
+-- customers use the last one at the same moment.
+CREATE TABLE promo_codes (
+  id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  vendor_id       BIGINT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+  code            TEXT NOT NULL CHECK (code ~ '^[A-Z0-9]{3,20}$'),
+  kind            TEXT NOT NULL CHECK (kind IN ('percent', 'amount')),
+  value           BIGINT NOT NULL CHECK (value > 0),       -- 1–90 for percent, kobo for amount
+  min_order_kobo  BIGINT NOT NULL DEFAULT 0 CHECK (min_order_kobo >= 0),
+  max_uses        INTEGER CHECK (max_uses IS NULL OR max_uses > 0),
+  uses            INTEGER NOT NULL DEFAULT 0,
+  expires_at      TIMESTAMPTZ,
+  is_active       BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (vendor_id, code),
+  CONSTRAINT promo_codes_uses_check CHECK (uses >= 0 AND (max_uses IS NULL OR uses <= max_uses))
+);
 
 
 -- ---------------------------------------------------------------------

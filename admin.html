@@ -211,6 +211,11 @@
         <p class="msg bad" id="s-error" hidden></p>
       </div>
       <div class="card">
+        <p class="card-label">Reviews</p>
+        <p class="sub" style="font-size:13px;margin:2px 0 0">Hide a review that is abusive, fake or not about an order. Hidden reviews leave the store, the directory and the rating.</p>
+        <div id="s-reviews"></div>
+      </div>
+      <div class="card">
         <p class="card-label">Account history</p>
         <div id="s-events"></div>
       </div>
@@ -361,7 +366,7 @@
       const rows = [
         ['Database connected', h.db, true],
         ['All tables in place', h.db && (h.missing || []).length === 0, true],
-        ['Database updates applied', h.db && h.migrations && h.migrations.step2 && h.migrations.step3 && h.migrations.step4 && h.migrations.step5, true],
+        ['Database updates applied', h.db && h.migrations && h.migrations.step2 && h.migrations.step3 && h.migrations.step4 && h.migrations.step5 && h.migrations.step6, true],
         ['Login secret (JWT_SECRET)', env.JWT_SECRET, true],
         ['Email sending (RESEND_API_KEY)', env.RESEND_API_KEY, true],
         ['Own email domain (EMAIL_FROM)', env.EMAIL_FROM, false],
@@ -471,7 +476,9 @@
       'admin.end-pro': () => 'Pro ended by an admin',
       'admin.suspend': (e) => 'Suspended' + (e.reason ? ': ' + e.reason : ''),
       'admin.unsuspend': () => 'Unsuspended',
-      'admin.sign-out': () => 'Logged out everywhere by an admin'
+      'admin.sign-out': () => 'Logged out everywhere by an admin',
+      'admin.hide-review': () => 'A review was hidden by an admin',
+      'admin.show-review': () => 'A hidden review was shown again by an admin'
     };
     const eventName = (e) => (EVENT_NAMES[e.event] ? EVENT_NAMES[e.event](e) : e.event);
 
@@ -513,6 +520,29 @@
       $('s-end-pro').hidden = s.plan !== 'pro';
       $('s-suspend-box').hidden = s.suspended || s.admin;
       $('s-unsuspend').hidden = !s.suspended;
+
+      const rv = $('s-reviews');
+      rv.textContent = '';
+      const reviews = data.reviews || [];
+      if (!reviews.length) rv.appendChild(el('p', 'sub', 'No reviews yet.'));
+      else {
+        const box = el('div', 'list');
+        box.style.marginTop = '8px';
+        reviews.forEach((r) => {
+          const row = el('div', 'event', '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) + ' ' + r.name + (r.body ? ': ' + r.body : ''));
+          if (r.hidden) row.style.opacity = '.6';
+          const meta = el('div', 'meta', dateTime(r.at) + (r.hidden ? ' · hidden' : ''));
+          const btn = el('button', 'btn small secondary', r.hidden ? 'Show' : 'Hide');
+          btn.type = 'button';
+          btn.style.marginLeft = '8px';
+          btn.dataset.review = String(r.id);
+          btn.addEventListener('click', (e) => act({ action: r.hidden ? 'show-review' : 'hide-review', reviewId: r.id }, e.currentTarget, r.hidden ? 'Review shown' : 'Review hidden'));
+          meta.appendChild(btn);
+          row.appendChild(meta);
+          box.appendChild(row);
+        });
+        rv.appendChild(box);
+      }
 
       const ev = $('s-events');
       ev.textContent = '';

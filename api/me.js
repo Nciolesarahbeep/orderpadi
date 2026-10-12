@@ -6,6 +6,7 @@
 //                  storeTheme: green, coral, sun, sky, grape or night
 //                  deliveryZones: [{ id?, name, fee }] (fee in naira); quickReplies: [{ id?, title, body }]
 //                  awayMessage: shown on the store while you're away ("" to turn it off)
+//                  bio?, storeCategory?, state?, city?, inDirectory?: the listing at /stores
 //                  -> { vendor, setup }
 // Only the fields sent are changed. "setup" drives the checklist on Home.
 const { sql } = require('../lib/db');
@@ -13,6 +14,7 @@ const { HttpError, getSessionVendor, vendorForClient } = require('../lib/auth');
 const { cleanSlug, slugProblem, cleanText, nairaToKobo, normalizeNgPhone } = require('../lib/format');
 const { STORE_THEMES } = require('../lib/photos');
 const { readZones, readQuickReplies, readAwayMessage } = require('../lib/storeSettings');
+const { readProfile } = require('../lib/directory');
 
 async function setupStatus(vendor) {
   const [row] = await sql`SELECT count(*)::int AS n FROM products WHERE vendor_id = ${vendor.id} AND is_active = TRUE`;
@@ -40,7 +42,12 @@ async function updateSettings(vendor, body) {
     store_theme: vendor.store_theme || 'green',
     delivery_zones: Array.isArray(vendor.delivery_zones) ? vendor.delivery_zones : [],
     quick_replies: Array.isArray(vendor.quick_replies) ? vendor.quick_replies : [],
-    away_message: vendor.away_message || null
+    away_message: vendor.away_message || null,
+    bio: vendor.bio || null,
+    store_category: vendor.store_category || null,
+    state: vendor.state || null,
+    city: vendor.city || null,
+    in_directory: !!vendor.in_directory
   };
 
   if (has(body, 'businessName')) {
@@ -127,6 +134,7 @@ async function updateSettings(vendor, body) {
   if (has(body, 'deliveryZones')) next.delivery_zones = readZones(body.deliveryZones);
   if (has(body, 'quickReplies')) next.quick_replies = readQuickReplies(body.quickReplies);
   if (has(body, 'awayMessage')) next.away_message = readAwayMessage(body.awayMessage);
+  Object.assign(next, readProfile(body, next));
 
   const [row] = await sql`
     UPDATE vendors SET
@@ -142,6 +150,8 @@ async function updateSettings(vendor, body) {
       delivery_zones = ${JSON.stringify(next.delivery_zones)}::jsonb,
       quick_replies = ${JSON.stringify(next.quick_replies)}::jsonb,
       away_message = ${next.away_message},
+      bio = ${next.bio}, store_category = ${next.store_category}, state = ${next.state}, city = ${next.city},
+      in_directory = ${next.in_directory},
       updated_at = now()
     WHERE id = ${vendor.id}
     RETURNING *

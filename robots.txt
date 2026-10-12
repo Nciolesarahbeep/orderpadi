@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+Allow: /stores
 Disallow: /app
 Disallow: /admin
 Disallow: /setup

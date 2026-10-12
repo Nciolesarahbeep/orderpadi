@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Stores on OrderPadi · Find sellers near you</title>
+  <meta name="description" content="Wigs, cakes, clothes, gadgets and more from sellers across Nigeria. Order online and pay by bank transfer.">
+  <meta name="theme-color" content="#F3EFFF" data-auto>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Stores on OrderPadi">
+  <meta property="og:description" content="Find sellers near you. Order online and pay by bank transfer.">
+  <meta property="og:image" content="/og.png">
+  <link rel="preload" href="/fredoka.woff" as="font" type="font/woff" crossorigin>
+  <link rel="stylesheet" href="/ui.css">
+  <script>try{var m=localStorage.getItem('op_mode');if(m==='light'||m==='dark')document.documentElement.setAttribute('data-theme',m)}catch(e){}</script>
+  <script src="/ui.js"></script>
+  <style>
+    body { overflow-x: clip; }
+    .wrap { max-width: 1000px; margin: 0 auto; padding: 0 16px calc(40px + env(safe-area-inset-bottom)); }
+    .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 0; }
+    .top .btn { margin: 0; text-decoration: none; }
+    .hero { position: relative; overflow: hidden; margin-top: 6px; padding: 26px 20px 22px; border: var(--bw) solid var(--ink); border-radius: 28px; background: var(--lilac); color: #1B1530; box-shadow: var(--shadow); }
+    .hero > :not(.blob) { position: relative; z-index: 1; }
+    .hero h1 { margin: 0 0 6px; font-size: clamp(32px, 9vw, 52px); line-height: 1.02; max-width: 13ch; }
+    .hero p { margin: 0; font-weight: 600; opacity: .85; max-width: 32em; }
+    .find { display: grid; gap: 10px; margin-top: 18px; }
+    .find input, .find select { background: #fff; color: #1B1530; }
+    @media (min-width: 640px) { .find { grid-template-columns: 1fr 200px; } }
+    .cats { margin-top: 14px; }
+    .count { margin: 18px 0 0; font-weight: 700; color: var(--muted); }
+    .grid { display: grid; gap: 14px; margin-top: 12px; }
+    @media (min-width: 680px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .store { display: flex; flex-direction: column; gap: 10px; padding: 16px; border: var(--bw) solid var(--ink); border-radius: 22px; background: var(--card); color: var(--text); box-shadow: var(--shadow); text-decoration: none; transition: transform .12s, box-shadow .12s; }
+    .store:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+    .s-head { display: flex; gap: 12px; align-items: center; }
+    .mono { flex: none; width: 54px; height: 54px; border-radius: 17px; border: var(--bw) solid var(--ink); display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: 20px; background: var(--theme); color: var(--theme-ink); }
+    .s-name { display: block; font-family: var(--display); font-size: 19px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+    .s-meta { display: block; color: var(--muted); font-weight: 700; font-size: 13px; margin-top: 2px; }
+    .s-rating { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 14px; margin-top: 2px; }
+    .s-rating svg { width: 15px; height: 15px; color: #F5A400; }
+    .s-rating.new { color: var(--muted); font-weight: 700; font-size: 13px; }
+    .s-bio { margin: 0; font-weight: 600; font-size: 15px; overflow-wrap: anywhere; }
+    .s-pics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .s-pics .ph { aspect-ratio: 1; border-radius: 14px; border: 2px solid var(--ink); }
+    .s-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 14px; font-weight: 800; }
+    .s-foot span:last-child { color: var(--grape-text); }
+    .more { margin-top: 16px; }
+    .sell { margin-top: 26px; text-align: center; }
+    .sell .card { background: var(--brand); color: #1B1530; }
+    .sell h2 { margin: 0 0 6px; }
+    .sell p { margin: 0 0 14px; font-weight: 600; }
+    footer { margin-top: 30px; text-align: center; font-size: 14px; color: var(--muted); font-weight: 600; }
+    footer a { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <a class="logo" href="/"><span class="logo-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" fill="#fff" stroke="#1B1530" stroke-width="2" stroke-linejoin="round"/><path d="M9 8h6M9 12h4" stroke="#1B1530" stroke-width="2" stroke-linecap="round"/></svg></span><span>Order<b>Padi</b></span></a>
+      <a class="btn small secondary" href="/app?start=signup">Sell here</a>
+    </header>
+
+    <section class="hero">
+      <span class="blob sun" style="width:130px;height:130px;right:-44px;top:-50px" aria-hidden="true"></span>
+      <h1>Find a seller near you</h1>
+      <p>Wigs, cakes, clothes, gadgets and more from sellers across Nigeria. Order online and pay by bank transfer.</p>
+      <div class="find">
+        <input type="search" id="q" placeholder="Search stores or products" autocomplete="off" enterkeyhint="search" aria-label="Search stores or products">
+        <select id="state" aria-label="State"><option value="">All states</option></select>
+      </div>
+    </section>
+
+    <div class="chips cats" id="cats" role="group" aria-label="Categories"></div>
+    <p class="count" id="count"></p>
+    <div class="grid" id="grid"></div>
+    <button class="btn secondary more" type="button" id="more" hidden>Show more stores</button>
+
+    <section class="sell">
+      <div class="card">
+        <h2>Sell on WhatsApp or Instagram?</h2>
+        <p>Get your own store link, invoices and a list of who owes you. Then list your store here so new customers can find you.</p>
+        <a class="btn secondary" href="/app?start=signup" style="display:inline-flex;width:auto">Create your free store</a>
+      </div>
+    </section>
+
+    <footer><a href="/">OrderPadi</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a></footer>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z" fill="currentColor"/></svg>';
+    const TINTS = ['t0', 't1', 't2', 't3', 't4'];
+    const tintFor = (text) => TINTS[[...String(text || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % TINTS.length];
+    const initials = (name) => (String(name || '').replace(/['’]/g, '').match(/[A-Za-z0-9]+/g) || ['?']).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+    const params = new URLSearchParams(location.search);
+    const state = { q: params.get('q') || '', category: params.get('category') || '', state: params.get('state') || '', page: 0, stores: [], ticket: 0, ready: false };
+
+    function el(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text != null) node.textContent = text;
+      return node;
+    }
+    // Keeps the filters in the address, so a refresh or a shared link shows the same list.
+    function syncUrl() {
+      const p = new URLSearchParams();
+      if (state.q) p.set('q', state.q);
+      if (state.category) p.set('category', state.category);
+      if (state.state) p.set('state', state.state);
+      history.replaceState(null, '', location.pathname + (p.toString() ? '?' + p.toString() : ''));
+    }
+
+    async function load(reset) {
+      if (reset) { state.page = 0; state.stores = []; }
+      const p = new URLSearchParams({ directory: '1', page: String(state.page) });
+      if (state.q) p.set('q', state.q);
+      if (state.category) p.set('category', state.category);
+      if (state.state) p.set('state', state.state);
+      const ticket = ++state.ticket;
+      if (reset && !state.ready) $('grid').innerHTML = '<p class="empty">Loading stores…</p>';
+      let data;
+      try {
+        const res = await fetch('/api/public?' + p.toString());
+        data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'failed');
+      } catch (e) {
+        if (ticket !== state.ticket) return;
+        $('grid').textContent = '';
+        return $('grid').appendChild(el('p', 'empty', "We couldn't load the stores. Check your internet and try again."));
+      }
+      if (ticket !== state.ticket) return;
+      if (!state.ready) {
+        data.states.forEach((s) => $('state').appendChild(Object.assign(document.createElement('option'), { value: s, textContent: s })));
+        $('state').value = state.state;
+        state.ready = true;
+      }
+      renderCats(data.categories);
+      state.stores = state.stores.concat(data.stores);
+      render(data.hasMore);
+    }
+
+    function renderCats(cats) {
+      const box = $('cats');
+      box.textContent = '';
+      [{ name: '', label: 'All', count: 0 }].concat(cats.filter((c) => c.count || c.name === state.category).map((c) => ({ ...c, label: c.name }))).forEach((c) => {
+        const chip = el('button', 'chip' + (state.category === c.name ? ' active' : ''), c.label);
+        chip.type = 'button';
+        if (c.count) chip.appendChild(el('span', null, String(c.count)));
+        chip.addEventListener('click', () => { state.category = c.name; syncUrl(); load(true); });
+        box.appendChild(chip);
+      });
+    }
+
+    function render(hasMore) {
+      const grid = $('grid');
+      grid.textContent = '';
+      const filtered = state.q || state.category || state.state;
+      $('count').textContent = state.stores.length
+        ? (state.stores.length + (hasMore ? '+' : '') + (state.stores.length === 1 ? ' store' : ' stores') + (filtered ? ' found' : ''))
+        : '';
+      if (!state.stores.length) {
+        grid.appendChild(el('p', 'empty', filtered ? 'No stores match yet. Try another word, category or state.' : 'No stores listed yet. Be the first!'));
+      }
+      state.stores.forEach((s) => grid.appendChild(card(s)));
+      $('more').hidden = !hasMore;
+    }
+
+    function card(s) {
+      const a = el('a', 'store');
+      a.href = '/s/' + encodeURIComponent(s.slug);
+      const head = el('div', 's-head');
+      const mono = el('span', 'mono', initials(s.name));
+      mono.dataset.store = s.theme || 'green';
+      const info = el('div');
+      info.style.minWidth = '0';
+      info.appendChild(el('span', 's-name', s.name));
+      info.appendChild(el('span', 's-meta', [s.category, s.place].filter(Boolean).join(' · ')));
+      const rating = el('span', 's-rating' + (s.reviews ? '' : ' new'));
+      if (s.reviews) { rating.innerHTML = STAR; rating.appendChild(document.createTextNode(s.rating.toFixed(1) + ' (' + s.reviews + (s.reviews === 1 ? ' review)' : ' reviews)'))); }
+      else rating.textContent = 'New on OrderPadi';
+      info.appendChild(rating);
+      head.append(mono, info);
+      a.appendChild(head);
+      if (s.bio) a.appendChild(el('p', 's-bio', s.bio));
+      if (s.photos.length) {
+        const pics = el('div', 's-pics');
+        s.photos.forEach((url) => {
+          const box = el('div', 'ph ' + tintFor(url));
+          const img = document.createElement('img');
+          img.alt = '';
+          img.loading = 'lazy';
+          img.decoding = 'async';
+          img.src = url;
+          OP.fadeImage(img);
+          box.appendChild(img);
+          pics.appendChild(box);
+        });
+        a.appendChild(pics);
+      }
+      const foot = el('div', 's-foot');
+      foot.append(el('span', null, s.products + (s.products === 1 ? ' product' : ' products')), el('span', null, 'Visit store ›'));
+      a.appendChild(foot);
+      return a;
+    }
+
+    let timer = null;
+    $('q').value = state.q;
+    $('q').addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => { state.q = $('q').value.trim(); syncUrl(); load(true); }, 300);
+    });
+    $('q').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('q').blur(); });
+    $('state').addEventListener('change', () => { state.state = $('state').value; syncUrl(); load(true); });
+    $('more').addEventListener('click', () => { state.page += 1; load(false); });
+    load(true);
+  </script>
+</body>
+</html>

@@ -17,7 +17,7 @@
 //   POST /api/orders { action: "undo-payment", id, paymentId }           -> { order }
 //   POST /api/orders { action: "note", id, message }                     -> { order }   a note in the order's history
 //   POST /api/orders { action: "log", id, kind, title? }                 -> { order }
-//        kind: invoice_sent | invoice_copied | quick_reply (title = the reply's title)
+//        kind: invoice_sent | invoice_copied | quick_reply (title = the reply's title) | review_asked
 //   POST /api/orders { action: "customer", id, name?, address?, notes?, tags? } -> customer page
 //   POST /api/orders { action: "notifications-read" }                    -> { unread: 0 }
 const { sql } = require('../lib/db');
@@ -64,12 +64,13 @@ async function unreadCount(vendorId) {
 async function loadOrder(vendorId, id) {
   const [order] = await sql`SELECT * FROM orders WHERE id = ${id} AND vendor_id = ${vendorId} LIMIT 1`;
   if (!order) throw new HttpError(404, "That order doesn't exist.");
-  const [items, payments, events] = await Promise.all([
+  const [items, payments, events, reviews] = await Promise.all([
     sql`SELECT * FROM order_items WHERE order_id = ${id} ORDER BY id`,
     sql`SELECT * FROM payments WHERE order_id = ${id} ORDER BY paid_at, id`,
-    sql`SELECT kind, message, created_at FROM order_events WHERE order_id = ${id} ORDER BY created_at, id LIMIT 200`
+    sql`SELECT kind, message, created_at FROM order_events WHERE order_id = ${id} ORDER BY created_at, id LIMIT 200`,
+    sql`SELECT rating, body, reply, created_at FROM reviews WHERE order_id = ${id} LIMIT 1`
   ]);
-  return orderDetail(order, items, payments, events);
+  return orderDetail(order, items, payments, events, reviews[0] || null);
 }
 
 async function list(vendor, params) {
@@ -718,7 +719,8 @@ async function addNote(vendor, body) {
 const LOG_TEXT = {
   invoice_sent: () => 'Invoice sent on WhatsApp',
   invoice_copied: () => 'Invoice link copied',
-  quick_reply: (title) => `Sent "${title}" on WhatsApp`
+  quick_reply: (title) => `Sent "${title}" on WhatsApp`,
+  review_asked: () => 'Asked for a review on WhatsApp'
 };
 
 async function logAction(vendor, body) {

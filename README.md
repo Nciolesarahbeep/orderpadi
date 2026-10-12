@@ -6,6 +6,7 @@ Orders, invoices and payment tracking for WhatsApp and Instagram sellers in Nige
 - **Free plan:** 20 orders a month, 1 photo per product. **Pro:** ₦2,500 a month through Paystack, with unlimited orders, 3 photos per product, no branding, reports and CSV export.
 - **Look:** bold and playful, in light and dark. Sellers pick one of six store colours, add product photos, swipe an order to mark it paid, and make a WhatsApp status picture of their products.
 - **Options and categories:** a product can have up to 2 options (like Size and Colour) with up to 20 choices each. A choice can cost extra or be marked sold out. Categories group products on the store page, with search once a store has 8 or more products.
+- **Grow:** customers rate their order from the invoice (shown on the store and in the directory, and sellers can reply), promo codes for money off at checkout (2 on Free, 50 on Pro), and a public store directory at `/stores`.
 - **Seller tools (the More tab):** customer pages with notes, labels and what each person spends and owes; stock counts that go down with every order and come back when one is cancelled; delivery areas with their own fees; saved WhatsApp quick replies; away mode; a history and notes on every order; and search across orders.
 - Plain HTML pages and Node server functions, with a Neon Postgres database. Hosted on **Netlify** (`netlify.toml`); `vercel.json` is kept so it can also run on Vercel.
 - No npm packages: the database is reached over HTTPS (`lib/db.js`), and login tokens and password hashing use Node's built-in crypto (`lib/jwt.js`, `lib/password.js`).
@@ -17,6 +18,7 @@ Orders, invoices and payment tracking for WhatsApp and Instagram sellers in Nige
 | `/` | Landing page (`home.html`, served with link-preview tags) |
 | `/app` | The seller app: sign up, log in, orders, products, and the More tab (customers, stock, delivery, quick replies, settings) |
 | `/s/<slug>` | A seller's store, where customers order |
+| `/stores` | The store directory: sellers who list their store, by category and state |
 | `/i/<id>` | An invoice or receipt for one order |
 | `/admin` | Admin panel (only for admins) |
 | `/terms`, `/privacy` | Terms of service and privacy policy |
@@ -61,6 +63,7 @@ Redeploy after changing any of them (Deploys → Trigger deploy).
 - `003_photos_and_theme.sql`: product photos and store colours.
 - `004_options_and_categories.sql`: product options (like Size and Colour) and categories.
 - `005_seller_tools.sql`: stock counts, delivery areas, order history, customer notes and labels, quick replies and away mode.
+- `006_reviews_promos_directory.sql`: reviews and ratings, promo codes, and the store profile for the directory.
 
 Stock is taken inside the same SQL statement that saves an order. The database refuses any count below zero, so two customers can't both buy the last one: the second order is turned down and nothing of it is saved.
 
@@ -70,4 +73,4 @@ Product photos are shrunk on the seller's phone (about 1000px, under 240 KB) and
 
 - Static pages (`*.html`, icons, pictures) are copied to `public/` at build time and served directly.
 - `netlify/functions/app.mjs` handles `/api/*`, `/`, `/s/*`, `/i/*` and `/p/*`. It passes each request to the matching handler in `api/` through `lib/webAdapter.js`.
-- On Vercel, `vercel.json` does the same job: each file in `api/` is its own function (9 of the 12 allowed on the free plan).
+- On Vercel, `vercel.json` does the same job: each file in `api/` is its own function (10 of the 12 allowed on the free plan).

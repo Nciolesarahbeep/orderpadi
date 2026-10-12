@@ -346,6 +346,49 @@
     .reply-pick b { display: block; font-size: 16px; }
     .reply-pick span { display: block; margin-top: 2px; font-size: 14px; color: var(--muted); font-weight: 600; white-space: pre-line; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
+    /* promo codes */
+    .code-row { display: flex; gap: 8px; }
+    .code-row input { flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: .06em; font-weight: 800; }
+    .promo-card { margin-top: 14px; padding: 14px; border: var(--bw) solid var(--ink); border-radius: 20px; background: var(--card); box-shadow: var(--shadow); }
+    .promo-card.dim { opacity: .7; }
+    .promo-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .promo-code { font-family: var(--display); font-size: 24px; font-weight: 700; letter-spacing: .06em; padding: 2px 12px; border: 2px dashed var(--ink); border-radius: 12px; background: var(--sun); color: #1B1530; overflow-wrap: anywhere; }
+    .promo-label { margin: 10px 0 0; font-weight: 800; }
+    .promo-meta { margin: 2px 0 0; font-size: 14px; color: var(--muted); font-weight: 600; }
+    .promo-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .promo-actions .btn { flex: 1; width: auto; margin: 0; }
+    .pstatus { font-size: 12px; font-weight: 800; padding: 1px 9px; border-radius: 999px; border: 2px solid var(--ink); white-space: nowrap; }
+    .pstatus.active { background: var(--brand); color: #1B1530; } .pstatus.off, .pstatus.expired, .pstatus.used_up { background: var(--card-2); color: var(--muted); }
+
+    /* reviews */
+    .stars-show { display: inline-flex; gap: 1px; color: #F5A400; vertical-align: -3px; }
+    .stars-show svg { width: 17px; height: 17px; }
+    .stars-show svg.off { color: var(--line); }
+    .rev-sum { display: flex; gap: 16px; align-items: center; }
+    .rev-sum .big { font-family: var(--display); font-size: 48px; font-weight: 700; line-height: 1; }
+    .rev-bars { flex: 1; display: grid; gap: 4px; }
+    .rev-bar { display: grid; grid-template-columns: 14px 1fr 26px; gap: 6px; align-items: center; font-size: 13px; font-weight: 800; }
+    .rev-bar i { display: block; height: 10px; border-radius: 6px; background: var(--card-2); border: 1.5px solid var(--ink); overflow: hidden; }
+    .rev-bar i b { display: block; height: 100%; background: var(--sun); }
+    .rev-card { margin-top: 12px; padding: 14px; border: var(--bw) solid var(--ink); border-radius: 18px; background: var(--card); box-shadow: var(--shadow-sm); }
+    .rev-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; font-weight: 800; }
+    .rev-head small { color: var(--muted); font-weight: 600; font-size: 13px; }
+    .rev-body { margin: 6px 0 0; font-weight: 600; white-space: pre-line; overflow-wrap: anywhere; }
+    .rev-reply { margin-top: 10px; padding: 8px 12px; border-radius: 14px; border: 2px solid var(--ink); background: var(--card-2); font-size: 14px; font-weight: 600; white-space: pre-line; overflow-wrap: anywhere; }
+    .rev-reply b { display: block; }
+    .rev-actions { display: flex; gap: 12px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+    .rev-form textarea { margin-top: 8px; min-height: 80px; }
+    .rev-form .actions { margin-top: 8px; }
+    .hidden-note { font-size: 13px; font-weight: 800; color: var(--bad); }
+    .review-mini .rev-body { margin-top: 4px; }
+
+    /* directory preview */
+    .dir-card { display: flex; gap: 12px; padding: 14px; border: var(--bw) solid var(--ink); border-radius: 20px; background: var(--card); box-shadow: var(--shadow); }
+    .dir-card .mono { flex: none; width: 54px; height: 54px; border-radius: 17px; border: var(--bw) solid var(--ink); display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: 20px; background: var(--theme); color: var(--theme-ink); }
+    .dir-card b { display: block; font-family: var(--display); font-size: 18px; line-height: 1.2; overflow-wrap: anywhere; }
+    .dir-card small { display: block; color: var(--muted); font-weight: 700; font-size: 13px; }
+    .dir-card p { margin: 6px 0 0; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+
     /* undo bar */
     .snack { position: fixed; left: 50%; bottom: calc(104px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); width: min(440px, calc(100vw - 32px)); display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 16px; border: var(--bw) solid var(--ink); border-radius: 18px; background: var(--brand); color: #1B1530; box-shadow: var(--shadow); font-weight: 800; z-index: 61; opacity: 0; pointer-events: none; transition: opacity .2s, transform .35s cubic-bezier(.2, .9, .3, 1.5); }
     .snack.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
@@ -658,6 +701,8 @@
         <button class="btn secondary" type="button" id="order-copy-invoice">Copy link</button>
       </div>
       <p class="center"><a class="link" id="order-open-invoice" href="#" target="_blank" rel="noopener">Open invoice</a></p>
+      <a class="btn sun" id="order-ask-review" href="#" target="_blank" rel="noopener" hidden>Ask for a review</a>
+      <div class="card review-mini" id="order-review" hidden></div>
 
       <p class="section-title">History</p>
       <div class="card">
@@ -932,6 +977,14 @@
           <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"/><circle cx="12" cy="10" r="3"/><path d="M9 16h6"/></svg></span>
           <b>Status picture</b><span>Your products on WhatsApp status</span>
         </button>
+        <button class="menu-tile t-coral" type="button" id="more-promos" data-open="promos">
+          <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg></span><span class="mcount" id="more-promos-n"></span>
+          <b>Promo codes</b><span>Discounts customers type at checkout</span>
+        </button>
+        <button class="menu-tile t-sun" type="button" id="more-reviews" data-open="reviews">
+          <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6L12 16.7l-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/></svg></span><span class="mcount" id="more-reviews-n"></span>
+          <b>Reviews</b><span id="more-reviews-sub">What customers say</span>
+        </button>
         <button class="menu-tile t-brand" type="button" id="more-report" data-open="report">
           <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
           <b>Sales report</b><span>Last 30 days and best sellers</span>
@@ -943,6 +996,11 @@
         <button class="row-btn" type="button" id="more-away" data-open="away">
           <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></span>
           <div class="row-main"><div class="row-name">Away mode</div><div class="row-sub" id="more-away-sub">Off</div></div>
+          <span class="chev">›</span>
+        </button>
+        <button class="row-btn" type="button" id="more-profile" data-open="profile">
+          <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span>
+          <div class="row-main"><div class="row-name">Store profile</div><div class="row-sub" id="more-profile-sub">Get found in the OrderPadi directory</div></div>
           <span class="chev">›</span>
         </button>
         <button class="row-btn" type="button" id="more-settings" data-open="settings">
@@ -1007,12 +1065,94 @@
         <div class="kv"><span>{total} · {balance}</span><span class="muted">order total · still owed</span></div>
         <div class="kv"><span>{link}</span><span class="muted">invoice link</span></div>
         <div class="kv"><span>{store}</span><span class="muted">your business name</span></div>
+        <div class="kv"><span>{review}</span><span class="muted">link to rate the order</span></div>
       </div>
       <div id="reply-list"></div>
       <button class="btn secondary small" type="button" id="reply-add" style="margin-top:12px">+ Add a reply</button>
       <p class="error" id="replies-error"></p>
       <button class="btn" type="button" id="replies-save">Save replies</button>
       <p class="center"><button class="link" type="button" id="replies-reset">Go back to the starter messages</button></p>
+    </section>
+
+    <!-- Promo codes -->
+    <section class="view" id="view-promos">
+      <button class="back" type="button" data-tab="more">‹ More</button>
+      <div class="head-row">
+        <h1>Promo codes</h1>
+        <button class="btn small sun" type="button" id="promo-new">+ New</button>
+      </div>
+      <p class="sub" id="promos-sub">Codes customers type at checkout for money off. Share them on WhatsApp status or Instagram.</p>
+      <div id="promos-list"></div>
+    </section>
+
+    <!-- One promo code -->
+    <section class="view" id="view-promo">
+      <button class="back" type="button" data-tab="promos">‹ Promo codes</button>
+      <h1 id="promo-title" style="margin-top:14px">New promo code</h1>
+      <form id="promo-form" class="card" novalidate>
+        <label for="promo-code" style="margin-top:0">Code</label>
+        <div class="code-row">
+          <input id="promo-code" type="text" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. ADA10">
+          <button class="btn small secondary" type="button" id="promo-suggest">Make one</button>
+        </div>
+        <p class="hint">Letters and numbers only. Customers type this at checkout.</p>
+        <label>Discount</label>
+        <div class="seg" id="promo-kind" role="group" aria-label="Type of discount">
+          <button type="button" data-kind="percent">% off</button>
+          <button type="button" data-kind="amount">₦ off</button>
+        </div>
+        <label for="promo-value" id="promo-value-label">Percentage off</label>
+        <div class="prefix" id="promo-value-box"><span id="promo-value-unit">%</span><input id="promo-value" type="text" inputmode="decimal" autocomplete="off" placeholder="10"></div>
+        <div class="two">
+          <div><label for="promo-min">Minimum order <span class="muted">(optional)</span></label><div class="prefix"><span>₦</span><input id="promo-min" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
+          <div><label for="promo-uses">Times it can be used <span class="muted">(optional)</span></label><input id="promo-uses" type="text" inputmode="numeric" autocomplete="off" placeholder="No limit"></div>
+        </div>
+        <label for="promo-expires">Last day <span class="muted">(optional)</span></label>
+        <input id="promo-expires" type="date">
+        <div class="switch-row">
+          <div><b>Code is on</b><small>Turn off to stop it working for now.</small></div>
+          <label class="switch"><input type="checkbox" id="promo-active" checked aria-label="Code is on"><span></span></label>
+        </div>
+        <p class="hint" id="promo-preview"></p>
+        <p class="error" id="promo-error"></p>
+        <button class="btn" type="submit" id="promo-save">Save code</button>
+      </form>
+      <button class="btn danger" type="button" id="promo-delete" hidden>Delete code</button>
+    </section>
+
+    <!-- Reviews -->
+    <section class="view" id="view-reviews">
+      <button class="back" type="button" data-tab="more">‹ More</button>
+      <h1 style="margin-top:14px">Reviews</h1>
+      <p class="sub">Customers rate an order from their invoice once it's paid or delivered. Reviews show on your store and in the directory.</p>
+      <div id="reviews-summary"></div>
+      <div id="reviews-list"></div>
+    </section>
+
+    <!-- Store profile (directory) -->
+    <section class="view" id="view-profile">
+      <button class="back" type="button" data-tab="more">‹ More</button>
+      <h1 style="margin-top:14px">Store profile</h1>
+      <p class="sub">Shown on your store, and in the OrderPadi directory where customers look for sellers near them.</p>
+      <div class="card">
+        <div class="away-head">
+          <div><b>List my store in the directory</b><small>At <a href="/stores" target="_blank" rel="noopener">orderpadi.netlify.app/stores</a></small></div>
+          <label class="switch"><input type="checkbox" id="profile-listed" aria-label="List my store in the directory"><span></span></label>
+        </div>
+        <label for="profile-category">What you sell</label>
+        <select id="profile-category"></select>
+        <div class="two">
+          <div><label for="profile-state">State</label><select id="profile-state"></select></div>
+          <div><label for="profile-city">Town or city</label><input id="profile-city" type="text" maxlength="40" autocomplete="off" placeholder="e.g. Akure"></div>
+        </div>
+        <label for="profile-bio">A line about your store <span class="muted">(optional)</span></label>
+        <textarea id="profile-bio" maxlength="160" placeholder="e.g. Bone straight and body wave wigs, delivered same day in Ondo."></textarea>
+        <p class="hint"><span id="profile-bio-count">0</span>/160</p>
+      </div>
+      <p class="section-title">Preview</p>
+      <div id="profile-preview"></div>
+      <p class="error" id="profile-error"></p>
+      <button class="btn" type="button" id="profile-save">Save profile</button>
     </section>
 
     <!-- Settings -->
@@ -1161,14 +1301,16 @@
       stats: null, billing: null, customerFilter: null,
       photoLimit: 1, pendingPhotos: [], photoBusy: false, statusPick: null, snackTimer: null,
       q: '', customer: null, custQuery: { q: '', tag: '', sort: 'owing' }, custTags: [], custCount: null,
-      stockFilter: 'all', zoneDraft: [], replyDraft: [], prefill: null
+      stockFilter: 'all', zoneDraft: [], replyDraft: [], prefill: null,
+      promos: null, promoLimit: 2, promoEditing: null, promoKind: 'percent', toolsSummary: null, reviews: null
     };
     // Logged-in screens, and which tab each one belongs to.
     const APP_VIEWS = {
       home: 'home', orders: 'orders', order: 'orders', neworder: 'orders',
       products: 'products', product: 'products', notifications: '',
       more: 'more', settings: 'more', customers: 'more', customer: 'more', delivery: 'more',
-      stock: 'more', replies: 'more', report: 'more', status: 'more'
+      stock: 'more', replies: 'more', report: 'more', status: 'more',
+      promos: 'more', promo: 'more', reviews: 'more', profile: 'more'
     };
     const THEMES = [
       { id: 'green', name: 'Green', hex: '#12B76A', ink: '#1B1530' },
@@ -1228,6 +1370,7 @@
       if (name === 'product') return state.editing ? 'product/' + state.editing.id : 'product/new';
       if (name === 'neworder') return 'new-order';
       if (name === 'customer') return state.customer ? 'customer/' + state.customer.customer.id : 'customers';
+      if (name === 'promo') return state.promoEditing ? 'promo/' + state.promoEditing.id : 'promo/new';
       if (name === 'orders') return state.filter && state.filter !== 'all' ? 'orders/' + state.filter : 'orders';
       return name;
     }
@@ -1323,6 +1466,14 @@
           return loadCustomers();
         case 'customer':
           return openCustomer(Number(a), { fallback: true });
+        case 'promos':
+          return openPromos();
+        case 'promo':
+          return openPromo(a === 'new' ? null : Number(a), { fallback: true });
+        case 'reviews':
+          return openReviews();
+        case 'profile':
+          return openProfile();
         case 'report':
           return loadReport();
         case 'notifications':
@@ -1766,6 +1917,7 @@
         renderMore();
         switchView('more');
         loadStats();
+        loadToolsSummary();
       } else {
         renderHome();
         switchView('home');
@@ -2701,7 +2853,7 @@
       money.textContent = '';
       const rows = [['Subtotal', o.subtotalKobo]];
       if (o.deliveryFeeKobo || o.deliveryZone) rows.push(['Delivery' + (o.deliveryZone ? ' · ' + o.deliveryZone : ''), o.deliveryFeeKobo]);
-      if (o.discountKobo) rows.push(['Discount', -o.discountKobo]);
+      if (o.discountKobo) rows.push(['Discount' + (o.promoCode ? ' · ' + o.promoCode : ''), -o.discountKobo]);
       rows.forEach(([label, k]) => {
         const row = el('div', 'kv');
         row.append(el('span', 'muted', label), el('span', null, (k < 0 ? '−' : '') + formatNaira(Math.abs(k))));
@@ -2761,6 +2913,33 @@
       if (o.status !== 'cancelled' && o.balanceKobo && o.amountPaidKobo) lines.push('Still to pay: ' + formatNaira(o.balanceKobo));
       $('order-send-invoice').href = 'https://wa.me/' + o.customerPhone + '?text=' + encodeURIComponent(lines.join('\n'));
       $('order-open-invoice').href = url;
+      // reviews: ask once it can be rated; show it once it's in
+      $('order-ask-review').hidden = !(o.canReview && !o.review);
+      if (o.canReview && !o.review) {
+        const ask = 'Hi ' + first + ', thank you for buying from ' + state.vendor.businessName + '! If you have a minute, please rate your order here: ' + url + '#review';
+        $('order-ask-review').href = 'https://wa.me/' + o.customerPhone + '?text=' + encodeURIComponent(ask);
+      }
+      const rbox = $('order-review');
+      rbox.hidden = !o.review;
+      rbox.textContent = '';
+      if (o.review) {
+        const head = el('div', 'rev-head');
+        const who = el('span');
+        who.append(starsShow(o.review.rating), document.createTextNode(' ' + o.customerName.split(' ')[0] + "'s review"));
+        head.append(who, el('small', null, when(o.review.createdAt)));
+        rbox.appendChild(head);
+        if (o.review.body) rbox.appendChild(el('p', 'rev-body', o.review.body));
+        if (o.review.reply) {
+          const rep = el('div', 'rev-reply');
+          rep.append(el('b', null, 'Your reply'), document.createTextNode(o.review.reply));
+          rbox.appendChild(rep);
+        }
+        const go = el('button', 'link', o.review.reply ? 'Change your reply' : 'Reply to this review');
+        go.type = 'button';
+        go.style.marginTop = '8px';
+        go.addEventListener('click', openReviews);
+        rbox.appendChild(go);
+      }
       renderTimeline(o);
     }
 
@@ -3658,6 +3837,19 @@
       if (v.awayMessage) sub.append(el('span', 'on-pill', 'On'), document.createTextNode(' ' + v.awayMessage));
       else sub.textContent = "Off · show a note while you're away";
       $('more-customers-n').textContent = state.custCount ? String(state.custCount) : '';
+      const t = state.toolsSummary;
+      $('more-promos-n').textContent = t && t.activePromos ? String(t.activePromos) : '';
+      $('more-reviews-n').textContent = t && t.unreplied ? String(t.unreplied) : '';
+      $('more-reviews-sub').textContent = t && t.rating.count
+        ? '★ ' + t.rating.average.toFixed(1) + ' from ' + t.rating.count + (t.rating.count === 1 ? ' review' : ' reviews')
+        : 'What customers say';
+      $('more-profile-sub').textContent = v.inDirectory
+        ? 'Listed in the directory · ' + [v.storeCategory, v.state].filter(Boolean).join(', ')
+        : 'Get found in the OrderPadi directory';
+    }
+    async function loadToolsSummary() {
+      const { ok, data } = await api('/api/tools?view=summary');
+      if (ok && state.vendor) { state.toolsSummary = data; renderMore(); }
     }
     document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => {
       const name = b.dataset.open;
@@ -3668,6 +3860,9 @@
       if (name === 'status') return openStatus();
       if (name === 'report') return loadReport();
       if (name === 'away') return goTab('settings', 'away-switch');
+      if (name === 'promos') return openPromos();
+      if (name === 'reviews') return openReviews();
+      if (name === 'profile') return openProfile();
       if (name === 'settings') return goTab('settings');
     }));
     $('home-low-stock').addEventListener('click', () => { state.stockFilter = 'all'; openStock(); });
@@ -3978,7 +4173,7 @@
     }));
 
     // ---------- quick replies ----------
-    const PLACEHOLDERS = ['{name}', '{order}', '{total}', '{balance}', '{link}', '{store}'];
+    const PLACEHOLDERS = ['{name}', '{order}', '{total}', '{balance}', '{link}', '{store}', '{review}'];
     function openReplies() {
       state.replyDraft = (state.vendor.quickReplies || []).map((r) => ({ ...r }));
       renderReplies();
@@ -4073,9 +4268,9 @@
     function fillReply(text, o) {
       const values = {
         name: (o.customerName || '').split(' ')[0], order: String(o.number), total: formatNaira(o.totalKobo),
-        balance: formatNaira(o.balanceKobo), link: invoiceUrl(o), store: state.vendor.businessName
+        balance: formatNaira(o.balanceKobo), link: invoiceUrl(o), store: state.vendor.businessName, review: invoiceUrl(o) + '#review'
       };
-      return text.replace(/\{(name|order|total|balance|link|store)\}/g, (m, k) => values[k]);
+      return text.replace(/\{(name|order|total|balance|link|store|review)\}/g, (m, k) => values[k]);
     }
     function closeSheet() {
       if (!state.sheet) return;
@@ -4132,6 +4327,8 @@
       customer_paid: '<path d="M12 3v18M17 7H9.5a3 3 0 0 0 0 6h5a3 3 0 0 1 0 6H6"/>',
       note: '<path d="M4 20h4L19 9l-4-4L4 16z"/>',
       invoice_sent: '<path d="M4 5h16v11H9l-5 4z"/>',
+      review: '<path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6L12 16.7l-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/>',
+      review_asked: '<path d="M4 5h16v11H9l-5 4z"/>',
       quick_reply: '<path d="M4 5h16v11H9l-5 4z"/>'
     };
     function renderTimeline(o) {
@@ -4165,6 +4362,345 @@
       if (ok && state.order && state.order.id === o.id) { state.order = data.order; renderTimeline(data.order); }
     }
     $('order-send-invoice').addEventListener('click', () => logOrder('invoice_sent'));
+    $('order-ask-review').addEventListener('click', () => logOrder('review_asked'));
+
+    // ---------- stars ----------
+    const STAR_PATH = '<path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>';
+    function starsShow(n) {
+      const box = el('span', 'stars-show');
+      box.setAttribute('aria-label', n + ' out of 5 stars');
+      box.innerHTML = [1, 2, 3, 4, 5].map((i) => '<svg viewBox="0 0 24 24" aria-hidden="true"' + (i > Math.round(n) ? ' class="off"' : '') + '>' + STAR_PATH + '</svg>').join('');
+      return box;
+    }
+    const lagosDate = (iso) => new Date(iso).toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' });
+    const niceDate = (iso) => new Date(iso).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', timeZone: 'Africa/Lagos' });
+
+    // ---------- promo codes ----------
+    async function loadPromos() {
+      const { ok, status, data } = await api('/api/tools?view=promos');
+      if (status === 401) { sessionLost(); return false; }
+      if (!ok) { toast(data.error || 'Could not load your promo codes.'); return false; }
+      state.promos = data.promos;
+      state.promoLimit = data.limit;
+      return true;
+    }
+    async function openPromos() {
+      switchView('promos');
+      if (!state.promos) $('promos-list').innerHTML = '<p class="empty">Loading…</p>';
+      if (await loadPromos()) renderPromos();
+    }
+    function promoShareText(p) {
+      const until = p.expiresAt ? ' until ' + niceDate(p.expiresAt) : '';
+      return 'Use code ' + p.code + ' for ' + p.label + ' at ' + state.vendor.businessName + until + ': ' + storeUrl(state.vendor.slug);
+    }
+    const STATUS_TEXT = { active: 'On', off: 'Off', expired: 'Ended', used_up: 'Used up' };
+    function renderPromos() {
+      const box = $('promos-list');
+      box.textContent = '';
+      const list = state.promos || [];
+      const free = state.promoLimit <= 2;
+      $('promos-sub').textContent = free
+        ? 'Codes customers type at checkout for money off. Free plan: ' + list.length + ' of ' + state.promoLimit + ' codes. Pro gives you 50.'
+        : 'Codes customers type at checkout for money off. Share them on WhatsApp status or Instagram.';
+      if (!list.length) {
+        const empty = emptyBox('No promo codes yet. Make one, like ' + suggestCode() + ' for 10% off, and share it with your customers.');
+        const b = el('button', 'btn', 'Make a promo code');
+        b.type = 'button';
+        b.addEventListener('click', () => openPromo(null));
+        empty.appendChild(b);
+        return box.appendChild(empty);
+      }
+      list.forEach((p) => {
+        const card = el('div', 'promo-card' + (p.status === 'active' ? '' : ' dim'));
+        const top = el('div', 'promo-top');
+        top.append(el('span', 'promo-code', p.code), el('span', 'pstatus ' + p.status, STATUS_TEXT[p.status]));
+        card.appendChild(top);
+        card.appendChild(el('p', 'promo-label', p.label));
+        const meta = ['Used ' + p.uses + (p.maxUses ? ' of ' + p.maxUses : '') + (p.uses === 1 ? ' time' : ' times')];
+        if (p.expiresAt) meta.push((p.status === 'expired' ? 'Ended ' : 'Ends ') + niceDate(p.expiresAt));
+        card.appendChild(el('p', 'promo-meta', meta.join(' · ')));
+        const actions = el('div', 'promo-actions');
+        const share = el('a', 'btn small wa', 'Share');
+        share.href = 'https://wa.me/?text=' + encodeURIComponent(promoShareText(p));
+        share.target = '_blank';
+        share.rel = 'noopener';
+        const copy = el('button', 'btn small secondary', 'Copy');
+        copy.type = 'button';
+        copy.addEventListener('click', async () => {
+          try { await navigator.clipboard.writeText(p.code); copy.textContent = 'Copied!'; } catch (e) { copy.textContent = p.code; }
+          setTimeout(() => { copy.textContent = 'Copy'; }, 2000);
+        });
+        const edit = el('button', 'btn small secondary', 'Edit');
+        edit.type = 'button';
+        edit.addEventListener('click', () => openPromo(p.id));
+        actions.append(share, copy, edit);
+        card.appendChild(actions);
+        box.appendChild(card);
+      });
+    }
+    function suggestCode() {
+      const word = (String(state.vendor.businessName).replace(/['’]/g, '').match(/[A-Za-z0-9]+/) || ['SHOP'])[0].toUpperCase().slice(0, 6);
+      return (word.length >= 3 ? word : word + 'SHOP') + '10';
+    }
+    async function openPromo(id, opts = {}) {
+      let p = null;
+      if (id) {
+        if (!state.promos && !(await loadPromos())) return;
+        p = (state.promos || []).find((x) => x.id === id) || null;
+        if (!p) { toast("That code doesn't exist any more."); if (opts.fallback) { navMode = 'replace'; return openPromos(); } return; }
+      }
+      state.promoEditing = p;
+      $('promo-title').textContent = p ? 'Edit ' + p.code : 'New promo code';
+      $('promo-code').value = p ? p.code : '';
+      state.promoKind = p ? p.kind : 'percent';
+      $('promo-value').value = p ? (p.kind === 'percent' ? String(p.value) : koboToInput(p.value)) : '';
+      $('promo-min').value = p && p.minOrderKobo ? koboToInput(p.minOrderKobo) : '';
+      $('promo-uses').value = p && p.maxUses ? String(p.maxUses) : '';
+      $('promo-expires').value = p && p.expiresAt ? lagosDate(p.expiresAt) : '';
+      $('promo-expires').min = lagosDate(new Date().toISOString());
+      $('promo-active').checked = p ? p.isActive : true;
+      $('promo-delete').hidden = !p;
+      $('promo-save').textContent = p ? 'Save changes' : 'Save code';
+      renderPromoKind();
+      switchView('promo');
+      if (!p) $('promo-code').focus();
+    }
+    function renderPromoKind() {
+      const pct = state.promoKind === 'percent';
+      document.querySelectorAll('#promo-kind button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kind === state.promoKind)));
+      $('promo-value-label').textContent = pct ? 'Percentage off' : 'Amount off';
+      $('promo-value-unit').textContent = pct ? '%' : '₦';
+      $('promo-value').placeholder = pct ? '10' : '2000';
+      renderPromoPreview();
+    }
+    function renderPromoPreview() {
+      const raw = $('promo-value').value.trim().replace(/[₦%,\s]/g, '');
+      const value = Number(raw);
+      const min = looksLikeNaira($('promo-min').value.trim()) ? Math.round(Number($('promo-min').value.replace(/[₦,\s]/g, '')) * 100) : 0;
+      if (!raw || !(value > 0)) { $('promo-preview').textContent = ''; return; }
+      const example = Math.max(min, 2000000);
+      const off = state.promoKind === 'percent' ? Math.floor(example * Math.min(value, 90) / 100) : Math.min(Math.round(value * 100), example);
+      $('promo-preview').textContent = 'Example: on a ' + formatNaira(example) + ' order the customer pays ' + formatNaira(example - off) + ' (plus delivery).';
+    }
+    document.querySelectorAll('#promo-kind button').forEach((b) => b.addEventListener('click', () => { state.promoKind = b.dataset.kind; renderPromoKind(); }));
+    ['promo-value', 'promo-min'].forEach((id) => $(id).addEventListener('input', renderPromoPreview));
+    $('promo-code').addEventListener('input', () => {
+      const el2 = $('promo-code');
+      const clean = el2.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (clean !== el2.value) el2.value = clean;
+    });
+    $('promo-suggest').addEventListener('click', () => { $('promo-code').value = suggestCode(); $('promo-value').focus(); });
+    $('promo-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const code = $('promo-code').value.trim();
+      if (code.length < 3) return showError('promo', 'Use 3 to 20 letters or numbers for the code, like ' + suggestCode() + '.', 'code');
+      if (!$('promo-value').value.trim()) return showError('promo', state.promoKind === 'percent' ? 'Enter the percentage off, like 10.' : 'Enter the amount off, like 2000.', 'value');
+      const body = {
+        action: 'promo', code, kind: state.promoKind, value: $('promo-value').value.trim(),
+        minOrder: $('promo-min').value.trim(), maxUses: $('promo-uses').value.trim(), expires: $('promo-expires').value,
+        isActive: $('promo-active').checked
+      };
+      if (state.promoEditing) body.id = state.promoEditing.id;
+      const btn = $('promo-save');
+      busy(btn, true, 'Saving…');
+      const { ok, status, data } = await api('/api/tools', body);
+      busy(btn, false);
+      if (status === 401) return sessionLost();
+      const fields = { code: 'code', value: 'value', minOrder: 'min', maxUses: 'uses', expires: 'expires' };
+      if (!ok) return showError('promo', data.error || 'Could not save the code.', fields[data.field]);
+      state.promos = data.promos;
+      state.promoLimit = data.limit;
+      if (state.toolsSummary) state.toolsSummary.activePromos = data.promos.filter((x) => x.status === 'active').length;
+      toast(state.promoEditing ? 'Saved' : data.promo.code + ' is ready to share', 'good');
+      renderPromos();
+      goUp('promos');
+    });
+    $('promo-delete').addEventListener('click', async () => {
+      const p = state.promoEditing;
+      if (!p || !confirm('Delete ' + p.code + '? Customers won\'t be able to use it. Past orders keep their discount.')) return;
+      const { ok, status, data } = await api('/api/tools', { action: 'promo-delete', id: p.id });
+      if (status === 401) return sessionLost();
+      if (!ok) return showError('promo', data.error || 'Could not delete the code.');
+      state.promos = data.promos;
+      toast('Code deleted');
+      renderPromos();
+      goUp('promos');
+    });
+    $('promo-new').addEventListener('click', () => openPromo(null));
+
+    // ---------- reviews ----------
+    async function openReviews() {
+      switchView('reviews');
+      if (!state.reviews) $('reviews-list').innerHTML = '<p class="empty">Loading…</p>';
+      const { ok, status, data } = await api('/api/tools?view=reviews');
+      if (status === 401) return sessionLost();
+      if (!ok) { $('reviews-list').textContent = ''; return $('reviews-list').appendChild(el('p', 'empty', data.error || 'Could not load reviews.')); }
+      state.reviews = data;
+      renderReviews();
+    }
+    function renderReviews() {
+      const d = state.reviews;
+      const sum = $('reviews-summary');
+      sum.textContent = '';
+      const box = $('reviews-list');
+      box.textContent = '';
+      if (!d.reviews.length) {
+        return box.appendChild(emptyBox('No reviews yet. When an order is paid or delivered, open it and tap "Ask for a review" to send the customer a link.'));
+      }
+      const card = el('div', 'card rev-sum');
+      const left = el('div');
+      left.append(el('div', 'big', d.summary.average.toFixed(1)), starsShow(d.summary.average), el('div', 'muted', d.summary.count + (d.summary.count === 1 ? ' review' : ' reviews')));
+      left.lastChild.style.cssText = 'font-size:13px;font-weight:700;margin-top:2px';
+      const bars = el('div', 'rev-bars');
+      [5, 4, 3, 2, 1].forEach((n) => {
+        const row = el('div', 'rev-bar');
+        const bar = el('i');
+        const fill = el('b');
+        fill.style.width = (d.summary.count ? Math.round((d.summary.breakdown[n] / d.summary.count) * 100) : 0) + '%';
+        bar.appendChild(fill);
+        row.append(el('span', null, String(n)), bar, el('span', null, String(d.summary.breakdown[n])));
+        bars.appendChild(row);
+      });
+      card.append(left, bars);
+      sum.appendChild(card);
+      d.reviews.forEach((r) => box.appendChild(reviewCard(r)));
+    }
+    function reviewCard(r) {
+      const card = el('div', 'rev-card');
+      const head = el('div', 'rev-head');
+      const who = el('span');
+      who.append(starsShow(r.rating), document.createTextNode(' ' + r.name));
+      head.append(who, el('small', null, niceDate(r.createdAt)));
+      card.appendChild(head);
+      if (r.body) card.appendChild(el('p', 'rev-body', r.body));
+      if (r.hidden) card.appendChild(el('p', 'hidden-note', 'Hidden from your store by OrderPadi'));
+      const replyBox = el('div');
+      const paint = () => {
+        replyBox.textContent = '';
+        if (r.reply) {
+          const rep = el('div', 'rev-reply');
+          rep.append(el('b', null, 'Your reply'), document.createTextNode(r.reply));
+          replyBox.appendChild(rep);
+        }
+        const actions = el('div', 'rev-actions');
+        const replyBtn = el('button', 'link', r.reply ? 'Change reply' : 'Reply');
+        replyBtn.type = 'button';
+        replyBtn.addEventListener('click', () => openForm());
+        actions.appendChild(replyBtn);
+        if (r.orderNumber) {
+          const order = el('button', 'link', 'Order #' + r.orderNumber);
+          order.type = 'button';
+          order.addEventListener('click', () => openOrder(r.orderId));
+          actions.appendChild(order);
+        }
+        replyBox.appendChild(actions);
+      };
+      const openForm = () => {
+        replyBox.textContent = '';
+        const form = el('form', 'rev-form');
+        form.noValidate = true;
+        const ta = document.createElement('textarea');
+        ta.maxLength = 500;
+        ta.value = r.reply;
+        ta.placeholder = 'Thank them, or explain what happened. Everyone can see your reply.';
+        ta.setAttribute('aria-label', 'Your reply');
+        const err = el('p', 'error');
+        const acts = el('div', 'actions');
+        const cancel = el('button', 'btn secondary small', 'Cancel');
+        cancel.type = 'button';
+        cancel.addEventListener('click', paint);
+        const save = el('button', 'btn small', 'Post reply');
+        save.type = 'submit';
+        acts.append(cancel, save);
+        form.append(ta, err, acts);
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          busy(save, true, 'Posting…');
+          const { ok, status, data } = await api('/api/tools', { action: 'reply', id: r.id, reply: ta.value });
+          busy(save, false);
+          if (status === 401) return sessionLost();
+          if (!ok) { err.textContent = data.error || 'Could not post the reply.'; err.classList.add('show'); return; }
+          Object.assign(r, data.review);
+          if (state.toolsSummary) state.toolsSummary.unreplied = state.reviews.reviews.filter((x) => !x.reply && !x.hidden).length;
+          toast(r.reply ? 'Reply posted' : 'Reply removed', 'good');
+          paint();
+        });
+        replyBox.appendChild(form);
+        ta.focus();
+      };
+      paint();
+      card.appendChild(replyBox);
+      return card;
+    }
+
+    // ---------- store profile (directory) ----------
+    const DIR_CATEGORIES = ['Fashion & clothing', 'Hair & wigs', 'Beauty & skincare', 'Shoes & bags', 'Jewellery & accessories', 'Food & drinks', 'Cakes & pastries', 'Phones & gadgets', 'Home & kitchen', 'Kids & baby', 'Health & wellness', 'Books & stationery', 'Services', 'Other'];
+    const DIR_STATES = ['Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno', 'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'FCT', 'Gombe', 'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara', 'Lagos', 'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau', 'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara'];
+    function fillSelect(select, list, placeholder, value) {
+      select.textContent = '';
+      select.appendChild(Object.assign(document.createElement('option'), { value: '', textContent: placeholder }));
+      list.forEach((x) => select.appendChild(Object.assign(document.createElement('option'), { value: x, textContent: x })));
+      select.value = value || '';
+    }
+    function openProfile() {
+      const v = state.vendor;
+      $('profile-listed').checked = !!v.inDirectory;
+      fillSelect($('profile-category'), DIR_CATEGORIES, 'Choose a category', v.storeCategory);
+      fillSelect($('profile-state'), DIR_STATES, 'Choose', v.state);
+      $('profile-city').value = v.city || '';
+      $('profile-bio').value = v.bio || '';
+      renderProfilePreview();
+      switchView('profile');
+    }
+    function renderProfilePreview() {
+      $('profile-bio-count').textContent = String($('profile-bio').value.length);
+      const v = state.vendor;
+      const box = $('profile-preview');
+      box.textContent = '';
+      const card = el('div', 'dir-card');
+      card.dataset.store = v.storeTheme || 'green';
+      card.appendChild(el('span', 'mono', initials(v.businessName)));
+      const main = el('div');
+      main.style.minWidth = '0';
+      main.appendChild(el('b', null, v.businessName));
+      const place = [$('profile-city').value.trim(), $('profile-state').value].filter(Boolean).join(', ');
+      main.appendChild(el('small', null, [$('profile-category').value || 'Category', place || 'Town, state'].join(' · ')));
+      const rating = state.toolsSummary && state.toolsSummary.rating;
+      if (rating && rating.count) {
+        const r = el('small');
+        r.append(starsShow(rating.average), document.createTextNode(' ' + rating.average.toFixed(1) + ' (' + rating.count + ')'));
+        main.appendChild(r);
+      }
+      main.appendChild(el('p', null, $('profile-bio').value.trim() || 'Your line about the store shows here.'));
+      card.appendChild(main);
+      box.appendChild(card);
+      if ($('profile-listed').checked && state.setup && !state.setup.products) {
+        box.appendChild(el('p', 'hint', 'Add a product to show up in the directory.'));
+      }
+    }
+    ['profile-category', 'profile-state', 'profile-city', 'profile-bio', 'profile-listed'].forEach((id) => {
+      $(id).addEventListener('input', renderProfilePreview);
+      $(id).addEventListener('change', renderProfilePreview);
+    });
+    $('profile-save').addEventListener('click', async () => {
+      const listed = $('profile-listed').checked;
+      if (listed && !$('profile-category').value) return showError('profile', 'Pick what you sell so customers can find you.', 'category');
+      if (listed && !$('profile-state').value) return showError('profile', 'Pick your state so customers near you can find you.', 'state');
+      const btn = $('profile-save');
+      busy(btn, true, 'Saving…');
+      const { ok, status, data } = await api('/api/me', {
+        inDirectory: listed, storeCategory: $('profile-category').value, state: $('profile-state').value,
+        city: $('profile-city').value, bio: $('profile-bio').value
+      }, 'PATCH');
+      busy(btn, false);
+      if (status === 401) return sessionLost();
+      if (!ok) return showError('profile', data.error || 'Could not save your profile.', { storeCategory: 'category', state: 'state', city: 'city', bio: 'bio' }[data.field]);
+      state.vendor = data.vendor;
+      state.setup = data.setup;
+      renderMore();
+      renderProfilePreview();
+      toast(listed ? 'Saved. Your store is in the directory.' : 'Profile saved', 'good');
+    });
 
     // ---------- report (Pro) ----------
     $('open-report').addEventListener('click', loadReport);
@@ -4275,6 +4811,9 @@
       state.customer = null;
       state.custQuery = { q: '', tag: '', sort: 'owing' };
       state.custCount = null;
+      state.promos = null;
+      state.reviews = null;
+      state.toolsSummary = null;
       $('orders-search').value = '';
       setUnread(0);
       $('login-email').value = remembered();

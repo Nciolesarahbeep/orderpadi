@@ -53,6 +53,30 @@
     .zone-pick button span:last-child { font-family: var(--display); font-variant-numeric: tabular-nums; white-space: nowrap; }
     .zone-pick button[aria-checked="true"] { background: var(--theme); color: var(--theme-ink); animation: op-pop .3s cubic-bezier(.2, .9, .3, 1.5); }
     .zone-title { font-weight: 800; margin: 0; }
+
+    /* rating, bio and reviews */
+    .rating-chip { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; margin-right: 8px; padding: 6px 12px; border: var(--bw) solid var(--ink); border-radius: 999px; background: var(--sun); color: #1B1530; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: var(--shadow-sm); }
+    .rating-chip svg { width: 16px; height: 16px; }
+    .store-bio { margin: 10px 0 0 !important; font-weight: 600 !important; opacity: .95 !important; }
+    .stars-show { display: inline-flex; gap: 1px; color: #F5A400; vertical-align: -3px; }
+    .stars-show svg { width: 17px; height: 17px; }
+    .stars-show svg.off { color: var(--line); }
+    .rev-summary { display: flex; align-items: center; gap: 14px; }
+    .rev-summary b { font-family: var(--display); font-size: 44px; line-height: 1; }
+    .rev-summary span { font-weight: 700; color: var(--muted); font-size: 14px; }
+    .rev { padding: 14px 0; border-top: 2px solid var(--line); }
+    .rev:first-child { border-top: 0; }
+    .rev-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-weight: 800; }
+    .rev-head small { color: var(--muted); font-weight: 600; font-size: 13px; }
+    .rev p { margin: 6px 0 0; font-weight: 600; white-space: pre-line; overflow-wrap: anywhere; }
+    .rev .seller-reply { margin-top: 10px; padding: 8px 12px; border-radius: 14px; border: 2px solid var(--ink); background: var(--card-2); font-size: 14px; }
+    .rev .seller-reply b { display: block; }
+    .rev .seller-reply p { margin: 2px 0 0; }
+    .promo-row { display: flex; gap: 8px; margin-top: 10px; }
+    .promo-row input { flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: .05em; font-weight: 800; }
+    .promo-row .btn { width: auto; margin: 0; }
+    .promo-on { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 2px; padding: 10px 12px; border: var(--bw) dashed var(--ink); border-radius: 14px; background: var(--sun-soft); font-weight: 800; }
+    .promo-on button { border: 0; background: none; color: var(--text); font: inherit; font-size: 20px; font-weight: 800; cursor: pointer; padding: 0 4px; }
     .in-cart { flex: none; padding: 5px 10px; border-radius: 12px; border: 2px solid var(--ink); background: var(--sun); color: #1B1530; font-size: 13px; font-weight: 800; cursor: pointer; font-family: inherit; }
     .opt-label { font-weight: 800; margin: 14px 0 6px; }
     .opt-chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -163,6 +187,8 @@
             <p id="store-delivery"></p>
           </div>
         </div>
+        <p class="store-bio" id="store-bio" hidden></p>
+        <button class="rating-chip" type="button" id="store-rating" hidden></button>
         <a class="chat" id="store-chat" target="_blank" rel="noopener" hidden>
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>
           Chat with the seller
@@ -175,6 +201,13 @@
       <input type="search" id="store-search" class="store-search" placeholder="Search this store" autocomplete="off" hidden>
       <div class="chips cat-bar" id="category-bar" hidden></div>
       <div id="product-list"></div>
+
+      <section id="reviews-box" hidden>
+        <div class="section-row"><h2>What customers say</h2><span class="muted" id="reviews-count"></span></div>
+        <div class="card rev-summary" id="reviews-summary"></div>
+        <div class="card" id="reviews-list" style="padding-top:4px;padding-bottom:4px"></div>
+        <button class="btn secondary" type="button" id="reviews-more" hidden>Show all reviews</button>
+      </section>
     </section>
 
     <!-- Checkout -->
@@ -186,9 +219,22 @@
         <p class="zone-title">Where should it go?</p>
         <div class="zone-pick" id="zone-pick" role="radiogroup" aria-label="Delivery area"></div>
       </div>
+      <div class="card" id="promo-card">
+        <button class="link" type="button" id="promo-open">Have a promo code?</button>
+        <div id="promo-form" hidden>
+          <label for="checkout-promo" style="margin-top:0">Promo code</label>
+          <div class="promo-row">
+            <input id="checkout-promo" type="text" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. ADA10">
+            <button class="btn small" type="button" id="promo-apply">Apply</button>
+          </div>
+          <p class="error" id="promo-error"></p>
+        </div>
+        <div class="promo-on" id="promo-on" hidden><span id="promo-text"></span><button type="button" id="promo-remove" aria-label="Remove promo code">×</button></div>
+      </div>
       <div class="card totals">
         <div class="sum"><span>Subtotal</span><span id="sum-subtotal"></span></div>
         <div class="sum" id="sum-delivery-row"><span id="sum-delivery-label">Delivery</span><span id="sum-delivery"></span></div>
+        <div class="sum" id="sum-discount-row" hidden><span id="sum-discount-label">Discount</span><span id="sum-discount"></span></div>
         <div class="sum total"><span>Total</span><span id="sum-total"></span></div>
       </div>
       <form id="checkout-form" class="card" novalidate>
@@ -259,7 +305,8 @@
     const CART_KEY = 'op_cart_' + slug;
     // cart: Map(lineKey -> { productId, choices: [choiceId], qty }). lineKey is
     // "productId" or "productId:choiceA.choiceB" (sorted), the same as the server's.
-    const state = { store: null, products: [], cart: new Map(), viewing: null, picks: {}, category: '', query: '', zone: '' };
+    const state = { store: null, products: [], reviews: [], allReviews: false, cart: new Map(), viewing: null, picks: {}, category: '', query: '', zone: '', promo: null };
+    const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>';
     const ZONE_KEY = 'op_zone_' + slug;
     try { state.zone = sessionStorage.getItem(ZONE_KEY) || ''; } catch (e) {}
     const THEME_HEX = { green: '#12B76A', coral: '#FF8A7A', sun: '#FFD23F', sky: '#6CCFF6', grape: '#6A4CE0', night: '#1B1530' };
@@ -506,7 +553,8 @@
       const zone = pickedZone();
       const needsZone = zones().length > 0 && !zone;
       const delivery = !state.store ? 0 : zones().length ? (zone ? zone.feeKobo : 0) : state.store.deliveryFeeKobo;
-      return { count, subtotal, delivery, zone, needsZone, total: subtotal + delivery };
+      const discount = state.promo && state.promo.subtotal === subtotal ? Math.min(state.promo.discountKobo, subtotal) : 0;
+      return { count, subtotal, delivery, zone, needsZone, discount, total: subtotal + delivery - discount };
     }
 
     function stepper(productId, choices, qty) {
@@ -568,6 +616,12 @@
         else delivery.push('Delivery from ' + formatNaira(Math.min(...paid)));
       } else if (s.deliveryFeeKobo) delivery.push('Delivery ' + formatNaira(s.deliveryFeeKobo));
       if (s.deliveryNote) delivery.push(s.deliveryNote);
+      $('store-bio').hidden = !s.bio;
+      $('store-bio').textContent = s.bio || '';
+      const rating = s.rating || { count: 0 };
+      $('store-rating').hidden = !rating.count;
+      if (rating.count) $('store-rating').innerHTML = STAR + '<span>' + rating.average.toFixed(1) + ' · ' + rating.count + (rating.count === 1 ? ' review' : ' reviews') + '</span>';
+      renderReviews();
       $('shop-away').hidden = !s.awayMessage;
       $('shop-away-text').textContent = s.awayMessage || '';
       $('checkout-away').hidden = !s.awayMessage;
@@ -828,6 +882,99 @@
       $('viewer-dots').querySelectorAll('i').forEach((d, n) => d.classList.toggle('on', n === i));
     }, { passive: true });
 
+    // ---------- reviews ----------
+    function starsShow(n) {
+      const box = el('span', 'stars-show');
+      box.setAttribute('aria-label', n + ' out of 5 stars');
+      for (let i = 1; i <= 5; i++) {
+        const holder = document.createElement('span');
+        holder.innerHTML = STAR;
+        if (i > Math.round(n)) holder.firstChild.classList.add('off');
+        box.appendChild(holder.firstChild);
+      }
+      return box;
+    }
+    function shortDate(iso) { return new Date(iso).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }); }
+    function renderReviews() {
+      const list = state.reviews || [];
+      const rating = (state.store && state.store.rating) || { count: 0 };
+      $('reviews-box').hidden = !list.length;
+      if (!list.length) return;
+      $('reviews-count').textContent = rating.count + (rating.count === 1 ? ' review' : ' reviews');
+      const sum = $('reviews-summary');
+      sum.textContent = '';
+      const right = el('div');
+      right.append(starsShow(rating.average), el('span', null, 'from ' + rating.count + (rating.count === 1 ? ' customer' : ' customers')));
+      right.style.cssText = 'display:flex;flex-direction:column;gap:4px';
+      sum.append(el('b', null, rating.average.toFixed(1)), right);
+      const box = $('reviews-list');
+      box.textContent = '';
+      (state.allReviews ? list : list.slice(0, 5)).forEach((r) => {
+        const item = el('div', 'rev');
+        const head = el('div', 'rev-head');
+        const who = el('span');
+        who.append(starsShow(r.rating), document.createTextNode(' ' + r.name));
+        head.append(who, el('small', null, shortDate(r.createdAt)));
+        item.appendChild(head);
+        if (r.body) item.appendChild(el('p', null, r.body));
+        if (r.reply) {
+          const rep = el('div', 'seller-reply');
+          rep.append(el('b', null, 'Reply from ' + state.store.businessName), el('p', null, r.reply));
+          item.appendChild(rep);
+        }
+        box.appendChild(item);
+      });
+      $('reviews-more').hidden = state.allReviews || list.length <= 5;
+    }
+    $('reviews-more').addEventListener('click', () => { state.allReviews = true; renderReviews(); });
+    $('store-rating').addEventListener('click', () => $('reviews-box').scrollIntoView({ block: 'start', behavior: OP.reducedMotion ? 'auto' : 'smooth' }));
+
+    // ---------- promo code ----------
+    const cartItems = () => cartLines().map(({ line }) => ({ productId: line.productId, quantity: line.qty, options: line.choices }));
+    function renderPromo() {
+      const p = state.promo;
+      $('promo-on').hidden = !p;
+      $('promo-open').hidden = !!p || !$('promo-form').hidden;
+      if (p) {
+        $('promo-form').hidden = true;
+        $('promo-text').textContent = p.code + ' · ' + p.label;
+      }
+    }
+    async function applyPromo(code, quiet) {
+      const btn = $('promo-apply');
+      btn.disabled = true;
+      const { ok, data } = await api('/api/public', { action: 'promo', store: slug, code, items: cartItems() });
+      btn.disabled = false;
+      if (!ok) {
+        state.promo = null;
+        renderPromo();
+        if (quiet) { $('promo-form').hidden = false; $('promo-open').hidden = true; $('checkout-promo').value = code; }
+        const err = $('promo-error');
+        err.textContent = data.error || 'Could not check that code.';
+        err.classList.add('show');
+        renderCheckout();
+        return false;
+      }
+      state.promo = { ...data.promo, subtotal: cartTotals().subtotal };
+      $('promo-error').classList.remove('show');
+      renderPromo();
+      renderCheckout();
+      if (!quiet) OP.buzz(10);
+      return true;
+    }
+    $('promo-open').addEventListener('click', () => {
+      $('promo-form').hidden = false;
+      $('promo-open').hidden = true;
+      $('checkout-promo').focus();
+    });
+    $('promo-apply').addEventListener('click', () => {
+      const code = $('checkout-promo').value.trim();
+      if (!code) { $('promo-error').textContent = 'Type the promo code first.'; return $('promo-error').classList.add('show'); }
+      applyPromo(code);
+    });
+    $('checkout-promo').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('promo-apply').click(); } });
+    $('promo-remove').addEventListener('click', () => { state.promo = null; $('checkout-promo').value = ''; renderPromo(); renderCheckout(); });
+
     // ---------- checkout ----------
     function renderCheckout() {
       const box = $('checkout-lines');
@@ -846,7 +993,15 @@
       $('sum-delivery-label').textContent = 'Delivery' + (t.zone ? ' · ' + t.zone.name : '');
       $('sum-delivery').textContent = t.needsZone ? 'Pick an area' : formatNaira(t.delivery);
       $('sum-delivery-row').hidden = !t.delivery && !t.zone && !t.needsZone;
+      $('sum-discount-row').hidden = !t.discount;
+      $('sum-discount-label').textContent = 'Discount' + (state.promo ? ' · ' + state.promo.code : '');
+      $('sum-discount').textContent = '−' + formatNaira(t.discount);
       $('sum-total').textContent = formatNaira(t.total);
+      // The cart changed after a code was applied: check it again.
+      if (state.promo && state.promo.subtotal !== t.subtotal && t.count && !state.promoChecking) {
+        state.promoChecking = true;
+        applyPromo(state.promo.code, true).finally(() => { state.promoChecking = false; });
+      }
       if (!t.count) { setRoute('', false); switchView('shop'); }
     }
 
@@ -880,6 +1035,7 @@
       if (!$('checkout-phone').value) $('checkout-phone').value = c.phone || '';
       if (!$('checkout-address').value) $('checkout-address').value = c.address || '';
       if (!fromRoute) setRoute('checkout', true);
+      renderPromo();
       renderCheckout();
       switchView('checkout');
     }
@@ -925,7 +1081,7 @@
       const btn = $('checkout-submit');
       btn.disabled = true;
       btn.textContent = 'Placing order…';
-      const { ok, status, data } = await api('/api/public', { action: 'order', store: slug, items, customer, note, zone: state.zone || undefined });
+      const { ok, status, data } = await api('/api/public', { action: 'order', store: slug, items, customer, note, zone: state.zone || undefined, promo: state.promo ? state.promo.code : undefined });
       btn.disabled = false;
       btn.textContent = 'Place order';
 
@@ -968,10 +1124,23 @@
           renderCheckout();
         }
         if (data.field === 'zone') { state.zone = ''; renderCheckout(); }
+        if (data.field === 'promo') {
+          state.promo = null;
+          renderPromo();
+          renderCheckout();
+          $('promo-form').hidden = false;
+          $('promo-open').hidden = true;
+          $('promo-error').textContent = data.error;
+          $('promo-error').classList.add('show');
+          return $('promo-card').scrollIntoView({ block: 'center' });
+        }
         return showError(data.error || 'Could not place your order. Please try again.', data.field === 'zone' ? null : data.field);
       }
 
       saveCustomer(customer);
+      state.promo = null;
+      $('checkout-promo').value = '';
+      renderPromo();
       state.cart.clear();
       saveCart();
       $('checkout-note').value = '';
@@ -986,6 +1155,7 @@
         '',
         ...lines,
         order.deliveryFeeKobo || order.deliveryZone ? 'Delivery' + (order.deliveryZone ? ' (' + order.deliveryZone + ')' : '') + ': ' + formatNaira(order.deliveryFeeKobo) : null,
+        order.discountKobo ? 'Discount' + (order.promoCode ? ' (' + order.promoCode + ')' : '') + ': −' + formatNaira(order.discountKobo) : null,
         'Total: ' + formatNaira(order.totalKobo),
         '',
         'Name: ' + order.customer.name,
@@ -1061,6 +1231,13 @@
         line.append(main, el('span', 'num', formatNaira(order.deliveryFeeKobo)));
         lines.appendChild(line);
       }
+      if (order.discountKobo) {
+        const line = el('div', 'line');
+        const main = el('div', 'l-main');
+        main.appendChild(el('div', 'l-sub', 'Discount' + (order.promoCode ? ' · ' + order.promoCode : '')));
+        line.append(main, el('span', 'num', '−' + formatNaira(order.discountKobo)));
+        lines.appendChild(line);
+      }
       $('done-invoice').href = invoiceUrl;
       switchView('done');
       if (!restoring) setTimeout(() => OP.confetti(document.querySelector('.done-icon'), 110), 150);
@@ -1079,6 +1256,7 @@
       }
       state.store = data.store;
       state.products = prepareProducts(data.products);
+      state.reviews = data.reviews || [];
       if (state.category && !categories().some((c) => c.toLowerCase() === state.category.toLowerCase())) state.category = '';
       loadCart();
       capCart();

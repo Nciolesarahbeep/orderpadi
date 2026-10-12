@@ -17,8 +17,12 @@
   <style>
     body { font-size: 17px; overflow-x: clip; }
     .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+    /* On phones, decorations near the edge never make the page scroll sideways. */
+    @media (max-width: 760px) { .wrap { overflow-x: clip; } }
     .top { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; }
     .login { margin: 0; text-decoration: none; }
+    .top-links { display: flex; align-items: center; gap: 14px; }
+    .stores-link { color: var(--text); font-weight: 800; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 2px; }
     .btn.big { display: inline-flex; width: auto; padding: 16px 26px; font-size: 18px; margin-top: 0; }
     .note { margin: 14px 0 0; font-size: 15px; color: var(--muted); font-weight: 600; }
 
@@ -152,7 +156,10 @@
   <div class="wrap">
     <header class="top">
       <a class="logo" href="/"><span class="logo-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" fill="#fff" stroke="#1B1530" stroke-width="2" stroke-linejoin="round"/><path d="M9 8h6M9 12h4" stroke="#1B1530" stroke-width="2" stroke-linecap="round"/></svg></span><span>Order<b>Padi</b></span></a>
-      <a class="btn small secondary login" href="/app">Log in</a>
+      <nav class="top-links">
+        <a class="stores-link" href="/stores">Find stores</a>
+        <a class="btn small secondary login" href="/app">Log in</a>
+      </nav>
     </header>
 
     <main>
@@ -305,6 +312,10 @@
             <p>Yes. Add an order by hand in a few taps, including items that aren't on your store, a discount or a delivery fee, then send the invoice like any other.</p>
           </details>
           <details>
+            <summary>Can new customers find my store?</summary>
+            <p>Yes. Turn on your store profile and you're listed in the OrderPadi store directory, where shoppers search by what they want and where they are. Ratings from your customers show there too.</p>
+          </details>
+          <details>
             <summary>Will it work on my phone?</summary>
             <p>It's made for phones first. Open OrderPadi in your browser and add it to your home screen, and it opens like an app.</p>
           </details>
@@ -328,6 +339,7 @@
   <footer>
     <div class="wrap foot">
       <a class="logo" href="/"><span class="logo-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" fill="#fff" stroke="#1B1530" stroke-width="2" stroke-linejoin="round"/><path d="M9 8h6M9 12h4" stroke="#1B1530" stroke-width="2" stroke-linecap="round"/></svg></span><span>Order<b>Padi</b></span></a>
+      <a href="/stores">Stores</a>
       <a href="/terms">Terms</a>
       <a href="/privacy">Privacy</a>
       <span id="copyright">© <span id="year">2026</span> OrderPadi</span>
