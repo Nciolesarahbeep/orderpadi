@@ -13,6 +13,7 @@
 //   POST /api/public { action: "paid", invoice } -> customer says they've paid
 //   POST /api/public { action: "review", invoice, rating, body } -> { invoice, store }
 //   GET  /api/public?directory=1&q=&category=&state=&page= -> { stores, categories, states, hasMore }
+//   GET  /api/public?ref=<code>                -> { referrer: { name } }   (sign-up invite banner)
 //   GET  /api/public?site=contact              -> { contact: { email, whatsapp } }
 //   GET  /api/public?render=home|store|invoice -> the page itself, with link-preview tags
 //   GET  /api/public?photo=<publicId>          -> a product photo (also at /p/<publicId>)
@@ -26,12 +27,14 @@ const { cleanSlug, cleanText, normalizeNgPhone, formatNaira } = require('../lib/
 const { createOrder, invoiceForCustomer } = require('../lib/orders');
 const { isPro, usage, noteUsage } = require('../lib/plan');
 const { renderPage } = require('../lib/pages');
-const { themeOf, photosByProduct, photoUrl, loadPhoto } = require('../lib/photos');
+const { themeOf, photosForProducts, photoUrl, loadPhoto } = require('../lib/photos');
 const { optionsOf, lineKey, priceFor, stockRowsFor, stockShortfalls } = require('../lib/catalog');
 const { zonesOf } = require('../lib/storeSettings');
 const { findPromo, promoProblem, discountFor, promoLabel } = require('../lib/promos');
 const { publicName, canReview, readReview, reviewForPublic, ratingSummary, EDIT_DAYS } = require('../lib/reviews');
 const { CATEGORIES, STATES } = require('../lib/directory');
+const { withResale, loadSellable, resaleLine } = require('../lib/resell');
+const { findReferrer } = require('../lib/referrals');
 
 const MAX_LINES = 50;
 const MAX_QUANTITY = 99;
@@ -75,15 +78,18 @@ async function getStore(req, res) {
   const slug = param(req, 'store');
   const vendor = await findStore(slug);
   if (!vendor) throw new HttpError(404, "This store doesn't exist. Check the link with the seller.");
-  const products = await sql`
-    SELECT id, name, description, price_kobo, category, options, stock FROM products
+  const rows = await sql`
+    SELECT id, name, description, price_kobo, category, options, stock, is_resale, source_product_id FROM products
     WHERE vendor_id = ${vendor.id} AND is_active = TRUE
     ORDER BY sort_order, created_at, id
   `;
+  // Resold products take stock and photos from the supplier, and are left
+  // out while the supplier isn't offering them.
+  const products = (await withResale(rows)).filter((p) => !p.resale_problem);
   // On the free plan, after 20 orders this month the store takes orders on
   // WhatsApp only (the page builds the message; nothing is saved).
-  const [{ capReached }, photos, stock, rating, reviews] = await Promise.all([
-    usage(vendor), photosByProduct(vendor.id), stockRowsFor(sql, products.map((p) => p.id)), ratingSummary(sql, vendor.id),
+  const [{ capReached }, photos, rating, reviews] = await Promise.all([
+    usage(vendor), photosForProducts(products.map((p) => p.stock_product_id || p.id)), ratingSummary(sql, vendor.id),
     sql`SELECT * FROM reviews WHERE vendor_id = ${vendor.id} AND is_hidden = FALSE ORDER BY created_at DESC, id DESC LIMIT 20`
   ]);
   return res.status(200).json({
@@ -98,9 +104,9 @@ async function getStore(req, res) {
       description: p.description || '',
       priceKobo: Number(p.price_kobo),
       category: p.category || '',
-      options: optionsOf(p, stock.get(Number(p.id)) || []),
+      options: optionsOf(p, p.stock_rows),
       stock: p.stock == null ? null : Number(p.stock),
-      photos: (photos.get(Number(p.id)) || []).map((ph) => ph.url)
+      photos: (photos.get(Number(p.stock_product_id || p.id)) || []).map((ph) => ph.url)
     }))
   });
 }
@@ -143,14 +149,8 @@ function readCustomer(body) {
 // Current prices and options from the database, only for this seller's live
 // products. Returns the priced lines plus anything no longer available.
 async function priceCart(vendor, cart) {
-  const ids = JSON.stringify([...new Set([...cart.values()].map((l) => l.productId))]);
-  const rows = await sql`
-    SELECT id, name, price_kobo, options, stock FROM products
-    WHERE vendor_id = ${vendor.id} AND is_active = TRUE
-      AND id IN (SELECT jsonb_array_elements_text(${ids}::jsonb)::bigint)
-  `;
-  const stock = await stockRowsFor(sql, rows.map((r) => r.id));
-  const found = new Map(rows.map((r) => [Number(r.id), { ...r, stock_rows: stock.get(Number(r.id)) || [] }]));
+  const all = await loadSellable(vendor.id, [...cart.values()].map((l) => l.productId), { activeOnly: true });
+  const found = new Map([...all].filter(([, p]) => !p.resale_problem));
   const unavailable = [...new Set([...cart.values()].filter((l) => !found.has(l.productId)).map((l) => l.productId))];
   const unavailableLines = [];
   const lines = [];
@@ -161,7 +161,7 @@ async function priceCart(vendor, cart) {
     if (priced.problem || (p.stock !== null && Number(p.stock) <= 0)) { unavailableLines.push(key); continue; }
     lines.push({
       key, product_id: l.productId, name: p.name, option_text: priced.optionText, option_ids: priced.optionIds,
-      unit_price_kobo: priced.unitPriceKobo, quantity: l.quantity
+      unit_price_kobo: priced.unitPriceKobo, quantity: l.quantity, ...resaleLine(p, priced.unitPriceKobo)
     });
   }
   const subtotal = lines.reduce((sum, l) => sum + l.unit_price_kobo * l.quantity, 0);
@@ -458,6 +458,18 @@ function param(req, name) {
   return new URL(req.url || '/', 'http://x').searchParams.get(name);
 }
 
+// Who invited a new seller, for the banner on the sign-up screen.
+async function referrer(req, res) {
+  try {
+    const r = await findReferrer(param(req, 'ref'));
+    if (!r) return res.status(404).json({ error: "That invite link doesn't work any more." });
+    return res.status(200).json({ referrer: { name: r.business_name } });
+  } catch (err) {
+    console.error('Referrer lookup failed:', err);
+    return res.status(500).json({ error: 'Something went wrong.' });
+  }
+}
+
 // How customers reach the business behind OrderPadi (SUPPORT_EMAIL and
 // SUPPORT_WHATSAPP in Netlify). Shown on the home, terms and privacy pages.
 function contact(res) {
@@ -486,6 +498,7 @@ module.exports = async function handler(req, res) {
     if (render === 'store') return renderPage(req, res, 'store', param(req, 'slug'));
     if (render === 'invoice') return renderPage(req, res, 'invoice', param(req, 'id'));
     if (param(req, 'site') === 'contact') return contact(res);
+    if (param(req, 'ref') !== null) return referrer(req, res);
   }
 
   try {

@@ -1,11 +1,11 @@
 User-agent: *
 Allow: /
-Allow: /stores
 Disallow: /app
 Disallow: /admin
 Disallow: /setup
 Disallow: /api/
 Disallow: /i/
 Disallow: /home
-Disallow: /store
+Disallow: /store$
+Disallow: /store.html
 Disallow: /invoice

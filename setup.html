@@ -87,6 +87,8 @@
           migrations.step5 ? '' : 'Run db/migrations/005_seller_tools.sql in the Neon SQL Editor.');
         addRow('Reviews, promo codes and directory update applied', d.db === true && !!migrations.step6,
           migrations.step6 ? '' : 'Run db/migrations/006_reviews_promos_directory.sql in the Neon SQL Editor.');
+        addRow('Referrals and reselling update applied', d.db === true && !!migrations.step7,
+          migrations.step7 ? '' : 'Run db/migrations/007_referrals_resell.sql in the Neon SQL Editor.');
         addRow('JWT_SECRET set', !!env.JWT_SECRET, env.JWT_SECRET ? '' : 'Add a long random string, then redeploy.');
         addRow('RESEND_API_KEY set', !!env.RESEND_API_KEY, env.RESEND_API_KEY ? '' : 'Add your Resend key, then redeploy.');
         addRow('Paystack keys set (for Pro)', !!(env.PAYSTACK_SECRET_KEY && env.PAYSTACK_PLAN_CODE),

@@ -26,6 +26,7 @@ const { cleanText, nairaToKobo, normalizeNgPhone, formatNaira } = require('../li
 const { createOrder, orderSummary, orderDetail, isStockError } = require('../lib/orders');
 const { priceFor, lineKey, stockRowsFor, stockShortfalls } = require('../lib/catalog');
 const { zonesOf } = require('../lib/storeSettings');
+const { loadSellable, resaleLine, RESALE_TEXT } = require('../lib/resell');
 const { isPro, usage, noteUsage, FREE_MONTHLY_ORDERS } = require('../lib/plan');
 
 const PAGE_SIZE = 50;
@@ -64,13 +65,30 @@ async function unreadCount(vendorId) {
 async function loadOrder(vendorId, id) {
   const [order] = await sql`SELECT * FROM orders WHERE id = ${id} AND vendor_id = ${vendorId} LIMIT 1`;
   if (!order) throw new HttpError(404, "That order doesn't exist.");
-  const [items, payments, events, reviews] = await Promise.all([
+  const [items, payments, events, reviews, supply] = await Promise.all([
     sql`SELECT * FROM order_items WHERE order_id = ${id} ORDER BY id`,
     sql`SELECT * FROM payments WHERE order_id = ${id} ORDER BY paid_at, id`,
     sql`SELECT kind, message, created_at FROM order_events WHERE order_id = ${id} ORDER BY created_at, id LIMIT 200`,
-    sql`SELECT rating, body, reply, created_at FROM reviews WHERE order_id = ${id} LIMIT 1`
+    sql`SELECT rating, body, reply, created_at FROM reviews WHERE order_id = ${id} LIMIT 1`,
+    sql`
+      SELECT so.id, so.status, so.total_kobo, so.items, so.paid_at, v.business_name, v.whatsapp_phone
+      FROM supply_orders so JOIN vendors v ON v.id = so.supplier_vendor_id
+      WHERE so.order_id = ${id} AND so.reseller_vendor_id = ${vendorId}
+      ORDER BY so.id
+    `
   ]);
-  return orderDetail(order, items, payments, events, reviews[0] || null);
+  const detail = orderDetail(order, items, payments, events, reviews[0] || null);
+  // Resold items: who sends them, where it's up to, and what's owed to them.
+  detail.supply = supply.map((so) => ({
+    id: Number(so.id), status: so.status, totalKobo: Number(so.total_kobo), paid: !!so.paid_at,
+    items: Array.isArray(so.items) ? so.items : [],
+    supplier: { name: so.business_name, whatsappPhone: so.whatsapp_phone || null }
+  }));
+  const resold = items.filter((i) => i.unit_cost_kobo != null);
+  detail.resaleProfitKobo = resold.length
+    ? resold.reduce((sum, i) => sum + Number(i.line_total_kobo) - Number(i.unit_cost_kobo) * Number(i.quantity), 0)
+    : null;
+  return detail;
 }
 
 async function list(vendor, params) {
@@ -462,15 +480,8 @@ async function create(vendor, body) {
   if (items.length > 50) throw new HttpError(400, 'An order can have up to 50 lines.', { field: 'items' });
 
   const productIds = items.filter((i) => i && i.productId != null).map((i) => Number(i.productId));
-  const products = productIds.length
-    ? await sql`
-        SELECT id, name, price_kobo, options, stock FROM products
-        WHERE vendor_id = ${vendor.id}
-          AND id IN (SELECT jsonb_array_elements_text(${JSON.stringify(productIds)}::jsonb)::bigint)
-      `
-    : [];
-  const stockRows = await stockRowsFor(sql, products.map((p) => p.id));
-  const byId = new Map(products.map((p) => [Number(p.id), { ...p, stock_rows: stockRows.get(Number(p.id)) || [] }]));
+  // Resold products carry their supplier's stock and cost (lib/resell.js).
+  const byId = productIds.length ? await loadSellable(vendor.id, productIds, { activeOnly: false }) : new Map();
 
   const lines = items.map((i) => {
     const quantity = Number(i && i.quantity);
@@ -480,6 +491,7 @@ async function create(vendor, body) {
     if (i.productId != null) {
       const p = byId.get(Number(i.productId));
       if (!p) throw new HttpError(400, 'One of the products no longer exists. Remove it and try again.', { field: 'items' });
+      if (p.resale_problem) throw new HttpError(409, `${p.name}: ${RESALE_TEXT[p.resale_problem]}`, { field: 'items' });
       // The seller can sell a choice marked sold out (they know their stock),
       // but not more than the count they keep.
       const priced = priceFor(p, i.options, { allowSoldOut: true });
@@ -487,7 +499,10 @@ async function create(vendor, body) {
         throw new HttpError(409, `${p.name} (${priced.choice}) is out of stock. Update your stock count first, or pick another ${priced.option.toLowerCase()}.`, { field: 'items', stock: true });
       }
       if (priced.problem) throw new HttpError(400, `Choose the ${priced.option.toLowerCase()} for ${p.name}.`, { field: 'items' });
-      return { product_id: Number(p.id), name: p.name, option_text: priced.optionText, option_ids: priced.optionIds, unit_price_kobo: priced.unitPriceKobo, quantity };
+      return {
+        product_id: Number(p.id), name: p.name, option_text: priced.optionText, option_ids: priced.optionIds,
+        unit_price_kobo: priced.unitPriceKobo, quantity, ...resaleLine(p, priced.unitPriceKobo)
+      };
     }
     const itemName = cleanText(i.name);
     if (itemName.length < 2 || itemName.length > 80) throw new HttpError(400, 'Give each custom item a name.', { field: 'items' });
@@ -581,24 +596,45 @@ async function setStatus(vendor, body) {
           ELSE 0 END AS sign
         FROM upd
       ),
+      -- stock goes back to (or comes from) whoever's product the line took it from
       prod AS (
         UPDATE products p SET stock = p.stock + x.qty * d.sign, updated_at = now()
         FROM (
-          SELECT i.product_id, sum(i.quantity)::int AS qty FROM order_items i
-          WHERE i.order_id = ${id} AND i.product_id IS NOT NULL GROUP BY i.product_id
+          SELECT coalesce(i.stock_product_id, i.product_id) AS pid, sum(i.quantity)::int AS qty FROM order_items i
+          WHERE i.order_id = ${id} AND i.product_id IS NOT NULL GROUP BY 1
         ) x, delta d
-        WHERE p.id = x.product_id AND p.vendor_id = ${vendor.id} AND p.stock IS NOT NULL AND d.sign <> 0
+        WHERE p.id = x.pid AND p.stock IS NOT NULL AND d.sign <> 0
         RETURNING 1
       ),
       ch AS (
         UPDATE choice_stock c SET qty = c.qty + x.qty * d.sign
         FROM (
-          SELECT i.product_id, e.value AS choice_id, sum(i.quantity)::int AS qty
+          SELECT coalesce(i.stock_product_id, i.product_id) AS pid, e.value AS choice_id, sum(i.quantity)::int AS qty
           FROM order_items i, jsonb_array_elements_text(coalesce(i.option_ids, '[]'::jsonb)) AS e
           WHERE i.order_id = ${id} AND i.product_id IS NOT NULL
-          GROUP BY i.product_id, e.value
+          GROUP BY 1, 2
         ) x, delta d
-        WHERE c.product_id = x.product_id AND c.choice_id = x.choice_id AND d.sign <> 0
+        WHERE c.product_id = x.pid AND c.choice_id = x.choice_id AND d.sign <> 0
+        RETURNING 1
+      ),
+      -- suppliers of resold items stop (or start again) with the order
+      supply_off AS (
+        UPDATE supply_orders so SET status = 'cancelled', cancel_reason = 'order_cancelled', updated_at = now()
+        FROM upd
+        WHERE so.order_id = upd.id AND ${status} = 'cancelled' AND so.status IN ('new', 'accepted')
+        RETURNING so.supplier_vendor_id
+      ),
+      supply_on AS (
+        UPDATE supply_orders so SET status = 'new', cancel_reason = NULL, updated_at = now()
+        FROM upd
+        WHERE so.order_id = upd.id AND upd.old_status = 'cancelled' AND so.cancel_reason = 'order_cancelled'
+        RETURNING so.supplier_vendor_id
+      ),
+      supply_note AS (
+        INSERT INTO notifications (vendor_id, type, message)
+        SELECT supplier_vendor_id, 'supply_order', ${vendor.business_name + ' cancelled a resale order. Don\'t send those items.'} FROM supply_off
+        UNION ALL
+        SELECT supplier_vendor_id, 'supply_order', ${vendor.business_name + ' brought back a resale order. Open More › Resale orders.'} FROM supply_on
         RETURNING 1
       )
       INSERT INTO order_events (order_id, vendor_id, kind, message)

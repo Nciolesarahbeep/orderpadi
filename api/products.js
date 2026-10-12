@@ -13,17 +13,24 @@
 //   POST   /api/products { action: "add-photo", id, image: "data:image/jpeg;base64,..." } -> { product }
 //   POST   /api/products { action: "remove-photo", photo }  -> { product }
 //   POST   /api/products { action: "cover-photo", photo }   -> { product }   makes it the first photo
+// Reselling (lib/resell.js):
+//   resellPrice on POST/PATCH: what other sellers pay you to resell it ("" = not for resale)
+//   A resold copy (added from Resell › Find products) only takes price, isActive and category;
+//   its name, options, photos and stock come from the supplier.
 // Prices come in as naira ("4500", "₦4,500.50") and are stored as kobo.
 // Deleting is safe for old orders: they keep their own copy of name and price.
 const { sql } = require('../lib/db');
 const { HttpError, getSessionVendor } = require('../lib/auth');
 const { cleanText, nairaToKobo } = require('../lib/format');
-const { photoLimit, photosByProduct, addPhoto, removePhoto, makeCover } = require('../lib/photos');
+const { photoLimit, photosForProducts, addPhoto, removePhoto, makeCover } = require('../lib/photos');
+const { readResellPrice, withResale, syncCopies, RESALE_TEXT } = require('../lib/resell');
+const { formatNaira } = require('../lib/format');
 const { readOptions, optionsOf, splitStock, readStock, readCategory, stockRowsFor, saveChoiceStock } = require('../lib/catalog');
 
 const MAX_PRODUCTS = 200;
 
-function productForClient(p, photos = [], stockRows = []) {
+// p has gone through withResale (stock and stock_rows are the supplier's for a resold copy).
+function productForClient(p, photos = []) {
   return {
     id: Number(p.id),
     name: p.name,
@@ -31,16 +38,30 @@ function productForClient(p, photos = [], stockRows = []) {
     priceKobo: Number(p.price_kobo),
     isActive: !!p.is_active,
     category: p.category || '',
-    options: optionsOf(p, stockRows),
+    options: optionsOf(p, p.stock_rows),
     stock: p.stock == null ? null : Number(p.stock),
+    resellPriceKobo: p.resell_price_kobo == null ? null : Number(p.resell_price_kobo),
+    resale: p.is_resale ? {
+      supplierName: p.supplier_name || '',
+      supplierSlug: p.supplier_slug || '',
+      costKobo: p.cost_kobo == null ? null : Number(p.cost_kobo),
+      problem: p.resale_problem,
+      problemText: p.resale_problem ? RESALE_TEXT[p.resale_problem] : ''
+    } : null,
     photos,
     createdAt: p.created_at
   };
 }
 
+// Products ready to send: resale details and photos (the supplier's for resold copies).
+async function forClient(rows) {
+  const full = await withResale(rows);
+  const photos = await photosForProducts(full.map((p) => p.stock_product_id || p.id));
+  return full.map((p) => productForClient(p, photos.get(Number(p.stock_product_id || p.id)) || []));
+}
+
 async function withPhotos(vendor, row) {
-  const [photos, stock] = await Promise.all([photosByProduct(vendor.id), stockRowsFor(sql, [row.id])]);
-  return productForClient(row, photos.get(Number(row.id)) || [], stock.get(Number(row.id)) || []);
+  return (await forClient([row]))[0];
 }
 
 function readName(body) {
@@ -91,11 +112,7 @@ async function list(vendor) {
     WHERE vendor_id = ${vendor.id}
     ORDER BY is_active DESC, sort_order, created_at, id
   `;
-  const [photos, stock] = await Promise.all([photosByProduct(vendor.id), stockRowsFor(sql, rows.map((p) => p.id))]);
-  return {
-    products: rows.map((p) => productForClient(p, photos.get(Number(p.id)) || [], stock.get(Number(p.id)) || [])),
-    photoLimit: photoLimit(vendor)
-  };
+  return { products: await forClient(rows), photoLimit: photoLimit(vendor) };
 }
 
 async function create(vendor, body) {
@@ -104,14 +121,15 @@ async function create(vendor, body) {
   const description = readDescription(body);
   const { saved: options, rows: choiceStock } = splitStock(readOptions(body.options));
   const stock = readStock(body.stock);
+  const resellPrice = readResellPrice(body.resellPrice);
   const category = await matchCategory(vendor, readCategory(body.category));
   const [{ n }] = await sql`SELECT count(*)::int AS n FROM products WHERE vendor_id = ${vendor.id}`;
   if (Number(n) >= MAX_PRODUCTS) {
     throw new HttpError(400, `You can have up to ${MAX_PRODUCTS} products. Delete some you no longer sell.`);
   }
   const [row] = await sql`
-    INSERT INTO products (vendor_id, name, description, price_kobo, category, options, stock)
-    VALUES (${vendor.id}, ${name}, ${description}, ${priceKobo}, ${category}, ${JSON.stringify(options)}::jsonb, ${stock})
+    INSERT INTO products (vendor_id, name, description, price_kobo, category, options, stock, resell_price_kobo)
+    VALUES (${vendor.id}, ${name}, ${description}, ${priceKobo}, ${category}, ${JSON.stringify(options)}::jsonb, ${stock}, ${resellPrice})
     RETURNING *
   `;
   if (choiceStock.length) await saveChoiceStock(sql, row.id, choiceStock);
@@ -124,6 +142,7 @@ async function update(req, vendor, body) {
   if (!current) throw new HttpError(404, "That product doesn't exist or was deleted.");
 
   const has = (key) => Object.prototype.hasOwnProperty.call(body, key);
+  if (current.is_resale) return updateResale(vendor, current, body, has);
   const name = has('name') ? readName(body) : current.name;
   const priceKobo = has('price') ? readPrice(body) : Number(current.price_kobo);
   const description = has('description') ? readDescription(body) : current.description;
@@ -131,17 +150,40 @@ async function update(req, vendor, body) {
   const split = has('options') ? splitStock(readOptions(body.options)) : null;
   const options = split ? split.saved : splitStock(optionsOf(current)).saved;
   const stock = has('stock') ? readStock(body.stock) : current.stock;
+  const resellPrice = has('resellPrice') ? readResellPrice(body.resellPrice) : current.resell_price_kobo;
   const category = has('category') ? await matchCategory(vendor, readCategory(body.category)) : current.category;
 
   const [row] = await sql`
     UPDATE products SET
       name = ${name}, price_kobo = ${priceKobo}, description = ${description},
       is_active = ${isActive}, category = ${category}, options = ${JSON.stringify(options)}::jsonb,
-      stock = ${stock}, updated_at = now()
+      stock = ${stock}, resell_price_kobo = ${resellPrice}, updated_at = now()
     WHERE id = ${id} AND vendor_id = ${vendor.id}
     RETURNING *
   `;
   if (split) await saveChoiceStock(sql, id, split.rows);
+  await syncCopies(row);
+  return { product: await withPhotos(vendor, row) };
+}
+
+// A resold copy: the seller sets their price (at least what the supplier
+// charges), whether it shows, and its category. The rest is the supplier's.
+async function updateResale(vendor, current, body, has) {
+  const [full] = await withResale([current]);
+  let priceKobo = Number(current.price_kobo);
+  if (has('price')) {
+    priceKobo = readPrice(body);
+    if (full.cost_kobo != null && priceKobo < Number(full.cost_kobo)) {
+      throw new HttpError(400, `Your price must be at least ${formatNaira(Number(full.cost_kobo))}, what ${full.supplier_name || 'the supplier'} charges you.`, { field: 'price' });
+    }
+  }
+  const isActive = has('isActive') ? body.isActive === true : !!current.is_active;
+  const category = has('category') ? await matchCategory(vendor, readCategory(body.category)) : current.category;
+  const [row] = await sql`
+    UPDATE products SET price_kobo = ${priceKobo}, is_active = ${isActive}, category = ${category}, updated_at = now()
+    WHERE id = ${current.id} AND vendor_id = ${vendor.id}
+    RETURNING *
+  `;
   return { product: await withPhotos(vendor, row) };
 }
 
@@ -150,6 +192,7 @@ async function stockAction(req, vendor, body) {
   const id = readId(req, body);
   const [current] = await sql`SELECT * FROM products WHERE id = ${id} AND vendor_id = ${vendor.id} LIMIT 1`;
   if (!current) throw new HttpError(404, "That product doesn't exist or was deleted.");
+  if (current.is_resale) throw new HttpError(400, 'The supplier keeps the count for this product.');
   const hasAdd = body.add != null && body.add !== '';
   const add = hasAdd ? Number(body.add) : 0;
   if (hasAdd && (!Number.isInteger(add) || Math.abs(add) > 100000)) throw new HttpError(400, 'Change the count by a whole number.', { field: 'stock' });
@@ -185,6 +228,8 @@ async function photoAction(req, vendor, body) {
   let productId;
   if (body.action === 'add-photo') {
     productId = readId(req, body);
+    const [own] = await sql`SELECT is_resale FROM products WHERE id = ${productId} AND vendor_id = ${vendor.id}`;
+    if (own && own.is_resale) throw new HttpError(400, 'Photos for this product come from the supplier.');
     await addPhoto(vendor, productId, body.image);
   } else if (body.action === 'remove-photo') {
     productId = await removePhoto(vendor, String(body.photo || ''));

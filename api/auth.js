@@ -11,6 +11,7 @@ const {
   HttpError, normalizeEmail, getClientIp,
   startSession, endSession, endAllSessions, vendorForClient
 } = require('../lib/auth');
+const { findReferrer } = require('../lib/referrals');
 const { sendCode, verifyCode } = require('../lib/otp');
 const { checkLoginRateLimit, recordLoginAttempt, clearLoginFailures, pruneOldAttempts } = require('../lib/rateLimit');
 const { cleanSlug, slugProblem } = require('../lib/format');
@@ -79,17 +80,22 @@ async function signup(req, res, body) {
   }
 
   const passwordHash = await hashPassword(body.password);
+  // Invited by another seller (?ref= on the sign-up link): both get a free
+  // Pro month after this seller's first store order.
+  const referrer = body.ref ? await findReferrer(body.ref) : null;
+  const referredBy = referrer ? Number(referrer.id) : null;
   if (mine) {
     // Same email signing up again before confirming: take the new details.
     await sql`
       UPDATE vendors
-      SET password_hash = ${passwordHash}, business_name = ${businessName}, slug = ${slug}, updated_at = now()
+      SET password_hash = ${passwordHash}, business_name = ${businessName}, slug = ${slug},
+          referred_by = coalesce(${referredBy}, referred_by), updated_at = now()
       WHERE id = ${mine.id}
     `;
   } else {
     await sql`
-      INSERT INTO vendors (email, password_hash, business_name, slug)
-      VALUES (${email}, ${passwordHash}, ${businessName}, ${slug})
+      INSERT INTO vendors (email, password_hash, business_name, slug, referred_by)
+      VALUES (${email}, ${passwordHash}, ${businessName}, ${slug}, ${referredBy})
     `;
   }
 

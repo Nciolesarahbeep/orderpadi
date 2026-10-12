@@ -7,6 +7,7 @@ Orders, invoices and payment tracking for WhatsApp and Instagram sellers in Nige
 - **Look:** bold and playful, in light and dark. Sellers pick one of six store colours, add product photos, swipe an order to mark it paid, and make a WhatsApp status picture of their products.
 - **Options and categories:** a product can have up to 2 options (like Size and Colour) with up to 20 choices each. A choice can cost extra or be marked sold out. Categories group products on the store page, with search once a store has 8 or more products.
 - **Grow:** customers rate their order from the invoice (shown on the store and in the directory, and sellers can reply), promo codes for money off at checkout (2 on Free, 50 on Pro), and a public store directory at `/stores`.
+- **Earn more:** invite other sellers with your link (both get a free Pro month after the new seller's first store order), and resell other sellers' products at your own price: the supplier sends the item to your customer and you keep the difference.
 - **Seller tools (the More tab):** customer pages with notes, labels and what each person spends and owes; stock counts that go down with every order and come back when one is cancelled; delivery areas with their own fees; saved WhatsApp quick replies; away mode; a history and notes on every order; and search across orders.
 - Plain HTML pages and Node server functions, with a Neon Postgres database. Hosted on **Netlify** (`netlify.toml`); `vercel.json` is kept so it can also run on Vercel.
 - No npm packages: the database is reached over HTTPS (`lib/db.js`), and login tokens and password hashing use Node's built-in crypto (`lib/jwt.js`, `lib/password.js`).
@@ -64,6 +65,9 @@ Redeploy after changing any of them (Deploys → Trigger deploy).
 - `004_options_and_categories.sql`: product options (like Size and Colour) and categories.
 - `005_seller_tools.sql`: stock counts, delivery areas, order history, customer notes and labels, quick replies and away mode.
 - `006_reviews_promos_directory.sql`: reviews and ratings, promo codes, and the store profile for the directory.
+- `007_referrals_resell.sql`: invite links and rewards, and reselling (products offered for resale, resold copies and supply orders).
+
+Reselling: a resold copy takes its stock, photos and availability from the supplier's product, and its name and options follow the supplier's edits. The order statement takes the supplier's stock and creates one supply order per supplier, so the supplier sees what to send and where. Cancelling the order puts the stock back and cancels supply orders that haven't been sent.
 
 Stock is taken inside the same SQL statement that saves an order. The database refuses any count below zero, so two customers can't both buy the last one: the second order is turned down and nothing of it is saved.
 

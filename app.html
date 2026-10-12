@@ -389,6 +389,54 @@
     .dir-card small { display: block; color: var(--muted); font-weight: 700; font-size: 13px; }
     .dir-card p { margin: 6px 0 0; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
 
+    /* resell */
+    .seg-n:not(:empty) { display: inline-block; margin-left: 4px; min-width: 20px; padding: 0 5px; border-radius: 999px; background: var(--coral); color: #1B1530; font-size: 12px; line-height: 18px; }
+    .how-card ol { margin: 8px 0 0; padding-left: 20px; font-weight: 600; font-size: 15px; }
+    .how-card li { margin: 4px 0; }
+    .market-card { display: flex; gap: 12px; margin-top: 12px; padding: 12px; border: var(--bw) solid var(--ink); border-radius: 20px; background: var(--card); box-shadow: var(--shadow-sm); }
+    .market-card .mthumb { flex: none; width: 84px; height: 84px; border-radius: 16px; border: 2px solid var(--ink); font-size: 30px; }
+    .market-card .mbody { flex: 1; min-width: 0; }
+    .market-card .mname { font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
+    .market-card .msup { font-size: 13px; color: var(--muted); font-weight: 700; margin-top: 2px; }
+    .market-card .mprice { margin-top: 6px; font-size: 14px; font-weight: 700; }
+    .market-card .mprofit { display: inline-block; margin-top: 4px; padding: 1px 9px; border-radius: 999px; border: 2px solid var(--ink); background: var(--brand); color: #1B1530; font-size: 13px; font-weight: 800; }
+    .market-card .madd { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+    .market-card .madd .prefix { flex: 1; min-width: 0; }
+    .market-card .madd .prefix input { padding-top: 8px; padding-bottom: 8px; }
+    .market-card .madd .btn { width: auto; margin: 0; flex: none; }
+    .market-card .in-store { margin-top: 8px; font-weight: 800; color: var(--brand-text); display: flex; gap: 10px; align-items: center; }
+    .supply-card { margin-top: 12px; padding: 14px; border: var(--bw) solid var(--ink); border-radius: 20px; background: var(--card); box-shadow: var(--shadow-sm); }
+    .supply-card.done { opacity: .8; }
+    .supply-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-weight: 800; }
+    .supply-items { margin: 8px 0 0; padding: 0; list-style: none; font-weight: 600; font-size: 15px; }
+    .supply-items li { padding: 3px 0; }
+    .send-to { margin-top: 10px; padding: 10px 12px; border-radius: 14px; border: 2px dashed var(--ink); background: var(--sun-soft); font-size: 15px; }
+    .send-to b { display: block; font-size: 13px; color: var(--muted); }
+    .send-to a { color: var(--text); font-weight: 800; }
+    .supply-money { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; font-weight: 800; }
+    .supply-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .supply-actions .btn { width: auto; margin: 0; flex: 1 1 auto; }
+    .sstatus { font-size: 12px; font-weight: 800; padding: 1px 9px; border-radius: 999px; border: 2px solid var(--ink); white-space: nowrap; background: var(--card-2); }
+    .sstatus.new { background: var(--sky); color: #1B1530; } .sstatus.accepted { background: var(--lilac); color: #1B1530; }
+    .sstatus.shipped { background: var(--sun); color: #1B1530; } .sstatus.delivered { background: var(--brand); color: #1B1530; }
+    .sstatus.cancelled { color: var(--muted); text-decoration: line-through; }
+    .paid-pill { font-size: 12px; font-weight: 800; padding: 1px 9px; border-radius: 999px; border: 2px solid var(--ink); background: var(--brand); color: #1B1530; }
+    .resale-banner { background: var(--lilac); color: #1B1530; }
+    .resale-banner b { font-family: var(--display); font-size: 18px; }
+    .resale-banner p { margin: 4px 0 0; font-weight: 700; }
+    .resale-banner .warn { margin-top: 8px; padding: 8px 10px; border-radius: 12px; border: 2px solid var(--ink); background: var(--coral); }
+    .pgrid .resold-tag { position: absolute; right: 8px; top: 8px; padding: 1px 8px; border-radius: 999px; border: 2px solid var(--ink); background: var(--lilac); color: #1B1530; font-family: var(--body); font-size: 12px; font-weight: 800; }
+    .pgrid .resold-tag.off { background: var(--coral); }
+    .supply-box { margin-top: 16px; }
+    .supply-box .supply-card { box-shadow: var(--shadow); }
+
+    /* invite */
+    .invite-card { position: relative; overflow: hidden; background: var(--sun); color: #1B1530; }
+    .invite-card > :not(.blob) { position: relative; z-index: 1; }
+    .invite-card .card-label { color: #1B1530; opacity: .85; }
+    .link-box { margin-top: 12px; padding: 10px 12px; border: 2px dashed var(--ink); border-radius: 14px; background: #fff; font-weight: 800; overflow-wrap: anywhere; font-size: 15px; }
+    .invite-banner { display: flex; gap: 8px; }
+
     /* undo bar */
     .snack { position: fixed; left: 50%; bottom: calc(104px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); width: min(440px, calc(100vw - 32px)); display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 16px; border: var(--bw) solid var(--ink); border-radius: 18px; background: var(--brand); color: #1B1530; box-shadow: var(--shadow); font-weight: 800; z-index: 61; opacity: 0; pointer-events: none; transition: opacity .2s, transform .35s cubic-bezier(.2, .9, .3, 1.5); }
     .snack.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
@@ -464,6 +512,7 @@
         <h1>Create your store</h1>
         <p class="sub">Free to start. Your customers order from your own link.</p>
       </div>
+      <p class="alert invite-banner" id="signup-invite" hidden></p>
       <form id="signup-form" class="card auth-card" novalidate>
         <label for="signup-name">Business name</label>
         <input id="signup-name" type="text" autocomplete="organization" maxlength="60" placeholder="e.g. Ada's Wigs">
@@ -662,6 +711,7 @@
         <div id="order-items"></div>
         <div id="order-money" style="margin-top:6px"></div>
       </div>
+      <div class="supply-box" id="order-supply" hidden></div>
 
       <p class="section-title">Status</p>
       <div class="seg" id="order-status">
@@ -904,7 +954,8 @@
     <section class="view" id="view-product">
       <button class="back" type="button" data-tab="products">‹ Products</button>
       <h1 id="product-title" style="margin-top:14px">Add product</h1>
-      <div class="card">
+      <div class="card resale-banner" id="resale-banner" hidden></div>
+      <div class="card" id="photo-card">
         <div class="photos-head">Photos <span class="muted" id="photo-note">(up to 3)</span></div>
         <div class="slots" id="photo-slots"></div>
         <p class="hint">Photos are shrunk on your phone before upload, so they load fast for customers.</p>
@@ -916,21 +967,36 @@
         <input id="product-name" type="text" maxlength="80" placeholder="e.g. Bone straight wig">
         <label for="product-price">Price</label>
         <div class="prefix"><span>₦</span><input id="product-price" type="text" inputmode="decimal" autocomplete="off" placeholder="45000"></div>
-        <label for="product-stock">How many you have <span class="muted">(optional)</span></label>
-        <input id="product-stock" type="text" inputmode="numeric" autocomplete="off" placeholder="Leave empty if you don't count">
-        <p class="hint" id="product-stock-hint">Goes down with each order. At 0 customers see "Sold out".</p>
+        <div data-own>
+          <label for="product-stock">How many you have <span class="muted">(optional)</span></label>
+          <input id="product-stock" type="text" inputmode="numeric" autocomplete="off" placeholder="Leave empty if you don't count">
+          <p class="hint" id="product-stock-hint">Goes down with each order. At 0 customers see "Sold out".</p>
+        </div>
         <label for="product-category">Category <span class="muted">(optional)</span></label>
         <input id="product-category" type="text" maxlength="40" list="category-list" autocomplete="off" placeholder="e.g. Wigs, Hair care, Drinks">
         <datalist id="category-list"></datalist>
         <div class="cat-chips" id="category-chips"></div>
-        <label for="product-description">Description <span class="muted">(optional)</span></label>
-        <textarea id="product-description" maxlength="300" placeholder="Material, what's included, how to use…"></textarea>
+        <div data-own>
+          <label for="product-description">Description <span class="muted">(optional)</span></label>
+          <textarea id="product-description" maxlength="300" placeholder="Material, what's included, how to use…"></textarea>
 
-        <div class="photos-head" style="margin-top:20px">Options <span class="muted">(like Size or Colour)</span></div>
-        <p class="hint" style="margin-top:2px">Customers pick one choice from each option. Give a choice an extra price if it costs more, and a quantity if you count each one.</p>
-        <div id="option-groups"></div>
-        <button class="btn secondary small" type="button" id="add-option" style="margin-top:12px">+ Add an option</button>
+          <div class="photos-head" style="margin-top:20px">Options <span class="muted">(like Size or Colour)</span></div>
+          <p class="hint" style="margin-top:2px">Customers pick one choice from each option. Give a choice an extra price if it costs more, and a quantity if you count each one.</p>
+          <div id="option-groups"></div>
+          <button class="btn secondary small" type="button" id="add-option" style="margin-top:12px">+ Add an option</button>
+        </div>
 
+        <div id="resell-box">
+          <div class="switch-row">
+            <div><b>Let other sellers resell this</b><small>They sell it on their store; you send it to their customer.</small></div>
+            <label class="switch"><input type="checkbox" id="product-resell-on" aria-label="Let other sellers resell this"><span></span></label>
+          </div>
+          <div id="resell-fields" hidden>
+            <label for="product-resell">Price resellers pay you</label>
+            <div class="prefix"><span>₦</span><input id="product-resell" type="text" inputmode="decimal" autocomplete="off" placeholder="e.g. 35000"></div>
+            <p class="hint" id="product-resell-hint">They keep whatever they charge above this.</p>
+          </div>
+        </div>
         <div class="switch-row">
           <div><b>Show in store</b><small>Turn off when it's sold out.</small></div>
           <label class="switch"><input type="checkbox" id="product-active" checked aria-label="Show in store"><span></span></label>
@@ -988,6 +1054,18 @@
         <button class="menu-tile t-brand" type="button" id="more-report" data-open="report">
           <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
           <b>Sales report</b><span>Last 30 days and best sellers</span>
+        </button>
+      </div>
+
+      <p class="section-title">Earn more</p>
+      <div class="menu-grid">
+        <button class="menu-tile t-lilac" type="button" id="more-resell" data-open="resell">
+          <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-4-4M20 16H7l4 4"/></svg></span><span class="mcount" id="more-resell-n"></span>
+          <b>Resell</b><span id="more-resell-sub">Sell other sellers' products for profit</span>
+        </button>
+        <button class="menu-tile t-sky" type="button" id="more-invite" data-open="invite">
+          <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11.5" rx="2"/><path d="M3.5 13h17M12 9v11.5M12 9C10 5 6.5 5.5 7 8c.3 1.3 2.5 1 5 1zM12 9c2-4 5.5-3.5 5-1-.3 1.3-2.5 1-5 1z"/></svg></span><span class="mcount" id="more-invite-n"></span>
+          <b>Invite sellers</b><span>Give a month of Pro, get a month</span>
         </button>
       </div>
 
@@ -1072,6 +1150,61 @@
       <p class="error" id="replies-error"></p>
       <button class="btn" type="button" id="replies-save">Save replies</button>
       <p class="center"><button class="link" type="button" id="replies-reset">Go back to the starter messages</button></p>
+    </section>
+
+    <!-- Resell: find products, send for resellers, bought in -->
+    <section class="view" id="view-resell">
+      <button class="back" type="button" data-tab="more">‹ More</button>
+      <h1 style="margin-top:14px">Resell</h1>
+      <div class="seg" id="resell-tabs" role="tablist" aria-label="Resell">
+        <button type="button" data-rtab="find" role="tab">Find products</button>
+        <button type="button" data-rtab="send" role="tab">To send<span class="seg-n" id="resell-send-n"></span></button>
+        <button type="button" data-rtab="sourced" role="tab">Bought in</button>
+      </div>
+      <div id="resell-find">
+        <div class="card how-card">
+          <b>How reselling works</b>
+          <ol>
+            <li>Add another seller's product to your store at your own price.</li>
+            <li>Your customer orders and pays you, like any order.</li>
+            <li>The supplier sends it to your customer. You pay them their price and keep the rest.</li>
+          </ol>
+          <p class="hint" style="margin:6px 0 0">To let others resell your products, open a product and turn on "Let other sellers resell this".</p>
+        </div>
+        <input type="search" id="market-search" class="list-search" placeholder="Search products or suppliers" autocomplete="off" enterkeyhint="search" aria-label="Search products to resell">
+        <div id="market-list"></div>
+        <button class="btn secondary" type="button" id="market-more" hidden>Show more</button>
+      </div>
+      <div id="resell-send" hidden>
+        <p class="sub" style="margin-top:12px">Other sellers sold your products. Send the items to their customer, then mark them sent. They pay you your resale price.</p>
+        <div id="send-list"></div>
+      </div>
+      <div id="resell-sourced" hidden>
+        <p class="sub" style="margin-top:12px">Products you resold. The supplier sends them to your customer; pay them what's shown.</p>
+        <div id="sourced-list"></div>
+      </div>
+    </section>
+
+    <!-- Invite sellers (referrals) -->
+    <section class="view" id="view-invite">
+      <button class="back" type="button" data-tab="more">‹ More</button>
+      <h1 style="margin-top:14px">Invite sellers</h1>
+      <div class="card invite-card">
+        <span class="blob sun" style="width:110px;height:110px;right:-40px;top:-46px" aria-hidden="true"></span>
+        <p class="card-label">Give a month, get a month</p>
+        <p style="margin:4px 0 0;font-weight:700">Share your link with other sellers. When someone joins with it and gets their first order through their store link, you both get a free month of Pro.</p>
+        <div class="link-box"><span id="invite-link">…</span></div>
+        <div class="actions">
+          <button class="btn secondary" type="button" id="invite-copy">Copy link</button>
+          <a class="btn wa" id="invite-share" href="#" target="_blank" rel="noopener">Share on WhatsApp</a>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="tile sky"><b id="invite-joined">0</b><span>Joined with your link</span></div>
+        <div class="tile green"><b id="invite-months">0</b><span>Free months earned</span></div>
+      </div>
+      <p class="section-title">Sellers you invited</p>
+      <div id="invite-list"></div>
     </section>
 
     <!-- Promo codes -->
@@ -1302,7 +1435,8 @@
       photoLimit: 1, pendingPhotos: [], photoBusy: false, statusPick: null, snackTimer: null,
       q: '', customer: null, custQuery: { q: '', tag: '', sort: 'owing' }, custTags: [], custCount: null,
       stockFilter: 'all', zoneDraft: [], replyDraft: [], prefill: null,
-      promos: null, promoLimit: 2, promoEditing: null, promoKind: 'percent', toolsSummary: null, reviews: null
+      promos: null, promoLimit: 2, promoEditing: null, promoKind: 'percent', toolsSummary: null, reviews: null,
+      rtab: 'find', market: [], marketPage: 0, marketQ: '', supplyIn: null, supplyOut: null, invite: null, ref: ''
     };
     // Logged-in screens, and which tab each one belongs to.
     const APP_VIEWS = {
@@ -1310,7 +1444,7 @@
       products: 'products', product: 'products', notifications: '',
       more: 'more', settings: 'more', customers: 'more', customer: 'more', delivery: 'more',
       stock: 'more', replies: 'more', report: 'more', status: 'more',
-      promos: 'more', promo: 'more', reviews: 'more', profile: 'more'
+      promos: 'more', promo: 'more', reviews: 'more', profile: 'more', resell: 'more', invite: 'more'
     };
     const THEMES = [
       { id: 'green', name: 'Green', hex: '#12B76A', ink: '#1B1530' },
@@ -1371,6 +1505,7 @@
       if (name === 'neworder') return 'new-order';
       if (name === 'customer') return state.customer ? 'customer/' + state.customer.customer.id : 'customers';
       if (name === 'promo') return state.promoEditing ? 'promo/' + state.promoEditing.id : 'promo/new';
+      if (name === 'resell') return state.rtab && state.rtab !== 'find' ? 'resell/' + state.rtab : 'resell';
       if (name === 'orders') return state.filter && state.filter !== 'all' ? 'orders/' + state.filter : 'orders';
       return name;
     }
@@ -1474,6 +1609,10 @@
           return openReviews();
         case 'profile':
           return openProfile();
+        case 'resell':
+          return openResell(['send', 'sourced'].includes(a) ? a : 'find');
+        case 'invite':
+          return openInvite();
         case 'report':
           return loadReport();
         case 'notifications':
@@ -1659,6 +1798,21 @@
       $('signup-slug').value = toSlug($('signup-slug').value);
     });
 
+    // Joined from another seller's invite link (/app?start=signup&ref=CODE).
+    (function readRef() {
+      const ref = new URLSearchParams(location.search).get('ref');
+      try {
+        if (ref) sessionStorage.setItem('op_ref', ref);
+        state.ref = ref || sessionStorage.getItem('op_ref') || '';
+      } catch (e) { state.ref = ref || ''; }
+      if (!state.ref) return;
+      api('/api/public?ref=' + encodeURIComponent(state.ref)).then(({ ok, data }) => {
+        if (!ok) { state.ref = ''; return; }
+        $('signup-invite').textContent = data.referrer.name + ' invited you. After your first store order, you both get a free month of Pro.';
+        $('signup-invite').hidden = false;
+      });
+    })();
+
     $('signup-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const businessName = $('signup-name').value.trim();
@@ -1673,7 +1827,7 @@
 
       const btn = $('signup-submit');
       busy(btn, true, 'Creating your store…');
-      const { ok, data } = await api('/api/auth', { action: 'signup', businessName, slug, email, password });
+      const { ok, data } = await api('/api/auth', { action: 'signup', businessName, slug, email, password, ref: state.ref || undefined });
       busy(btn, false);
       if (!ok) {
         const fieldMap = { businessName: 'name', slug: 'slug', email: 'email', password: 'password' };
@@ -1992,6 +2146,7 @@
       } else {
         box.appendChild(document.createTextNode(initials(p.name).slice(0, 1)));
       }
+      if (p.resale) box.appendChild(el('span', 'resold-tag' + (p.resale.problem ? ' off' : ''), p.resale.problem ? 'Unavailable' : 'Resold'));
       if (!p.isActive) box.appendChild(el('span', 'badge', 'Hidden'));
       else if (p.stock !== null && p.stock !== undefined && p.stock <= LOW_STOCK) box.appendChild(el('span', 'left-tag' + (p.stock <= 0 ? ' out' : ''), p.stock <= 0 ? 'Sold out' : p.stock + ' left'));
       if (photos.length > 1) {
@@ -2072,6 +2227,17 @@
       $('product-active').checked = p ? p.isActive : true;
       $('product-save').textContent = p ? 'Save changes' : 'Add product';
       $('product-delete').hidden = !p;
+      // reselling: own products can be offered; a resold copy is mostly the supplier's
+      const resold = !!(p && p.resale);
+      $('product-resell-on').checked = !!(p && p.resellPriceKobo);
+      $('product-resell').value = p && p.resellPriceKobo ? koboToInput(p.resellPriceKobo) : '';
+      renderResellFields();
+      document.querySelectorAll('#view-product [data-own]').forEach((n) => { n.hidden = resold; });
+      $('photo-card').hidden = resold;
+      $('resell-box').hidden = resold;
+      $('product-name').disabled = resold;
+      $('resale-banner').hidden = !resold;
+      if (resold) renderResaleBanner(p);
       state.pendingPhotos = [];
       switchView('product');
       renderSlots();
@@ -2414,11 +2580,19 @@
       if (!looksLikeNaira(price) || Number(price.replace(/[₦,\s]/g, '')) <= 0) {
         return showError('product', 'Enter the price in naira, like 4500.', 'price');
       }
+      const editingResale = !!(state.editing && state.editing.resale);
       const stock = $('product-stock').value.replace(/[,\s]/g, '');
-      if (stock && !/^\d+$/.test(stock)) return showError('product', 'Enter how many you have, like 12, or leave it empty.', 'stock');
-      const opts = optionsForSave();
+      if (!editingResale && stock && !/^\d+$/.test(stock)) return showError('product', 'Enter how many you have, like 12, or leave it empty.', 'stock');
+      const opts = editingResale ? { options: [] } : optionsForSave();
       if (opts.error) return showError('product', opts.error);
-      const body = { name, price, description, category: $('product-category').value.trim(), options: opts.options, stock, isActive: $('product-active').checked };
+      const resellOn = $('product-resell-on').checked;
+      const resell = $('product-resell').value.trim();
+      if (!editingResale && resellOn && (!looksLikeNaira(resell) || Number(resell.replace(/[₦,\s]/g, '')) <= 0)) {
+        return showError('product', 'Enter the price resellers pay you, like 35000.', 'resell');
+      }
+      const body = editingResale
+        ? { price, category: $('product-category').value.trim(), isActive: $('product-active').checked }
+        : { name, price, description, category: $('product-category').value.trim(), options: opts.options, stock, resellPrice: resellOn ? resell : '', isActive: $('product-active').checked };
       const editing = state.editing;
       if (editing) body.id = editing.id;
 
@@ -2470,6 +2644,34 @@
       renderProducts();
       goUp('products');
     });
+
+    function renderResellFields() {
+      $('resell-fields').hidden = !$('product-resell-on').checked;
+      const base = basePriceKobo();
+      const r = $('product-resell').value.trim();
+      const resell = looksLikeNaira(r) ? Math.round(Number(r.replace(/[₦,\s]/g, '')) * 100) : null;
+      $('product-resell-hint').textContent = base && resell && resell <= base
+        ? 'A reseller selling at your price (' + formatNaira(base) + ') keeps ' + formatNaira(base - resell) + ' per sale.'
+        : 'They keep whatever they charge above this.';
+    }
+    $('product-resell-on').addEventListener('change', () => {
+      renderResellFields();
+      if ($('product-resell-on').checked && !$('product-resell').value) $('product-resell').focus();
+    });
+    $('product-resell').addEventListener('input', renderResellFields);
+    $('product-price').addEventListener('input', renderResellFields);
+    function renderResaleBanner(p) {
+      const box = $('resale-banner');
+      box.textContent = '';
+      const r = p.resale;
+      box.appendChild(el('b', null, 'Resold from ' + (r.supplierName || 'a supplier')));
+      if (r.costKobo != null) {
+        const profit = p.priceKobo - r.costKobo;
+        box.appendChild(el('p', null, 'You pay ' + formatNaira(r.costKobo) + ' each. At your price you keep ' + formatNaira(Math.max(0, profit)) + ' per sale.'));
+      }
+      box.appendChild(el('p', null, 'Photos, options and stock come from the supplier. You set your price, category and whether it shows.'));
+      if (r.problem) box.appendChild(el('p', 'warn', r.problemText));
+    }
 
     $('product-price').addEventListener('blur', () => {
       const el = $('product-price');
@@ -2913,6 +3115,8 @@
       if (o.status !== 'cancelled' && o.balanceKobo && o.amountPaidKobo) lines.push('Still to pay: ' + formatNaira(o.balanceKobo));
       $('order-send-invoice').href = 'https://wa.me/' + o.customerPhone + '?text=' + encodeURIComponent(lines.join('\n'));
       $('order-open-invoice').href = url;
+      // resold items: who sends them and what's owed
+      renderOrderSupply(o);
       // reviews: ask once it can be rated; show it once it's in
       $('order-ask-review').hidden = !(o.canReview && !o.review);
       if (o.canReview && !o.review) {
@@ -3204,6 +3408,8 @@
         text.appendChild(el('div', 'row-time', when(n.createdAt)));
         btn.append(el('span', 'note-dot'), text);
         if (n.orderId) btn.addEventListener('click', () => openOrder(n.orderId));
+        else if (n.type === 'supply_order') btn.addEventListener('click', () => openResell('send'));
+        else if (n.type === 'referral') btn.addEventListener('click', openInvite);
         else if (/^(cap_|plan_)/.test(n.type || '')) btn.addEventListener('click', () => goTab('settings', 'plan-settings'));
         row.appendChild(btn);
         list.appendChild(row);
@@ -3843,6 +4049,13 @@
       $('more-reviews-sub').textContent = t && t.rating.count
         ? '★ ' + t.rating.average.toFixed(1) + ' from ' + t.rating.count + (t.rating.count === 1 ? ' review' : ' reviews')
         : 'What customers say';
+      $('more-resell-n').textContent = t && t.supplyNew ? String(t.supplyNew) : '';
+      $('more-resell-sub').textContent = t && t.supplyNew
+        ? t.supplyNew + (t.supplyNew === 1 ? ' resale order to send' : ' resale orders to send')
+        : t && t.resale.itemsThisMonth
+          ? formatNaira(t.resale.earnedThisMonthKobo) + ' profit this month'
+          : "Sell other sellers' products for profit";
+      $('more-invite-n').textContent = t && t.invited ? String(t.invited) : '';
       $('more-profile-sub').textContent = v.inDirectory
         ? 'Listed in the directory · ' + [v.storeCategory, v.state].filter(Boolean).join(', ')
         : 'Get found in the OrderPadi directory';
@@ -3863,6 +4076,8 @@
       if (name === 'promos') return openPromos();
       if (name === 'reviews') return openReviews();
       if (name === 'profile') return openProfile();
+      if (name === 'resell') return openResell('find');
+      if (name === 'invite') return openInvite();
       if (name === 'settings') return goTab('settings');
     }));
     $('home-low-stock').addEventListener('click', () => { state.stockFilter = 'all'; openStock(); });
@@ -4700,6 +4915,311 @@
       renderMore();
       renderProfilePreview();
       toast(listed ? 'Saved. Your store is in the directory.' : 'Profile saved', 'good');
+    });
+
+    // ---------- resell ----------
+    const SUPPLY_LABEL = { new: 'New', accepted: 'Accepted', shipped: 'Sent', delivered: 'Delivered', cancelled: 'Cancelled' };
+    function waHref(phone, text) { return 'https://wa.me/' + phone + (text ? '?text=' + encodeURIComponent(text) : ''); }
+    function supplyItems(list) {
+      const ul = el('ul', 'supply-items');
+      list.forEach((i) => ul.appendChild(el('li', null, i.quantity + ' × ' + i.name + (i.optionText ? ' (' + i.optionText + ')' : '') + ' · ' + formatNaira(i.unitCostKobo) + ' each')));
+      return ul;
+    }
+    function renderOrderSupply(o) {
+      const box = $('order-supply');
+      const list = o.supply || [];
+      box.hidden = !list.length;
+      box.textContent = '';
+      if (!list.length) return;
+      list.forEach((so) => {
+        const card = el('div', 'supply-card');
+        const head = el('div', 'supply-head');
+        head.append(el('span', null, 'Sent by ' + so.supplier.name), el('span', 'sstatus ' + so.status, SUPPLY_LABEL[so.status]));
+        card.append(head, supplyItems(so.items));
+        const money = el('div', 'supply-money');
+        money.append(el('span', null, (so.paid ? 'Paid ' : 'You owe ') + formatNaira(so.totalKobo)), so.paid ? el('span', 'paid-pill', 'Paid') : el('span'));
+        card.appendChild(money);
+        if (so.supplier.whatsappPhone) {
+          const acts = el('div', 'supply-actions');
+          const wa = el('a', 'btn small wa', 'WhatsApp ' + so.supplier.name.split(' ')[0]);
+          wa.href = waHref(so.supplier.whatsappPhone, 'Hi ' + so.supplier.name + ', about resale order #' + o.number + ' from ' + state.vendor.businessName + '.');
+          wa.target = '_blank';
+          wa.rel = 'noopener';
+          acts.appendChild(wa);
+          card.appendChild(acts);
+        }
+        box.appendChild(card);
+      });
+      if (o.resaleProfitKobo != null) box.appendChild(el('p', 'hint', 'Your profit on the resold items: ' + formatNaira(Math.max(0, o.resaleProfitKobo)) + '.'));
+    }
+
+    async function openResell(tab) {
+      state.rtab = tab || 'find';
+      renderResellTabs();
+      switchView('resell');
+      if (state.rtab === 'find') loadMarket(true);
+      else loadSupply(state.rtab === 'send' ? 'in' : 'out');
+    }
+    function renderResellTabs() {
+      document.querySelectorAll('#resell-tabs button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.rtab === state.rtab)));
+      $('resell-find').hidden = state.rtab !== 'find';
+      $('resell-send').hidden = state.rtab !== 'send';
+      $('resell-sourced').hidden = state.rtab !== 'sourced';
+      const t = state.toolsSummary;
+      $('resell-send-n').textContent = t && t.supplyNew ? String(t.supplyNew) : '';
+    }
+    document.querySelectorAll('#resell-tabs button').forEach((b) => b.addEventListener('click', () => {
+      if (state.rtab === b.dataset.rtab) return;
+      navMode = 'replace';
+      openResell(b.dataset.rtab);
+    }));
+
+    let marketTicket = 0;
+    let marketTimer = null;
+    async function loadMarket(reset) {
+      if (reset) { state.marketPage = 0; }
+      const box = $('market-list');
+      if (reset && !state.market.length) box.innerHTML = '<p class="empty">Loading…</p>';
+      const qs = new URLSearchParams({ view: 'market', page: String(state.marketPage) });
+      if (state.marketQ) qs.set('q', state.marketQ);
+      const ticket = ++marketTicket;
+      const { ok, status, data } = await api('/api/tools?' + qs.toString());
+      if (ticket !== marketTicket) return;
+      if (status === 401) return sessionLost();
+      if (!ok) { box.textContent = ''; return box.appendChild(el('p', 'empty', data.error || 'Could not load products.')); }
+      state.market = reset ? data.products : state.market.concat(data.products);
+      renderMarket(data.hasMore);
+    }
+    function renderMarket(hasMore) {
+      const box = $('market-list');
+      box.textContent = '';
+      if (!state.market.length) {
+        box.appendChild(emptyBox(state.marketQ ? 'Nothing matches "' + state.marketQ + '".' : 'No products to resell yet. When other sellers offer theirs, they show up here.'));
+      }
+      state.market.forEach((p) => box.appendChild(marketCard(p)));
+      $('market-more').hidden = !hasMore;
+    }
+    function marketCard(p) {
+      const card = el('div', 'market-card');
+      const thumb = el('div', 'mthumb ph ' + tintFor(p.name));
+      if (p.photos.length) {
+        const img = document.createElement('img');
+        img.alt = '';
+        img.loading = 'lazy';
+        img.src = p.photos[0];
+        OP.fadeImage(img);
+        thumb.appendChild(img);
+      } else thumb.textContent = initials(p.name).slice(0, 1);
+      const body = el('div', 'mbody');
+      body.appendChild(el('div', 'mname', p.name));
+      const sup = el('div', 'msup', 'From ' + p.supplier.name + (p.supplier.place ? ' · ' + p.supplier.place : ''));
+      if (p.supplier.reviews) sup.append(document.createTextNode(' · '), starsShow(p.supplier.rating), document.createTextNode(' ' + p.supplier.rating.toFixed(1)));
+      body.appendChild(sup);
+      body.appendChild(el('div', 'mprice', 'You pay ' + formatNaira(p.costKobo) + ' · they sell at ' + formatNaira(p.priceKobo)));
+      const profit = p.priceKobo - p.costKobo;
+      if (profit > 0) body.appendChild(el('span', 'mprofit', 'Earn ' + formatNaira(profit) + ' each'));
+      if (p.added) {
+        const done = el('div', 'in-store', '✓ In your store');
+        const edit = el('button', 'link', 'Edit');
+        edit.type = 'button';
+        edit.addEventListener('click', async () => {
+          state.products = null;
+          await ensureProducts();
+          const mine = (state.products || []).find((x) => x.id === p.myProductId);
+          if (mine) openProduct(mine);
+        });
+        done.appendChild(edit);
+        body.appendChild(done);
+      } else {
+        const add = el('form', 'madd');
+        add.noValidate = true;
+        const pre = el('div', 'prefix');
+        pre.appendChild(el('span', null, '₦'));
+        const price = document.createElement('input');
+        price.type = 'text';
+        price.inputMode = 'decimal';
+        price.value = koboToInput(Math.max(p.priceKobo, p.costKobo));
+        price.setAttribute('aria-label', 'Your price for ' + p.name);
+        pre.appendChild(price);
+        const btn = el('button', 'btn small', 'Add to my store');
+        btn.type = 'submit';
+        add.append(pre, btn);
+        const err = el('p', 'error');
+        add.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const v = price.value.trim();
+          if (!looksLikeNaira(v)) { err.textContent = 'Enter your price in naira.'; return err.classList.add('show'); }
+          busy(btn, true, 'Adding…');
+          const { ok, status, data } = await api('/api/tools', { action: 'resell-add', productId: p.id, price: v });
+          busy(btn, false);
+          if (status === 401) return sessionLost();
+          if (!ok) { err.textContent = data.error || 'Could not add it.'; return err.classList.add('show'); }
+          p.added = true;
+          p.myProductId = data.productId;
+          state.products = null;
+          if (state.setup) state.setup.products += 1;
+          toast(p.name + ' is in your store', 'good');
+          OP.buzz(15);
+          card.replaceWith(marketCard(p));
+        });
+        body.append(add, err);
+      }
+      card.append(thumb, body);
+      return card;
+    }
+    $('market-search').addEventListener('input', () => {
+      clearTimeout(marketTimer);
+      marketTimer = setTimeout(() => { state.marketQ = $('market-search').value.trim(); state.market = []; loadMarket(true); }, 300);
+    });
+    $('market-more').addEventListener('click', () => { state.marketPage += 1; loadMarket(false); });
+
+    async function loadSupply(side) {
+      const box = $(side === 'in' ? 'send-list' : 'sourced-list');
+      if (!(side === 'in' ? state.supplyIn : state.supplyOut)) box.innerHTML = '<p class="empty">Loading…</p>';
+      const { ok, status, data } = await api('/api/tools?view=supply&side=' + side);
+      if (status === 401) return sessionLost();
+      if (!ok) { box.textContent = ''; return box.appendChild(el('p', 'empty', data.error || 'Could not load resale orders.')); }
+      if (side === 'in') state.supplyIn = data.supply; else state.supplyOut = data.supply;
+      renderSupply(side);
+    }
+    function renderSupply(side) {
+      const list = (side === 'in' ? state.supplyIn : state.supplyOut) || [];
+      const box = $(side === 'in' ? 'send-list' : 'sourced-list');
+      box.textContent = '';
+      if (!list.length) {
+        return box.appendChild(emptyBox(side === 'in'
+          ? 'Nothing to send yet. When a reseller sells one of your products, it shows up here with the customer\'s address.'
+          : "You haven't resold anything yet. Add products from Find products, then share your store."));
+      }
+      list.forEach((so) => box.appendChild(side === 'in' ? sendCard(so) : sourcedCard(so)));
+    }
+    function sendCard(so) {
+      const card = el('div', 'supply-card' + (so.status === 'delivered' || so.status === 'cancelled' ? ' done' : ''));
+      const head = el('div', 'supply-head');
+      head.append(el('span', null, 'For ' + so.reseller.name + ' · #' + so.orderNumber), el('span', 'sstatus ' + so.status, SUPPLY_LABEL[so.status]));
+      card.append(head, supplyItems(so.items));
+      const to = el('div', 'send-to');
+      to.appendChild(el('b', null, 'Send to'));
+      to.appendChild(el('div', null, so.sendTo.name));
+      const call = el('a', null, formatPhone(so.sendTo.phone));
+      call.href = 'tel:+' + so.sendTo.phone;
+      to.appendChild(call);
+      if (so.sendTo.address || so.sendTo.area) to.appendChild(el('div', null, [so.sendTo.address, so.sendTo.area].filter(Boolean).join(' · ')));
+      if (so.sendTo.note) to.appendChild(el('div', 'muted', 'Note: ' + so.sendTo.note));
+      card.appendChild(to);
+      const money = el('div', 'supply-money');
+      money.append(el('span', null, formatNaira(so.totalKobo) + (so.paid ? ' paid to you' : ' to collect from ' + so.reseller.name)), so.paid ? el('span', 'paid-pill', 'Paid') : el('span'));
+      card.appendChild(money);
+      if (so.cancelReason === 'order_cancelled') {
+        card.appendChild(el('p', 'hint', so.reseller.name + ' cancelled this order. Don\'t send it.'));
+        return card;
+      }
+      const acts = el('div', 'supply-actions');
+      const next = { new: ['accepted', 'Accept'], accepted: ['shipped', 'Mark sent'], shipped: ['delivered', 'Mark delivered'] }[so.status];
+      if (next) {
+        const b = el('button', 'btn small', next[1]);
+        b.type = 'button';
+        b.addEventListener('click', () => supplyAction(so, { action: 'supply-status', status: next[0] }, b, SUPPLY_LABEL[next[0]]));
+        acts.appendChild(b);
+      }
+      const paid = el('button', 'btn small secondary', so.paid ? 'Not paid yet' : 'Mark paid');
+      paid.type = 'button';
+      paid.addEventListener('click', () => supplyAction(so, { action: 'supply-paid', paid: !so.paid }, paid, so.paid ? 'Marked not paid' : 'Marked paid'));
+      acts.appendChild(paid);
+      if (so.reseller.whatsappPhone) {
+        const wa = el('a', 'btn small wa', 'WhatsApp');
+        wa.href = waHref(so.reseller.whatsappPhone, 'Hi ' + so.reseller.name + ', about resale order #' + so.orderNumber + ' (' + formatNaira(so.totalKobo) + ').');
+        wa.target = '_blank';
+        wa.rel = 'noopener';
+        acts.appendChild(wa);
+      }
+      card.appendChild(acts);
+      if (so.status !== 'cancelled' && so.status !== 'delivered') {
+        const cant = el('button', 'link', "Can't supply this");
+        cant.type = 'button';
+        cant.style.marginTop = '8px';
+        cant.addEventListener('click', () => {
+          if (!confirm('Tell ' + so.reseller.name + ' you can\'t supply these items?')) return;
+          supplyAction(so, { action: 'supply-status', status: 'cancelled' }, cant, 'Reseller told');
+        });
+        card.appendChild(cant);
+      }
+      return card;
+    }
+    async function supplyAction(so, body, button, doneText) {
+      busy(button, true, '…');
+      const { ok, status, data } = await api('/api/tools', { ...body, id: so.id });
+      busy(button, false);
+      if (status === 401) return sessionLost();
+      if (!ok) return toast(data.error || 'Could not update it.');
+      state.supplyIn = state.supplyIn.map((x) => (x.id === so.id ? data.item : x));
+      if (state.toolsSummary) state.toolsSummary.supplyNew = state.supplyIn.filter((x) => x.status === 'new').length;
+      renderSupply('in');
+      renderResellTabs();
+      toast(doneText, 'good');
+    }
+    function sourcedCard(so) {
+      const card = el('div', 'supply-card' + (so.status === 'delivered' || so.status === 'cancelled' ? ' done' : ''));
+      const head = el('div', 'supply-head');
+      head.append(el('span', null, 'Order #' + so.orderNumber + ' · from ' + so.supplier.name), el('span', 'sstatus ' + so.status, SUPPLY_LABEL[so.status]));
+      card.append(head, supplyItems(so.items));
+      const money = el('div', 'supply-money');
+      money.append(el('span', null, (so.paid ? 'Paid ' : 'You owe ') + formatNaira(so.totalKobo)), so.paid ? el('span', 'paid-pill', 'Paid') : el('span'));
+      card.appendChild(money);
+      const acts = el('div', 'supply-actions');
+      const open = el('button', 'btn small secondary', 'Open order');
+      open.type = 'button';
+      open.addEventListener('click', () => openOrder(so.orderId));
+      acts.appendChild(open);
+      if (so.supplier.whatsappPhone) {
+        const wa = el('a', 'btn small wa', 'WhatsApp');
+        wa.href = waHref(so.supplier.whatsappPhone, 'Hi ' + so.supplier.name + ', about resale order #' + so.orderNumber + ' from ' + state.vendor.businessName + '.');
+        wa.target = '_blank';
+        wa.rel = 'noopener';
+        acts.appendChild(wa);
+      }
+      card.appendChild(acts);
+      return card;
+    }
+
+    // ---------- invite sellers ----------
+    function inviteLink() { return state.invite ? location.origin + '/app?start=signup&ref=' + state.invite.code : ''; }
+    async function openInvite() {
+      switchView('invite');
+      const { ok, status, data } = await api('/api/tools?view=referrals');
+      if (status === 401) return sessionLost();
+      if (!ok) return toast(data.error || 'Could not load your invite link.');
+      state.invite = data;
+      renderInvite();
+    }
+    function renderInvite() {
+      const d = state.invite;
+      const link = inviteLink();
+      $('invite-link').textContent = link.replace(/^https?:\/\//, '');
+      const text = 'I use OrderPadi for my orders, invoices and who owes me. Get your own store link free, and we both get a free month of Pro after your first order: ' + link;
+      $('invite-share').href = 'https://wa.me/?text=' + encodeURIComponent(text);
+      $('invite-joined').textContent = String(d.invited.length);
+      $('invite-months').textContent = String(d.monthsEarned);
+      const box = $('invite-list');
+      box.textContent = '';
+      if (!d.invited.length) return box.appendChild(el('p', 'muted', 'Nobody yet. Share your link in seller groups and with friends who sell.'));
+      const list = el('div', 'list');
+      d.invited.forEach((v) => {
+        const row = el('div', 'cust-row');
+        const top = el('div', 'cust-top');
+        const who = el('div', 'row-main');
+        who.append(el('div', 'row-name', v.name), el('div', 'row-sub', 'Joined ' + when(v.joinedAt)));
+        top.append(custAvatar(v.name), who, v.status === 'rewarded' ? el('span', 'paid-up', 'Free month earned') : el('span', 'muted', 'Waiting for first order'));
+        top.lastChild.style.cssText = v.status === 'rewarded' ? '' : 'font-size:13px;font-weight:700;text-align:right';
+        row.appendChild(top);
+        list.appendChild(row);
+      });
+      box.appendChild(list);
+    }
+    $('invite-copy').addEventListener('click', async () => {
+      const btn = $('invite-copy');
+      try { await navigator.clipboard.writeText(inviteLink()); btn.textContent = 'Copied!'; } catch (e) { btn.textContent = 'Hold the link to copy'; }
+      setTimeout(() => { btn.textContent = 'Copy link'; }, 2500);
     });
 
     // ---------- report (Pro) ----------

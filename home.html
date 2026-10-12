@@ -348,6 +348,11 @@
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
+    // Came from another seller's invite link: keep the invite on every sign-up button.
+    const ref = new URLSearchParams(location.search).get('ref');
+    if (ref && /^[A-Za-z0-9]{4,12}$/.test(ref)) {
+      document.querySelectorAll('a[href="/app?start=signup"]').forEach((a) => { a.href = '/app?start=signup&ref=' + encodeURIComponent(ref); });
+    }
     // The opening animation ends once the page has loaded.
     if (document.readyState === 'complete') OP.endSplash(); else window.addEventListener('load', () => OP.endSplash());
     // Contact details come from the server (SUPPORT_EMAIL / SUPPORT_WHATSAPP in Netlify).

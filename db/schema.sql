@@ -48,6 +48,11 @@ CREATE TABLE vendors (
   city                        TEXT,
   in_directory                BOOLEAN NOT NULL DEFAULT FALSE,
 
+  -- referrals: both sellers get a free Pro month after the new one's first store order
+  referral_code               TEXT,          -- like ADA4K7, made the first time it's needed
+  referred_by                 BIGINT REFERENCES vendors(id) ON DELETE SET NULL,
+  referral_rewarded_at        TIMESTAMPTZ,
+
   -- plan & billing
   plan                        TEXT NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'pro')),
   plan_renews_at              TIMESTAMPTZ,   -- next Paystack charge date; revert to free after this if cancelled
@@ -64,6 +69,8 @@ CREATE TABLE vendors (
   updated_at                  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX vendors_directory ON vendors (store_category, state) WHERE in_directory;
+CREATE UNIQUE INDEX vendors_referral_code ON vendors (referral_code) WHERE referral_code IS NOT NULL;
+CREATE INDEX vendors_referred_by ON vendors (referred_by) WHERE referred_by IS NOT NULL;
 
 
 -- ---------------------------------------------------------------------
@@ -119,6 +126,11 @@ CREATE TABLE products (
   options      JSONB NOT NULL DEFAULT '[]'::jsonb  -- up to 2 options like Size/Colour, see lib/catalog.js
                CONSTRAINT products_options_is_array CHECK (jsonb_typeof(options) = 'array'),
   stock        INTEGER CONSTRAINT products_stock_check CHECK (stock IS NULL OR stock >= 0),  -- NULL: not counted
+  -- reselling: what other sellers pay to resell it (NULL: not for resale), and
+  -- for a reseller's copy, the supplier's product it comes from
+  resell_price_kobo  BIGINT CONSTRAINT products_resell_price_check CHECK (resell_price_kobo IS NULL OR resell_price_kobo > 0),
+  is_resale    BOOLEAN NOT NULL DEFAULT FALSE,
+  source_product_id  BIGINT REFERENCES products(id) ON DELETE SET NULL,
   is_active    BOOLEAN NOT NULL DEFAULT TRUE, -- archive instead of delete
   sort_order   INTEGER NOT NULL DEFAULT 0,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -126,6 +138,8 @@ CREATE TABLE products (
 );
 CREATE INDEX products_vendor ON products (vendor_id, is_active, sort_order);
 CREATE INDEX products_vendor_category ON products (vendor_id, category);
+CREATE INDEX products_source ON products (source_product_id) WHERE source_product_id IS NOT NULL;
+CREATE INDEX products_resellable ON products (created_at DESC) WHERE resell_price_kobo IS NOT NULL AND is_active;
 
 -- How many are left of one choice (like size 42); only counted choices have a row.
 CREATE TABLE choice_stock (
@@ -226,9 +240,32 @@ CREATE TABLE order_items (
   option_ids       JSONB,             -- the picked choice ids, to put stock back on cancel
   unit_price_kobo  BIGINT NOT NULL CHECK (unit_price_kobo >= 0),
   quantity         INTEGER NOT NULL CHECK (quantity > 0),
-  line_total_kobo  BIGINT NOT NULL CHECK (line_total_kobo >= 0)
+  line_total_kobo  BIGINT NOT NULL CHECK (line_total_kobo >= 0),
+  stock_product_id    BIGINT,         -- whose stock it took: the supplier's product for resold items
+  supplier_vendor_id  BIGINT REFERENCES vendors(id) ON DELETE SET NULL,
+  unit_cost_kobo      BIGINT          -- what the reseller owes the supplier per item
 );
 CREATE INDEX order_items_order ON order_items (order_id);
+
+-- What a supplier sends for one of a reseller's orders. The supplier sees the
+-- customer's delivery details through the order.
+CREATE TABLE supply_orders (
+  id                  BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  order_id            BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  reseller_vendor_id  BIGINT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+  supplier_vendor_id  BIGINT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+  items               JSONB NOT NULL,          -- [{ name, optionText, quantity, unitCostKobo }]
+  total_kobo          BIGINT NOT NULL CHECK (total_kobo >= 0),
+  status              TEXT NOT NULL DEFAULT 'new'
+                        CHECK (status IN ('new', 'accepted', 'shipped', 'delivered', 'cancelled')),
+  cancel_reason       TEXT,                    -- 'order_cancelled' when the reseller cancelled their order
+  paid_at             TIMESTAMPTZ,             -- the supplier confirmed the reseller paid them
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (order_id, supplier_vendor_id)
+);
+CREATE INDEX supply_orders_supplier ON supply_orders (supplier_vendor_id, created_at DESC);
+CREATE INDEX supply_orders_reseller ON supply_orders (reseller_vendor_id, created_at DESC);
 
 -- Everything that happened to an order: placed, status, payments, notes...
 CREATE TABLE order_events (
