@@ -224,7 +224,7 @@
       const totals = $('inv-totals');
       totals.textContent = '';
       totals.appendChild(kv('Subtotal', formatNaira(inv.subtotalKobo), 'sub'));
-      if (inv.deliveryFeeKobo) totals.appendChild(kv('Delivery', formatNaira(inv.deliveryFeeKobo), 'sub'));
+      if (inv.deliveryFeeKobo || inv.deliveryZone) totals.appendChild(kv('Delivery' + (inv.deliveryZone ? ' · ' + inv.deliveryZone : ''), formatNaira(inv.deliveryFeeKobo), 'sub'));
       if (inv.discountKobo) totals.appendChild(kv('Discount', '−' + formatNaira(inv.discountKobo), 'sub'));
       totals.appendChild(kv('Total', formatNaira(inv.totalKobo), 'total'));
       if (inv.amountPaidKobo && !cancelled) {

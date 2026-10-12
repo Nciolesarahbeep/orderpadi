@@ -2,13 +2,17 @@
 //   GET   /api/me  -> { vendor, setup }
 //   PATCH /api/me  { businessName?, slug?, whatsappPhone?, bankName?,
 //                    bankAccountNumber?, bankAccountName?, deliveryFee?, deliveryNote?,
-//                    storeTheme? }   storeTheme: green, coral, sun, sky, grape or night
+//                    storeTheme?, deliveryZones?, quickReplies?, awayMessage? }
+//                  storeTheme: green, coral, sun, sky, grape or night
+//                  deliveryZones: [{ id?, name, fee }] (fee in naira); quickReplies: [{ id?, title, body }]
+//                  awayMessage: shown on the store while you're away ("" to turn it off)
 //                  -> { vendor, setup }
 // Only the fields sent are changed. "setup" drives the checklist on Home.
 const { sql } = require('../lib/db');
 const { HttpError, getSessionVendor, vendorForClient } = require('../lib/auth');
 const { cleanSlug, slugProblem, cleanText, nairaToKobo, normalizeNgPhone } = require('../lib/format');
 const { STORE_THEMES } = require('../lib/photos');
+const { readZones, readQuickReplies, readAwayMessage } = require('../lib/storeSettings');
 
 async function setupStatus(vendor) {
   const [row] = await sql`SELECT count(*)::int AS n FROM products WHERE vendor_id = ${vendor.id} AND is_active = TRUE`;
@@ -33,7 +37,10 @@ async function updateSettings(vendor, body) {
     bank_account_name: vendor.bank_account_name,
     default_delivery_fee_kobo: Number(vendor.default_delivery_fee_kobo || 0),
     delivery_note: vendor.delivery_note,
-    store_theme: vendor.store_theme || 'green'
+    store_theme: vendor.store_theme || 'green',
+    delivery_zones: Array.isArray(vendor.delivery_zones) ? vendor.delivery_zones : [],
+    quick_replies: Array.isArray(vendor.quick_replies) ? vendor.quick_replies : [],
+    away_message: vendor.away_message || null
   };
 
   if (has(body, 'businessName')) {
@@ -117,6 +124,10 @@ async function updateSettings(vendor, body) {
     next.store_theme = theme;
   }
 
+  if (has(body, 'deliveryZones')) next.delivery_zones = readZones(body.deliveryZones);
+  if (has(body, 'quickReplies')) next.quick_replies = readQuickReplies(body.quickReplies);
+  if (has(body, 'awayMessage')) next.away_message = readAwayMessage(body.awayMessage);
+
   const [row] = await sql`
     UPDATE vendors SET
       business_name = ${next.business_name},
@@ -128,6 +139,9 @@ async function updateSettings(vendor, body) {
       default_delivery_fee_kobo = ${next.default_delivery_fee_kobo},
       delivery_note = ${next.delivery_note},
       store_theme = ${next.store_theme},
+      delivery_zones = ${JSON.stringify(next.delivery_zones)}::jsonb,
+      quick_replies = ${JSON.stringify(next.quick_replies)}::jsonb,
+      away_message = ${next.away_message},
       updated_at = now()
     WHERE id = ${vendor.id}
     RETURNING *

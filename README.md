@@ -6,6 +6,7 @@ Orders, invoices and payment tracking for WhatsApp and Instagram sellers in Nige
 - **Free plan:** 20 orders a month, 1 photo per product. **Pro:** ₦2,500 a month through Paystack, with unlimited orders, 3 photos per product, no branding, reports and CSV export.
 - **Look:** bold and playful, in light and dark. Sellers pick one of six store colours, add product photos, swipe an order to mark it paid, and make a WhatsApp status picture of their products.
 - **Options and categories:** a product can have up to 2 options (like Size and Colour) with up to 20 choices each. A choice can cost extra or be marked sold out. Categories group products on the store page, with search once a store has 8 or more products.
+- **Seller tools (the More tab):** customer pages with notes, labels and what each person spends and owes; stock counts that go down with every order and come back when one is cancelled; delivery areas with their own fees; saved WhatsApp quick replies; away mode; a history and notes on every order; and search across orders.
 - Plain HTML pages and Node server functions, with a Neon Postgres database. Hosted on **Netlify** (`netlify.toml`); `vercel.json` is kept so it can also run on Vercel.
 - No npm packages: the database is reached over HTTPS (`lib/db.js`), and login tokens and password hashing use Node's built-in crypto (`lib/jwt.js`, `lib/password.js`).
 
@@ -14,7 +15,7 @@ Orders, invoices and payment tracking for WhatsApp and Instagram sellers in Nige
 | Address | What it is |
 | --- | --- |
 | `/` | Landing page (`home.html`, served with link-preview tags) |
-| `/app` | The seller app: sign up, log in, orders, products, settings |
+| `/app` | The seller app: sign up, log in, orders, products, and the More tab (customers, stock, delivery, quick replies, settings) |
 | `/s/<slug>` | A seller's store, where customers order |
 | `/i/<id>` | An invoice or receipt for one order |
 | `/admin` | Admin panel (only for admins) |
@@ -22,7 +23,7 @@ Orders, invoices and payment tracking for WhatsApp and Instagram sellers in Nige
 | `/p/<id>` | A product photo (cached for a year; a new photo gets a new address) |
 | `/setup` | Setup check. Delete `setup.html` after launch |
 
-The seller app gives every screen its own address (`/app#orders`, `/app#order/12`, `/app#product/5`, `/app#settings`…), so a refresh reopens the same screen and the phone's back button works like in an app. The store page does the same for the product sheet, checkout and "order placed" (`#product-12`, `#checkout`, `#done`), and the admin panel for `#sellers`, `#seller/12` and `#events`. The landing page and the seller app open with a short OrderPadi animation once per visit (skipped on refresh and for people who turn off motion).
+The seller app gives every screen its own address (`/app#orders`, `/app#order/12`, `/app#product/5`, `/app#customer/7`, `/app#stock`, `/app#settings`…), so a refresh reopens the same screen and the phone's back button works like in an app. The store page does the same for the product sheet, checkout and "order placed" (`#product-12`, `#checkout`, `#done`), and the admin panel for `#sellers`, `#seller/12` and `#events`. The landing page and the seller app open with a short OrderPadi animation once per visit (skipped on refresh and for people who turn off motion).
 
 Shared look: `ui.css` (colours, buttons, cards, animations, light/dark), `ui.js` (light/dark choice, confetti, counting numbers, scroll reveal) and `fredoka.woff`, the heading font (SIL Open Font License, `FREDOKA-OFL.txt`).
 
@@ -59,6 +60,9 @@ Redeploy after changing any of them (Deploys → Trigger deploy).
 - `002_email_otps_ip.sql`: limits email codes per device.
 - `003_photos_and_theme.sql`: product photos and store colours.
 - `004_options_and_categories.sql`: product options (like Size and Colour) and categories.
+- `005_seller_tools.sql`: stock counts, delivery areas, order history, customer notes and labels, quick replies and away mode.
+
+Stock is taken inside the same SQL statement that saves an order. The database refuses any count below zero, so two customers can't both buy the last one: the second order is turned down and nothing of it is saved.
 
 Product photos are shrunk on the seller's phone (about 1000px, under 240 KB) and stored in the `product_photos` table. The admin panel shows how much space they use; Neon's free plan has 512 MB.
 

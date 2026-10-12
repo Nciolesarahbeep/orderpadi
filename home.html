@@ -15,7 +15,7 @@
   try{if(!sessionStorage.getItem('op_splash')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){sessionStorage.setItem('op_splash','1');document.documentElement.classList.add('splashing')}}catch(e){}</script>
   <script src="/ui.js"></script>
   <style>
-    body { font-size: 17px; }
+    body { font-size: 17px; overflow-x: clip; }
     .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
     .top { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; }
     .login { margin: 0; text-decoration: none; }
@@ -168,7 +168,7 @@
         <div class="phone-wrap pop" style="animation-delay:.15s">
           <span class="sticker s1" aria-hidden="true">New order!</span>
           <span class="sticker s2" aria-hidden="true">₦46,500 in</span>
-          <span class="blob coral float" style="--r:-12deg;width:80px;height:80px;right:-24px;top:-26px;animation-delay:-2s" aria-hidden="true"></span>
+          <span class="blob coral float" style="--r:-12deg;width:80px;height:80px;right:2px;top:-26px;animation-delay:-2s" aria-hidden="true"></span>
           <div class="phone" aria-label="Example: a seller sends a paid receipt on WhatsApp">
             <div class="chat-head" aria-hidden="true">
               <span class="avatar">TA</span>

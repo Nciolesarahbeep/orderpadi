@@ -191,10 +191,12 @@
     .choice:first-of-type { border-top: 0; padding-top: 0; }
     .choice-top, .choice-bottom { display: flex; gap: 8px; align-items: center; }
     .choice-bottom { margin-top: 8px; }
-    .choice-bottom .prefix { width: 128px; flex: none; }
+    .choice-bottom .prefix { width: 112px; flex: none; }
     .choice-bottom .prefix span { font-size: 15px; }
     .choice-bottom input { padding: 9px 10px 9px 38px; font-size: 16px; }
-    .choice-price { flex: 1; min-width: 0; font-family: var(--display); font-weight: 700; font-size: 15px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .choice-price { display: block; margin-top: 4px; font-family: var(--display); font-weight: 700; font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .choice-price:empty { display: none; }
+    .choice-bottom .stock { margin-left: auto; }
     .stock { flex: none; border: 2px solid var(--ink); border-radius: 999px; padding: 4px 11px; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; background: var(--brand); color: #1B1530; }
     .stock[aria-pressed="true"] { background: var(--coral); }
     .opt-add-choice { margin-top: 10px; }
@@ -236,6 +238,114 @@
     .pick .ph { position: absolute; inset: 0; font-size: 24px; }
     .pick .ph .badge, .pick .ph .pcount { display: none; }
 
+    /* More: the menu of seller tools */
+    .menu-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+    .menu-tile { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 124px; padding: 14px; border: var(--bw) solid var(--ink); border-radius: 22px; box-shadow: var(--shadow); font: inherit; text-align: left; color: #1B1530; cursor: pointer; transition: transform .12s, box-shadow .12s; }
+    .menu-tile:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+    .menu-tile .mi { width: 44px; height: 44px; border-radius: 15px; border: var(--bw) solid var(--ink); background: #fff; color: #1B1530; display: grid; place-items: center; margin-bottom: auto; }
+    .menu-tile .mi svg { width: 24px; height: 24px; }
+    .menu-tile b { font-family: var(--display); font-size: 18px; font-weight: 700; line-height: 1.15; margin-top: 12px; }
+    .menu-tile span:not(.mi):not(.mcount) { font-size: 13px; font-weight: 700; opacity: .8; line-height: 1.3; }
+    .menu-tile .mcount { position: absolute; top: 12px; right: 12px; min-width: 26px; height: 26px; padding: 0 8px; border-radius: 13px; border: 2px solid var(--ink); background: #fff; font-size: 13px; font-weight: 800; line-height: 22px; text-align: center; }
+    .menu-tile .mcount:empty { display: none; }
+    .menu-tile.t-coral { background: var(--coral); } .menu-tile.t-sky { background: var(--sky); } .menu-tile.t-sun { background: var(--sun); }
+    .menu-tile.t-lilac { background: var(--lilac); } .menu-tile.t-brand { background: var(--brand); } .menu-tile.t-wa { background: var(--wa); }
+    .menu-list { margin-top: 12px; }
+    .menu-list .row-btn { font-weight: 700; }
+    .menu-list .mi { flex: none; width: 40px; height: 40px; border-radius: 13px; border: 2px solid var(--ink); display: grid; place-items: center; background: var(--card-2); color: var(--text); }
+    .menu-list .mi svg { width: 22px; height: 22px; }
+    .menu-list .row-sub { font-weight: 600; }
+    .on-pill { display: inline-block; padding: 0 8px; border-radius: 999px; border: 2px solid var(--ink); background: var(--sun); color: #1B1530; font-size: 12px; font-weight: 800; }
+
+    /* away mode */
+    .away-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .away-head b { display: block; font-size: 16px; }
+    .away-head small { display: block; color: var(--muted); font-size: 14px; font-weight: 500; }
+    .away-card.on { background: var(--sun-soft); }
+
+    /* delivery areas */
+    .zone-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; animation: op-pop .3s cubic-bezier(.2, .9, .3, 1.4) both; }
+    .zone-row input.zname { flex: 1; min-width: 0; }
+    .zone-row .prefix { width: 118px; flex: none; }
+    .zone-row .prefix input { padding-left: 32px; }
+
+    /* stock */
+    .stock-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-top: 2px solid var(--line); }
+    .stock-row:first-child { border-top: 0; }
+    .sthumb { position: relative; flex: none; width: 46px; height: 46px; border-radius: 14px; border: 2px solid var(--ink); overflow: hidden; display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: 18px; color: #1B1530; }
+    .sthumb img { width: 100%; height: 100%; object-fit: cover; }
+    .sthumb .badge, .sthumb .pcount, .sthumb .left-tag { display: none; }
+    .stock-row .row-sub, .menu-list .row-sub { white-space: normal; }
+    .stock-row .choice-name { display: block; font-size: 14px; font-weight: 800; color: var(--text); }
+    .stock-row .row-main { min-width: 0; }
+    .stock-row .row-name { white-space: normal; line-height: 1.25; font-size: 15px; }
+    .stock-row.low .row-sub { color: var(--bad); font-weight: 800; }
+    .stock-step { display: flex; align-items: center; border: var(--bw) solid var(--ink); border-radius: 13px; overflow: hidden; background: var(--card); flex: none; }
+    .stock-step button { width: 36px; height: 38px; border: 0; background: var(--sun); color: #1B1530; font-size: 20px; font-weight: 800; cursor: pointer; }
+    .stock-step input { width: 52px; height: 38px; border: 0; border-left: 2px solid var(--ink); border-right: 2px solid var(--ink); border-radius: 0; padding: 0; text-align: center; font-family: var(--display); font-weight: 700; font-size: 17px; background: var(--card); color: var(--text); box-shadow: none; }
+    .stock-row.out .stock-step input { background: var(--coral); color: #1B1530; }
+    .pgrid .left-tag { position: absolute; left: 8px; bottom: 8px; padding: 1px 8px; border-radius: 999px; border: 2px solid var(--ink); background: var(--sun); color: #1B1530; font-family: var(--body); font-size: 12px; font-weight: 800; }
+    .pgrid .left-tag.out { background: var(--coral); }
+    .choice-bottom .qty { width: 64px; flex: none; padding: 9px 6px; font-size: 16px; text-align: center; }
+
+    /* customers */
+    .cust-tools { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .seg.sorts { margin-top: 0; }
+    .seg.sorts button { font-size: 14px; padding: 7px 2px; }
+    .cust-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+    .tag { display: inline-block; padding: 0 8px; border-radius: 999px; border: 2px solid var(--ink); background: var(--lilac); color: #1B1530; font-size: 12px; font-weight: 800; line-height: 20px; }
+    .note-flag { display: inline-block; margin-left: 4px; font-size: 12px; font-weight: 800; color: var(--muted); }
+    .cust-hero { position: relative; overflow: hidden; }
+    .cust-hero .avatar { width: 60px; height: 60px; border-radius: 19px; font-size: 24px; }
+    .cust-hero h1 { margin: 0; font-size: 26px; overflow-wrap: anywhere; }
+    .cust-hero .btn.sun { margin-top: 10px; }
+    .tag-edit { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag-edit .tag { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; line-height: 26px; padding: 0 4px 0 12px; }
+    .tag-edit .tag button { border: 0; background: none; color: inherit; font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; padding: 0 6px; }
+    .tag-add { display: flex; gap: 8px; margin-top: 10px; }
+    .tag-add input { flex: 1; min-width: 0; }
+    details.card summary { cursor: pointer; font-weight: 800; list-style: none; }
+    details.card summary::-webkit-details-marker { display: none; }
+    details.card summary::after { content: ' ›'; }
+    details.card[open] summary::after { content: ' ‹'; }
+    .favs { margin: 12px 0 0; font-weight: 700; }
+
+    /* order history */
+    .timeline { list-style: none; margin: 0; padding: 0; }
+    .timeline li { position: relative; display: flex; gap: 12px; padding: 0 0 14px; }
+    .timeline li:not(:last-child)::before { content: ''; position: absolute; left: 14px; top: 30px; bottom: 2px; width: 2px; background: var(--line); }
+    .tl-dot { flex: none; width: 30px; height: 30px; border-radius: 10px; border: 2px solid var(--ink); display: grid; place-items: center; background: var(--card-2); color: #1B1530; }
+    .tl-dot svg { width: 16px; height: 16px; }
+    .tl-placed { background: var(--sky); } .tl-status { background: var(--lilac); } .tl-payment { background: var(--brand); }
+    .tl-payment_removed { background: var(--card-2); color: var(--text); } .tl-customer_paid { background: var(--coral); }
+    .tl-note { background: var(--sun); } .tl-invoice_sent, .tl-quick_reply { background: var(--wa); }
+    .timeline .tl-text { min-width: 0; font-weight: 700; font-size: 15px; overflow-wrap: anywhere; }
+    .timeline .tl-text small { display: block; color: var(--muted); font-weight: 600; font-size: 13px; }
+    .timeline li.tl-is-note .tl-text { font-weight: 600; font-style: italic; }
+    .note-add { display: flex; gap: 8px; margin-top: 4px; }
+    .note-add input { flex: 1; min-width: 0; }
+    .order-links { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 12px; }
+    .order-links .btn { width: auto; flex: 1; margin: 0; }
+
+    .card.tint-sun .muted { color: #1B1530; opacity: .75; }
+    .alert-btn { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; box-shadow: var(--shadow-sm); }
+    .alert-btn.coral { background: var(--coral); }
+    .alert-btn span { flex: 1; }
+
+    /* search on lists */
+    .list-search { margin-top: 12px; }
+
+    /* quick replies */
+    .reply-edit { margin-top: 12px; padding: 12px; border: var(--bw) solid var(--ink); border-radius: 18px; background: var(--card); box-shadow: var(--shadow-sm); animation: op-pop .3s cubic-bezier(.2, .9, .3, 1.4) both; }
+    .reply-edit .opt-head input { font-weight: 800; }
+    .reply-edit textarea { margin-top: 8px; min-height: 96px; }
+    .ph-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .ph-chips button { border: 2px solid var(--ink); background: var(--sky); color: #1B1530; border-radius: 999px; padding: 2px 10px; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+    .reply-pick { display: block; padding: 12px 14px; margin-top: 10px; border: var(--bw) solid var(--ink); border-radius: 18px; background: var(--card); color: var(--text); text-decoration: none; box-shadow: var(--shadow-sm); }
+    .reply-pick:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+    .reply-pick b { display: block; font-size: 16px; }
+    .reply-pick span { display: block; margin-top: 2px; font-size: 14px; color: var(--muted); font-weight: 600; white-space: pre-line; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
     /* undo bar */
     .snack { position: fixed; left: 50%; bottom: calc(104px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); width: min(440px, calc(100vw - 32px)); display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 16px; border: var(--bw) solid var(--ink); border-radius: 18px; background: var(--brand); color: #1B1530; box-shadow: var(--shadow); font-weight: 800; z-index: 61; opacity: 0; pointer-events: none; transition: opacity .2s, transform .35s cubic-bezier(.2, .9, .3, 1.5); }
     .snack.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
@@ -252,6 +362,8 @@
     .tab svg { width: 23px; height: 23px; }
     .tab.active { background: var(--brand); color: #1B1530; border-color: var(--ink); }
     .tab.active svg { animation: op-bump .4s ease; }
+    .tab { position: relative; }
+    .tab-dot { position: absolute; top: 4px; right: calc(50% - 20px); width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--ink); background: var(--coral); }
   </style>
 </head>
 <body>
@@ -434,6 +546,7 @@
         <p class="alert" id="home-says-paid" hidden></p>
         <button class="btn secondary" type="button" data-tab="orders" style="margin-top:14px">View orders</button>
       </div>
+      <button class="alert alert-btn coral" type="button" id="home-low-stock" hidden><span id="home-low-stock-text"></span><b>›</b></button>
       <div class="card" id="setup-card" hidden>
         <p class="card-label" id="setup-label">Set up your store</p>
         <div class="progress"><div id="setup-bar"></div></div>
@@ -458,6 +571,7 @@
         <h1>Orders</h1>
         <button class="btn small sun" type="button" id="new-order-btn">+ New</button>
       </div>
+      <input type="search" id="orders-search" class="list-search" placeholder="Search name, phone, #number or item" autocomplete="off" enterkeyhint="search" aria-label="Search orders">
       <div class="chips" id="order-filters">
         <button class="chip active" type="button" data-filter="all">All</button>
         <button class="chip" type="button" data-filter="new">New<span id="chip-new"></span></button>
@@ -494,6 +608,10 @@
         <div class="contact">
           <a class="btn secondary" id="order-call" href="#">Call</a>
           <a class="btn wa" id="order-chat" href="#" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+        <div class="order-links">
+          <button class="btn small grape" type="button" id="order-quick">Quick reply</button>
+          <button class="btn small secondary" type="button" id="order-customer-page">Customer page</button>
         </div>
       </div>
 
@@ -540,6 +658,16 @@
         <button class="btn secondary" type="button" id="order-copy-invoice">Copy link</button>
       </div>
       <p class="center"><a class="link" id="order-open-invoice" href="#" target="_blank" rel="noopener">Open invoice</a></p>
+
+      <p class="section-title">History</p>
+      <div class="card">
+        <ol class="timeline" id="order-timeline"></ol>
+        <form class="note-add" id="note-form" novalidate>
+          <input id="note-input" type="text" maxlength="300" autocomplete="off" placeholder="Add a note, like &quot;Rider picked up&quot;" aria-label="Add a note to this order">
+          <button class="btn small" type="submit" id="note-save">Add</button>
+        </form>
+        <p class="error" id="note-error"></p>
+      </div>
       <p class="error" id="order-error"></p>
     </section>
 
@@ -584,6 +712,10 @@
 
         <div class="card">
           <h3>Extras</h3>
+          <div id="neworder-zone-box" hidden>
+            <label for="neworder-zone">Delivery area</label>
+            <select id="neworder-zone"></select>
+          </div>
           <div class="two">
             <div><label for="neworder-fee">Delivery fee</label><div class="prefix"><span>₦</span><input id="neworder-fee" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
             <div><label for="neworder-discount">Discount</label><div class="prefix"><span>₦</span><input id="neworder-discount" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
@@ -599,15 +731,88 @@
 
     <!-- Customers -->
     <section class="view" id="view-customers">
-      <button class="back" type="button" data-tab="home">‹ Home</button>
+      <button class="back" type="button" data-tab="more">‹ More</button>
       <h1 style="margin-top:14px">Customers</h1>
       <p class="sub" id="customers-sub">Everyone who has ordered, and who still owes you.</p>
+      <div class="cust-tools">
+        <input type="search" id="customers-search" placeholder="Search by name or phone" autocomplete="off" enterkeyhint="search" aria-label="Search customers">
+        <div class="seg sorts" id="customers-sort" role="group" aria-label="Sort customers">
+          <button type="button" data-sort="owing">Owing</button>
+          <button type="button" data-sort="recent">Recent</button>
+          <button type="button" data-sort="top">Top</button>
+          <button type="button" data-sort="name">A–Z</button>
+        </div>
+      </div>
+      <div class="chips" id="customers-tags" hidden></div>
       <div id="customers-list"></div>
+    </section>
+
+    <!-- One customer -->
+    <section class="view" id="view-customer">
+      <button class="back" type="button" data-tab="customers">‹ Customers</button>
+      <div class="card cust-hero">
+        <div class="person">
+          <span class="avatar" id="cust-avatar">?</span>
+          <div class="row-main">
+            <h1 id="cust-name">Customer</h1>
+            <p class="muted" id="cust-phone" style="margin:2px 0 0;font-weight:700"></p>
+          </div>
+        </div>
+        <div class="cust-tags" id="cust-tags-view"></div>
+        <p class="muted" id="cust-address" style="margin:8px 0 0;font-weight:600"></p>
+        <div class="contact">
+          <a class="btn secondary" id="cust-call" href="#">Call</a>
+          <a class="btn wa" id="cust-chat" href="#" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+        <button class="btn sun" type="button" id="cust-new-order">+ New order for this customer</button>
+      </div>
+      <div class="stats" id="cust-stats">
+        <div class="tile sky"><b id="cust-orders-n">0</b><span>Orders</span></div>
+        <div class="tile green"><b id="cust-spent">₦0</b><span>Spent</span></div>
+      </div>
+      <div class="stats" style="margin-top:0">
+        <div class="tile coral"><b id="cust-owing">₦0</b><span>Owes you</span></div>
+        <div class="tile lilac"><b id="cust-average">₦0</b><span>Average order</span></div>
+      </div>
+      <a class="remind" id="cust-remind" href="#" target="_blank" rel="noopener" style="margin-left:0" hidden>Remind on WhatsApp</a>
+      <p class="favs" id="cust-favs" hidden></p>
+
+      <p class="section-title">Labels</p>
+      <div class="card">
+        <div class="tag-edit" id="cust-tags"></div>
+        <form class="tag-add" id="cust-tag-form" novalidate>
+          <input id="cust-tag-input" type="text" maxlength="20" autocomplete="off" placeholder="Add a label, like VIP" aria-label="New label">
+          <button class="btn small" type="submit" id="cust-tag-add">Add</button>
+        </form>
+        <div class="cat-chips" id="cust-tag-suggest"></div>
+        <p class="error" id="cust-tag-error"></p>
+      </div>
+
+      <p class="section-title">Notes</p>
+      <div class="card">
+        <textarea id="cust-notes" maxlength="1000" placeholder="Sizes, favourite colours, gate code, how they like to pay…" aria-label="Notes about this customer"></textarea>
+        <p class="hint">Only you see these.</p>
+        <p class="error" id="cust-error"></p>
+        <button class="btn" type="button" id="cust-save-notes">Save notes</button>
+      </div>
+
+      <details class="card" id="cust-details">
+        <summary>Edit name and address</summary>
+        <label for="cust-edit-name">Name</label>
+        <input id="cust-edit-name" type="text" maxlength="80" autocomplete="off">
+        <label for="cust-edit-address">Delivery address</label>
+        <input id="cust-edit-address" type="text" maxlength="300" autocomplete="off">
+        <p class="error" id="cust-edit-error"></p>
+        <button class="btn secondary" type="button" id="cust-save-details">Save</button>
+      </details>
+
+      <p class="section-title">Orders</p>
+      <div id="cust-orders"></div>
     </section>
 
     <!-- Report (Pro) -->
     <section class="view" id="view-report">
-      <button class="back" type="button" data-tab="home">‹ Home</button>
+      <button class="back" type="button" data-tab="more">‹ Back</button>
       <h1 style="margin-top:14px">Last 30 days</h1>
       <div id="report-body"></div>
     </section>
@@ -621,7 +826,7 @@
 
     <!-- WhatsApp status picture -->
     <section class="view" id="view-status">
-      <button class="back" type="button" data-tab="home">‹ Home</button>
+      <button class="back" type="button" data-tab="home">‹ Back</button>
       <h1 style="margin-top:14px">Status picture</h1>
       <p class="sub">A picture of your products with your store link on it, sized for WhatsApp status.</p>
       <div class="status-frame"><canvas id="status-canvas" width="1080" height="1920" aria-label="Preview of your status picture"></canvas></div>
@@ -666,6 +871,9 @@
         <input id="product-name" type="text" maxlength="80" placeholder="e.g. Bone straight wig">
         <label for="product-price">Price</label>
         <div class="prefix"><span>₦</span><input id="product-price" type="text" inputmode="decimal" autocomplete="off" placeholder="45000"></div>
+        <label for="product-stock">How many you have <span class="muted">(optional)</span></label>
+        <input id="product-stock" type="text" inputmode="numeric" autocomplete="off" placeholder="Leave empty if you don't count">
+        <p class="hint" id="product-stock-hint">Goes down with each order. At 0 customers see "Sold out".</p>
         <label for="product-category">Category <span class="muted">(optional)</span></label>
         <input id="product-category" type="text" maxlength="40" list="category-list" autocomplete="off" placeholder="e.g. Wigs, Hair care, Drinks">
         <datalist id="category-list"></datalist>
@@ -674,7 +882,7 @@
         <textarea id="product-description" maxlength="300" placeholder="Material, what's included, how to use…"></textarea>
 
         <div class="photos-head" style="margin-top:20px">Options <span class="muted">(like Size or Colour)</span></div>
-        <p class="hint" style="margin-top:2px">Customers pick one choice from each option. Give a choice an extra price if it costs more.</p>
+        <p class="hint" style="margin-top:2px">Customers pick one choice from each option. Give a choice an extra price if it costs more, and a quantity if you count each one.</p>
         <div id="option-groups"></div>
         <button class="btn secondary small" type="button" id="add-option" style="margin-top:12px">+ Add an option</button>
 
@@ -689,10 +897,143 @@
       <p class="center"><button class="link" type="button" data-tab="products">Back to products</button></p>
     </section>
 
+    <!-- More: every seller tool in one place -->
+    <section class="view" id="view-more">
+      <h1 style="margin-top:16px">More</h1>
+      <p class="sub">Tools to run your store.</p>
+
+      <p class="section-title">Customers</p>
+      <div class="menu-grid">
+        <button class="menu-tile t-coral" type="button" id="more-customers" data-open="customers">
+          <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c2.4 0 4 1.5 4.5 4"/></svg></span><span class="mcount" id="more-customers-n"></span>
+          <b>Customers</b><span>Notes, labels and who owes you</span>
+        </button>
+        <button class="menu-tile t-wa" type="button" id="more-replies" data-open="replies">
+          <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/></svg></span>
+          <b>Quick replies</b><span>Saved WhatsApp messages</span>
+        </button>
+      </div>
+
+      <p class="section-title">Stock and delivery</p>
+      <div class="menu-grid">
+        <button class="menu-tile t-sun" type="button" id="more-stock" data-open="stock">
+          <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg></span><span class="mcount" id="more-stock-n"></span>
+          <b>Stock</b><span id="more-stock-sub">Count what's left</span>
+        </button>
+        <button class="menu-tile t-sky" type="button" id="more-delivery" data-open="delivery">
+          <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17l4-8h5l3 8M9 9H6M15 9l-1-3h-2"/></svg></span>
+          <b>Delivery</b><span id="more-delivery-sub">Fees by area</span>
+        </button>
+      </div>
+
+      <p class="section-title">Grow</p>
+      <div class="menu-grid">
+        <button class="menu-tile t-lilac" type="button" id="more-status" data-open="status">
+          <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"/><circle cx="12" cy="10" r="3"/><path d="M9 16h6"/></svg></span>
+          <b>Status picture</b><span>Your products on WhatsApp status</span>
+        </button>
+        <button class="menu-tile t-brand" type="button" id="more-report" data-open="report">
+          <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
+          <b>Sales report</b><span>Last 30 days and best sellers</span>
+        </button>
+      </div>
+
+      <p class="section-title">Your store</p>
+      <div class="list menu-list">
+        <button class="row-btn" type="button" id="more-away" data-open="away">
+          <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></span>
+          <div class="row-main"><div class="row-name">Away mode</div><div class="row-sub" id="more-away-sub">Off</div></div>
+          <span class="chev">›</span>
+        </button>
+        <button class="row-btn" type="button" id="more-settings" data-open="settings">
+          <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg></span>
+          <div class="row-main"><div class="row-name">Settings</div><div class="row-sub">Store link, bank, colours, plan</div></div>
+          <span class="chev">›</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Delivery: default fee and areas -->
+    <section class="view" id="view-delivery">
+      <button class="back" type="button" data-tab="more">‹ More</button>
+      <h1 style="margin-top:14px">Delivery</h1>
+      <p class="sub">What customers pay to get their order.</p>
+      <div class="card">
+        <h3 style="margin:0">Delivery areas</h3>
+        <p class="hint" style="margin-top:4px">Give each area its own fee, like Lekki ₦3,000 or Pick up ₦0. Customers choose their area at checkout.</p>
+        <div id="zone-list"></div>
+        <div class="cat-chips" id="zone-suggest"></div>
+        <button class="btn secondary small" type="button" id="zone-add" style="margin-top:12px">+ Add an area</button>
+      </div>
+      <div class="card">
+        <label for="delivery-fee" style="margin-top:0" id="delivery-fee-label">Delivery fee</label>
+        <div class="prefix"><span>₦</span><input id="delivery-fee" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+        <p class="hint" id="delivery-fee-hint">Charged on every order.</p>
+        <label for="delivery-note">Delivery note <span class="muted">(optional)</span></label>
+        <input id="delivery-note" type="text" maxlength="140" placeholder="e.g. Same-day delivery within Ondo">
+        <p class="hint">Shown on your store under the delivery fee.</p>
+      </div>
+      <p class="error" id="delivery-error"></p>
+      <button class="btn" type="button" id="delivery-save">Save delivery</button>
+    </section>
+
+    <!-- Stock counts -->
+    <section class="view" id="view-stock">
+      <button class="back" type="button" data-tab="more">‹ More</button>
+      <h1 style="margin-top:14px">Stock</h1>
+      <p class="sub">Counts go down with every order and come back if you cancel one.</p>
+      <div class="chips" id="stock-filters">
+        <button class="chip active" type="button" data-sf="all">All</button>
+        <button class="chip" type="button" data-sf="low">Running low<span id="stock-low-n"></span></button>
+        <button class="chip" type="button" data-sf="out">Sold out<span id="stock-out-n"></span></button>
+      </div>
+      <div id="stock-list"></div>
+      <div id="stock-uncounted-box">
+        <p class="section-title">Not counted</p>
+        <p class="hint" style="margin-top:4px">Products you don't keep a count for. Tap one to start counting.</p>
+        <div id="stock-uncounted"></div>
+      </div>
+    </section>
+
+    <!-- Quick replies -->
+    <section class="view" id="view-replies">
+      <button class="back" type="button" data-tab="more">‹ More</button>
+      <h1 style="margin-top:14px">Quick replies</h1>
+      <p class="sub">Messages you send a lot. On an order, tap Quick reply to send one on WhatsApp, already filled in.</p>
+      <div class="card tint-sun" style="font-size:14px;font-weight:700">
+        These words get filled in for you:
+        <div class="kv"><span>{name}</span><span class="muted">customer's first name</span></div>
+        <div class="kv"><span>{order}</span><span class="muted">order number</span></div>
+        <div class="kv"><span>{total} · {balance}</span><span class="muted">order total · still owed</span></div>
+        <div class="kv"><span>{link}</span><span class="muted">invoice link</span></div>
+        <div class="kv"><span>{store}</span><span class="muted">your business name</span></div>
+      </div>
+      <div id="reply-list"></div>
+      <button class="btn secondary small" type="button" id="reply-add" style="margin-top:12px">+ Add a reply</button>
+      <p class="error" id="replies-error"></p>
+      <button class="btn" type="button" id="replies-save">Save replies</button>
+      <p class="center"><button class="link" type="button" id="replies-reset">Go back to the starter messages</button></p>
+    </section>
+
     <!-- Settings -->
     <section class="view" id="view-settings">
-      <h1>Settings</h1>
+      <button class="back" type="button" data-tab="more">‹ More</button>
+      <h1 style="margin-top:14px">Settings</h1>
       <p class="sub">What customers see on your store and invoices.</p>
+
+      <div class="card away-card" id="away-card">
+        <div class="away-head">
+          <div><b>Away mode</b><small>Show a note on your store. Orders still come in.</small></div>
+          <label class="switch"><input type="checkbox" id="away-switch" aria-label="Away mode"><span></span></label>
+        </div>
+        <div id="away-body" hidden>
+          <label for="away-message">Message on your store</label>
+          <input id="away-message" type="text" maxlength="140" autocomplete="off" placeholder="e.g. Back on Monday. You can still order.">
+          <div class="cat-chips" id="away-chips"></div>
+          <p class="error" id="away-error"></p>
+          <button class="btn" type="button" id="away-save">Save away message</button>
+        </div>
+      </div>
 
       <div class="card" id="theme-card">
         <div style="font-weight:800;font-size:16px">Store colour</div>
@@ -753,13 +1094,7 @@
           <p class="hint">Shown on invoices so customers know where to pay.</p>
         </div>
 
-        <p class="section-title">Delivery</p>
-        <div class="card settings-group">
-          <label for="settings-fee">Delivery fee</label>
-          <div class="prefix"><span>₦</span><input id="settings-fee" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
-          <label for="settings-note">Delivery note <span class="muted">(optional)</span></label>
-          <input id="settings-note" type="text" maxlength="140" placeholder="e.g. Same-day delivery within Ondo">
-        </div>
+        <p class="hint">Delivery fees and areas are under More › Delivery.</p>
 
         <p class="error" id="settings-error"></p>
         <button class="btn" type="submit" id="settings-save">Save changes</button>
@@ -807,9 +1142,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12.1a1 1 0 0 1-1 .9H7.2a1 1 0 0 1-1-.9z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg>
         Products
       </button>
-      <button class="tab" type="button" data-tab="settings" id="tab-settings">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg>
-        Settings
+      <button class="tab" type="button" data-tab="more" id="tab-more">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>
+        More<span class="tab-dot" id="tab-more-dot" hidden></span>
       </button>
     </div>
   </nav>
@@ -824,13 +1159,16 @@
       filter: 'all', orders: [], hasMore: false, counts: null, order: null,
       draft: [], unread: 0, poller: null, backTo: 'home',
       stats: null, billing: null, customerFilter: null,
-      photoLimit: 1, pendingPhotos: [], photoBusy: false, statusPick: null, snackTimer: null
+      photoLimit: 1, pendingPhotos: [], photoBusy: false, statusPick: null, snackTimer: null,
+      q: '', customer: null, custQuery: { q: '', tag: '', sort: 'owing' }, custTags: [], custCount: null,
+      stockFilter: 'all', zoneDraft: [], replyDraft: [], prefill: null
     };
     // Logged-in screens, and which tab each one belongs to.
     const APP_VIEWS = {
       home: 'home', orders: 'orders', order: 'orders', neworder: 'orders',
-      products: 'products', product: 'products', settings: 'settings', notifications: '',
-      customers: 'home', report: 'home', status: 'home'
+      products: 'products', product: 'products', notifications: '',
+      more: 'more', settings: 'more', customers: 'more', customer: 'more', delivery: 'more',
+      stock: 'more', replies: 'more', report: 'more', status: 'more'
     };
     const THEMES = [
       { id: 'green', name: 'Green', hex: '#12B76A', ink: '#1B1530' },
@@ -841,6 +1179,7 @@
       { id: 'night', name: 'Night', hex: '#2A2150', ink: '#FFFFFF' }
     ];
     const themeOf = (id) => THEMES.find((t) => t.id === id) || THEMES[0];
+    const LOW_STOCK = 3; // "running low" at this many or fewer
     const TINTS = ['t0', 't1', 't2', 't3', 't4'];
     const tintFor = (text) => TINTS[[...String(text || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % TINTS.length];
     const initials = (name) => (String(name || '').replace(/['’]/g, '').match(/[A-Za-z0-9]+/g) || ['?']).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
@@ -875,7 +1214,7 @@
     // back like in an app. Tabs replace the address; screens opened from a tab
     // (an order, a product, customers…) are added on top and remember the
     // scroll position underneath.
-    const TOP_VIEWS = ['home', 'orders', 'products', 'settings', 'login', 'signup', 'forgot'];
+    const TOP_VIEWS = ['home', 'orders', 'products', 'more', 'login', 'signup', 'forgot'];
     const ORDER_FILTERS = ['all', 'new', 'unpaid', 'delivered'];
     let navMode = 'auto'; // how the next screen change treats history: 'auto', 'replace' or 'none'
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
@@ -888,6 +1227,7 @@
       if (name === 'order') return state.order ? 'order/' + state.order.id : 'orders';
       if (name === 'product') return state.editing ? 'product/' + state.editing.id : 'product/new';
       if (name === 'neworder') return 'new-order';
+      if (name === 'customer') return state.customer ? 'customer/' + state.customer.customer.id : 'customers';
       if (name === 'orders') return state.filter && state.filter !== 'all' ? 'orders/' + state.filter : 'orders';
       return name;
     }
@@ -947,10 +1287,13 @@
         case '':
         case 'home':
           return goTab('home');
-        case 'orders':
-          state.filter = ORDER_FILTERS.includes(a) ? a : 'all';
-          state.orders = [];
+        case 'orders': {
+          // Coming back to the same list: keep showing it while it refreshes.
+          const filter = ORDER_FILTERS.includes(a) ? a : 'all';
+          if (filter !== state.filter || state.customerFilter) state.orders = [];
+          state.filter = filter;
           return goTab('orders');
+        }
         case 'order':
           return openOrder(Number(a), { fallback: true });
         case 'new-order':
@@ -966,10 +1309,20 @@
           navMode = 'replace';
           return goTab('products');
         }
+        case 'more':
+          return goTab('more');
         case 'settings':
           return goTab('settings');
+        case 'delivery':
+          return openDelivery();
+        case 'stock':
+          return openStock();
+        case 'replies':
+          return openReplies();
         case 'customers':
           return loadCustomers();
+        case 'customer':
+          return openCustomer(Number(a), { fallback: true });
         case 'report':
           return loadReport();
         case 'notifications':
@@ -985,11 +1338,23 @@
       if ($('view-loading').classList.contains('active')) return;
       const y = e.state && e.state.y;
       $('snack').classList.remove('show');
+      closeSheet();
       navMode = 'none';
-      await openRoute(currentRoute());
+      const opening = openRoute(currentRoute());
+      if (y) restoreScroll(y);
+      await opening;
       navMode = 'auto';
-      if (y) setTimeout(() => window.scrollTo(0, y), 60);
+      if (y && Math.abs(window.scrollY - y) > 5) restoreScroll(y);
     });
+    // Scrolls back once the list underneath is tall enough again (it may
+    // still be loading on a slow connection).
+    function restoreScroll(y, tries = 0) {
+      setTimeout(() => {
+        const room = document.documentElement.scrollHeight - window.innerHeight;
+        if (room >= y - 5 || tries >= 30) window.scrollTo(0, Math.min(y, Math.max(0, room)));
+        else restoreScroll(y, tries + 1);
+      }, 60);
+    }
 
     function toast(text, tone) {
       const el = $('toast');
@@ -1292,7 +1657,7 @@
       startPolling();
       if (!setup) {
         const { ok, data } = await api('/api/me');
-        if (ok) { state.vendor = data.vendor; state.setup = data.setup; renderHome(); }
+        if (ok) { state.vendor = data.vendor; state.setup = data.setup; renderHome(); renderMore(); }
       }
       loadOrders(true, { quiet: true });
       loadStats();
@@ -1352,6 +1717,13 @@
         $('sales-received').textContent = 'Received this month: ' + formatNaira(st.month.receivedKobo);
       }
 
+      // Stock running low (3 or fewer, or sold out)
+      const low = st ? st.lowStock || 0 : 0;
+      $('home-low-stock').hidden = !low;
+      $('home-low-stock-text').textContent = low === 1 ? '1 item is running low or sold out. Check your stock.' : low + ' items are running low or sold out. Check your stock.';
+      $('tab-more-dot').hidden = !low;
+      if (document.querySelector('#view-more.active')) renderMore();
+
       // Orders summary, once there are any.
       $('orders-card').hidden = !(c && c.total);
       if (c && c.total) {
@@ -1380,6 +1752,7 @@
       if (name === 'orders') {
         if (!focusId && !keepCustomerFilter) state.customerFilter = null;
         keepCustomerFilter = false;
+        $('orders-search').value = state.q;
         switchView('orders');
         await loadOrders(true);
       } else if (name === 'products') {
@@ -1389,6 +1762,10 @@
         fillSettings();
         switchView('settings');
         loadBilling();
+      } else if (name === 'more') {
+        renderMore();
+        switchView('more');
+        loadStats();
       } else {
         renderHome();
         switchView('home');
@@ -1411,8 +1788,11 @@
     // ---------- logged in: Products ----------
     async function loadProducts() {
       if (!state.products) $('products-list').innerHTML = '<p class="empty">Loading…</p>';
+      const edits = productEdits;
       const { ok, status, data } = await api('/api/products');
       if (status === 401) return sessionLost();
+      // Changed something while this was loading: keep the newer list.
+      if (edits !== productEdits && state.products) return renderProducts();
       if (!ok) {
         $('products-list').innerHTML = '';
         const p = document.createElement('p');
@@ -1461,6 +1841,7 @@
         box.appendChild(document.createTextNode(initials(p.name).slice(0, 1)));
       }
       if (!p.isActive) box.appendChild(el('span', 'badge', 'Hidden'));
+      else if (p.stock !== null && p.stock !== undefined && p.stock <= LOW_STOCK) box.appendChild(el('span', 'left-tag' + (p.stock <= 0 ? ' out' : ''), p.stock <= 0 ? 'Sold out' : p.stock + ' left'));
       if (photos.length > 1) {
         const n = el('span', 'pcount');
         n.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="12" cy="12" r="3"/></svg>';
@@ -1532,8 +1913,9 @@
       $('product-price').value = p ? koboToInput(p.priceKobo) : '';
       $('product-description').value = p ? p.description : '';
       $('product-category').value = p ? (p.category || '') : '';
+      $('product-stock').value = p && p.stock !== null && p.stock !== undefined ? String(p.stock) : '';
       renderCategoryChips();
-      state.optDraft = p ? (p.options || []).map((g) => ({ name: g.name, choices: g.choices.map((c) => ({ id: c.id, label: c.label, extra: c.extraKobo ? koboToInput(c.extraKobo) : '', soldOut: c.soldOut })) })) : [];
+      state.optDraft = p ? (p.options || []).map((g) => ({ name: g.name, choices: g.choices.map((c) => ({ id: c.id, label: c.label, extra: c.extraKobo ? koboToInput(c.extraKobo) : '', soldOut: c.soldOut, stock: c.stock === null || c.stock === undefined ? '' : String(c.stock) })) })) : [];
       renderOptions();
       $('product-active').checked = p ? p.isActive : true;
       $('product-save').textContent = p ? 'Save changes' : 'Add product';
@@ -1628,7 +2010,7 @@
           label.setAttribute('aria-label', 'Choice name');
           label.addEventListener('input', () => { c.label = label.value; });
           label.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') { e.preventDefault(); g.choices.push({ label: '', extra: '', soldOut: false }); renderOptions({ g: gi, c: g.choices.length - 1 }); }
+            if (e.key === 'Enter') { e.preventDefault(); g.choices.push({ label: '', extra: '', soldOut: false, stock: '' }); renderOptions({ g: gi, c: g.choices.length - 1 }); }
           });
           const x = el('button', 'x', '×');
           x.type = 'button';
@@ -1647,6 +2029,14 @@
           extra.addEventListener('input', () => { c.extra = extra.value; price.textContent = choicePriceText(c); });
           pre.appendChild(extra);
           const price = el('span', 'choice-price', choicePriceText(c));
+          const qty = document.createElement('input');
+          qty.type = 'text';
+          qty.inputMode = 'numeric';
+          qty.className = 'qty';
+          qty.value = c.stock || '';
+          qty.placeholder = 'Qty';
+          qty.setAttribute('aria-label', 'How many of this choice you have');
+          qty.addEventListener('input', () => { qty.value = qty.value.replace(/\D/g, '').slice(0, 7); c.stock = qty.value; });
           const stock = el('button', 'stock', c.soldOut ? 'Sold out' : 'In stock');
           stock.type = 'button';
           stock.setAttribute('aria-pressed', String(!!c.soldOut));
@@ -1656,14 +2046,14 @@
             stock.textContent = c.soldOut ? 'Sold out' : 'In stock';
             stock.setAttribute('aria-pressed', String(c.soldOut));
           });
-          bottom.append(pre, price, stock);
-          row.append(top, bottom);
+          bottom.append(pre, qty, stock);
+          row.append(top, bottom, price);
           group.appendChild(row);
         });
         const addChoice = el('button', 'btn secondary small opt-add-choice', '+ Add choice');
         addChoice.type = 'button';
         addChoice.disabled = g.choices.length >= 20;
-        addChoice.addEventListener('click', () => { g.choices.push({ label: '', extra: '', soldOut: false }); renderOptions({ g: gi, c: g.choices.length - 1 }); });
+        addChoice.addEventListener('click', () => { g.choices.push({ label: '', extra: '', soldOut: false, stock: '' }); renderOptions({ g: gi, c: g.choices.length - 1 }); });
         group.appendChild(addChoice);
         box.appendChild(group);
       });
@@ -1676,7 +2066,7 @@
       }
     }
     $('add-option').addEventListener('click', () => {
-      state.optDraft.push({ name: '', choices: [{ label: '', extra: '', soldOut: false }, { label: '', extra: '', soldOut: false }] });
+      state.optDraft.push({ name: '', choices: [{ label: '', extra: '', soldOut: false, stock: '' }, { label: '', extra: '', soldOut: false, stock: '' }] });
       renderOptions({ g: state.optDraft.length - 1 });
     });
 
@@ -1692,8 +2082,9 @@
         for (const c of choices) {
           if (!c.label.trim()) return { error: 'Give every ' + name + ' choice a name.' };
           if (String(c.extra || '').trim() && !looksLikeNaira(c.extra)) return { error: 'Enter the extra price for "' + c.label.trim() + '" in naira, like 5000.' };
+          if (String(c.stock || '').trim() && !/^\d+$/.test(String(c.stock).trim())) return { error: 'Enter how many "' + c.label.trim() + '" you have, like 5, or leave it empty.' };
         }
-        out.push({ name, choices: choices.map((c) => ({ id: c.id, label: c.label.trim(), extra: String(c.extra || '').trim(), soldOut: !!c.soldOut })) });
+        out.push({ name, choices: choices.map((c) => ({ id: c.id, label: c.label.trim(), extra: String(c.extra || '').trim(), soldOut: !!c.soldOut, stock: String(c.stock || '').trim() })) });
       }
       return { options: out };
     }
@@ -1799,7 +2190,9 @@
     }
     function clearPhotoError() { $('photo-error').textContent = ''; $('photo-error').classList.remove('show'); }
 
+    let productEdits = 0; // bumped on every change made here, so older loads don't undo it
     function storeEdited(product) {
+      productEdits += 1;
       state.editing = product;
       state.products = (state.products || []).map((x) => (x.id === product.id ? product : x));
     }
@@ -1869,9 +2262,11 @@
       if (!looksLikeNaira(price) || Number(price.replace(/[₦,\s]/g, '')) <= 0) {
         return showError('product', 'Enter the price in naira, like 4500.', 'price');
       }
+      const stock = $('product-stock').value.replace(/[,\s]/g, '');
+      if (stock && !/^\d+$/.test(stock)) return showError('product', 'Enter how many you have, like 12, or leave it empty.', 'stock');
       const opts = optionsForSave();
       if (opts.error) return showError('product', opts.error);
-      const body = { name, price, description, category: $('product-category').value.trim(), options: opts.options, isActive: $('product-active').checked };
+      const body = { name, price, description, category: $('product-category').value.trim(), options: opts.options, stock, isActive: $('product-active').checked };
       const editing = state.editing;
       if (editing) body.id = editing.id;
 
@@ -1896,6 +2291,7 @@
         state.pendingPhotos = [];
         busy(btn, false);
       }
+      productEdits += 1;
       if (editing) state.products = state.products.map((p) => (p.id === saved.id ? saved : p));
       else state.products.push(saved);
       state.products.sort((a, b) => Number(b.isActive) - Number(a.isActive));
@@ -1915,6 +2311,7 @@
       busy(btn, false);
       if (status === 401) return sessionLost();
       if (!ok) return showError('product', data.error || 'Could not delete the product.');
+      productEdits += 1;
       state.products = (state.products || []).filter((x) => x.id !== p.id);
       if (state.setup) state.setup.products = countActive();
       toast('Product deleted');
@@ -1930,7 +2327,7 @@
     // ---------- logged in: Settings ----------
     const SETTINGS_FIELDS = {
       businessName: 'name', slug: 'slug', whatsappPhone: 'whatsapp', bankName: 'bank',
-      bankAccountNumber: 'account-number', bankAccountName: 'account-name', deliveryFee: 'fee', deliveryNote: 'note'
+      bankAccountNumber: 'account-number', bankAccountName: 'account-name'
     };
 
     function settingsSlugOpts() {
@@ -1945,13 +2342,12 @@
       $('settings-bank').value = v.bankName || '';
       $('settings-account-number').value = v.bankAccountNumber || '';
       $('settings-account-name').value = v.bankAccountName || '';
-      $('settings-fee').value = v.deliveryFeeKobo ? koboToInput(v.deliveryFeeKobo) : '';
-      $('settings-note').value = v.deliveryNote || '';
       $('settings-email').textContent = v.email;
       $('admin-link').hidden = !v.isAdmin;
       setHint('settings-slug-hint', 'Your current link: ' + location.host + '/s/' + v.slug);
       renderThemePicker();
       renderModeSeg();
+      fillAway();
     }
 
     const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>';
@@ -2013,17 +2409,13 @@
 
     $('settings-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const fee = $('settings-fee').value.trim();
-      if (fee && !looksLikeNaira(fee)) return showError('settings', 'Enter the delivery fee in naira, like 1500.', 'fee');
       const body = {
         businessName: $('settings-name').value,
         slug: toSlug($('settings-slug').value),
         whatsappPhone: $('settings-whatsapp').value,
         bankName: $('settings-bank').value,
         bankAccountNumber: $('settings-account-number').value,
-        bankAccountName: $('settings-account-name').value,
-        deliveryFee: fee,
-        deliveryNote: $('settings-note').value
+        bankAccountName: $('settings-account-name').value
       };
       const btn = $('settings-save');
       busy(btn, true, 'Saving…');
@@ -2090,12 +2482,16 @@
       return d.toLocaleDateString('en-NG', { day: 'numeric', month: 'short' }) + ' ' + time;
     }
 
+    let ordersTicket = 0;
     async function loadOrders(reset, opts = {}) {
       const before = reset ? 0 : (state.orders.length ? state.orders[state.orders.length - 1].number : 0);
       if (reset && !opts.quiet && !state.orders.length) $('orders-list').innerHTML = '<p class="empty">Loading…</p>';
       const customer = state.customerFilter ? '&customer=' + state.customerFilter.id : '';
-      const { ok, status, data } = await api('/api/orders?filter=' + state.filter + customer + (before ? '&before=' + before : ''));
+      const q = state.q ? '&q=' + encodeURIComponent(state.q) : '';
+      const ticket = ++ordersTicket;
+      const { ok, status, data } = await api('/api/orders?filter=' + state.filter + customer + q + (before ? '&before=' + before : ''));
       if (!state.vendor) return; // logged out meanwhile
+      if (ticket !== ordersTicket) return; // a newer search is on its way
       if (status === 401) return sessionLost();
       if (!ok) {
         if (!opts.quiet) { $('orders-list').textContent = ''; $('orders-list').appendChild(el('p', 'empty', data.error || 'Could not load orders.')); }
@@ -2121,6 +2517,8 @@
       if (state.customerFilter) $('customer-filter').textContent = state.customerFilter.name + "'s orders  ×";
       const swipeable = state.orders.some(canSwipe);
       $('swipe-hint').hidden = !swipeable || hintDismissed();
+      $('orders-search').hidden = !state.q && !(c.total > 0);
+      if (!state.orders.length && state.q) return box.appendChild(el('p', 'empty', 'No orders match "' + state.q + '".'));
       if (!state.orders.length) {
         return box.appendChild(emptyBox(state.filter === 'all'
           ? 'No orders yet. Share your store link, or tap New to add an order from WhatsApp.'
@@ -2239,6 +2637,18 @@
       loadOrders(true);
     }));
     $('orders-more').addEventListener('click', () => loadOrders(false));
+    let searchTimer = null;
+    $('orders-search').addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        const q = $('orders-search').value.trim();
+        if (q === state.q) return;
+        state.q = q;
+        state.orders = [];
+        loadOrders(true);
+      }, 300);
+    });
+    $('orders-search').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('orders-search').blur(); });
     $('customer-filter').addEventListener('click', () => {
       state.customerFilter = null;
       state.orders = [];
@@ -2278,6 +2688,7 @@
       $('order-note').hidden = !o.note;
       $('order-call').href = 'tel:+' + o.customerPhone;
       $('order-chat').href = 'https://wa.me/' + o.customerPhone;
+      $('order-customer-page').hidden = !o.customerId;
 
       const items = $('order-items');
       items.textContent = '';
@@ -2289,7 +2700,7 @@
       const money = $('order-money');
       money.textContent = '';
       const rows = [['Subtotal', o.subtotalKobo]];
-      if (o.deliveryFeeKobo) rows.push(['Delivery', o.deliveryFeeKobo]);
+      if (o.deliveryFeeKobo || o.deliveryZone) rows.push(['Delivery' + (o.deliveryZone ? ' · ' + o.deliveryZone : ''), o.deliveryFeeKobo]);
       if (o.discountKobo) rows.push(['Discount', -o.discountKobo]);
       rows.forEach(([label, k]) => {
         const row = el('div', 'kv');
@@ -2350,13 +2761,14 @@
       if (o.status !== 'cancelled' && o.balanceKobo && o.amountPaidKobo) lines.push('Still to pay: ' + formatNaira(o.balanceKobo));
       $('order-send-invoice').href = 'https://wa.me/' + o.customerPhone + '?text=' + encodeURIComponent(lines.join('\n'));
       $('order-open-invoice').href = url;
+      renderTimeline(o);
     }
 
     async function orderAction(body, doneText) {
       const wasPaid = state.order.paymentStatus === 'paid';
       const { ok, status, data } = await api('/api/orders', { ...body, id: state.order.id });
       if (status === 401) { sessionLost(); return false; }
-      if (!ok) { showError(body.action === 'payment' ? 'payment' : 'order', data.error || 'Could not update the order.', data.field); return false; }
+      if (!ok) { showError(body.action === 'payment' ? 'payment' : body.action === 'note' ? 'note' : 'order', data.error || 'Could not update the order.', data.field); return false; }
       renderOrder(data.order);
       const nowPaid = data.order.paymentStatus === 'paid' && !wasPaid;
       if (nowPaid) { OP.confetti($('order-badges')); OP.buzz(20); }
@@ -2396,7 +2808,7 @@
 
     $('order-copy-invoice').addEventListener('click', async () => {
       const btn = $('order-copy-invoice');
-      try { await navigator.clipboard.writeText(invoiceUrl(state.order)); btn.textContent = 'Copied!'; }
+      try { await navigator.clipboard.writeText(invoiceUrl(state.order)); btn.textContent = 'Copied!'; logOrder('invoice_copied'); }
       catch (e) { btn.textContent = 'Hold "Open invoice" to copy'; }
       setTimeout(() => { btn.textContent = 'Copy link'; }, 2500);
     });
@@ -2411,18 +2823,37 @@
       state.draft = [];
       ['name', 'phone', 'address', 'note', 'discount', 'custom-name', 'custom-price'].forEach((f) => { $('neworder-' + f).value = ''; });
       $('neworder-fee').value = state.vendor.deliveryFeeKobo ? koboToInput(state.vendor.deliveryFeeKobo) : '';
+      const zones = state.vendor.deliveryZones || [];
+      $('neworder-zone-box').hidden = !zones.length;
+      const zoneSelect = $('neworder-zone');
+      zoneSelect.textContent = '';
+      zoneSelect.appendChild(Object.assign(document.createElement('option'), { value: '', textContent: 'No area' }));
+      zones.forEach((z) => zoneSelect.appendChild(Object.assign(document.createElement('option'), { value: z.id, textContent: z.name + ' — ' + (z.feeKobo ? formatNaira(z.feeKobo) : 'free') })));
+      const pre = state.prefill;
+      state.prefill = null;
+      if (pre) {
+        $('neworder-name').value = pre.name || '';
+        $('neworder-phone').value = pre.phone || '';
+        $('neworder-address').value = pre.address || '';
+      }
       $('neworder-custom').hidden = true;
       const select = $('neworder-product');
       select.textContent = '';
       select.appendChild(Object.assign(document.createElement('option'), { value: '', textContent: state.products.length ? 'Choose a product…' : 'No products yet — add a custom item below' }));
       state.products.forEach((p) => {
-        select.appendChild(Object.assign(document.createElement('option'), { value: String(p.id), textContent: p.name + ' — ' + priceLabel(p) + (p.isActive ? '' : ' (hidden)') }));
+        const left = p.stock === null || p.stock === undefined ? '' : p.stock <= 0 ? ' · sold out' : ' · ' + p.stock + ' left';
+        select.appendChild(Object.assign(document.createElement('option'), { value: String(p.id), textContent: p.name + ' — ' + priceLabel(p) + left + (p.isActive ? '' : ' (hidden)') }));
       });
       $('neworder-choose').hidden = true;
       renderDraft();
       switchView('neworder');
-      $('neworder-name').focus();
+      if (pre) $('neworder-product').focus(); else $('neworder-name').focus();
     }
+    $('neworder-zone').addEventListener('change', () => {
+      const z = (state.vendor.deliveryZones || []).find((x) => x.id === $('neworder-zone').value);
+      $('neworder-fee').value = z ? koboToInput(z.feeKobo) : (state.vendor.deliveryFeeKobo ? koboToInput(state.vendor.deliveryFeeKobo) : '');
+      renderDraft();
+    });
     $('new-order-btn').addEventListener('click', openNewOrder);
 
     function draftTotals() {
@@ -2503,9 +2934,10 @@
         select.id = 'neworder-opt-' + gi;
         g.choices.forEach((c) => {
           const extra = c.extraKobo ? ' (+' + formatNaira(c.extraKobo) + ')' : '';
-          select.appendChild(Object.assign(document.createElement('option'), { value: c.id, textContent: c.label + extra + (c.soldOut ? ' · sold out' : '') }));
+          const left = c.stock === null || c.stock === undefined ? '' : c.stock <= 0 ? ' · none left' : ' · ' + c.stock + ' left';
+          select.appendChild(Object.assign(document.createElement('option'), { value: c.id, textContent: c.label + extra + left + (c.soldOut ? ' · sold out' : '') }));
         });
-        const firstInStock = g.choices.find((c) => !c.soldOut);
+        const firstInStock = g.choices.find((c) => !c.soldOut && (c.stock === null || c.stock === undefined || c.stock > 0));
         if (firstInStock) select.value = firstInStock.id;
         fields.append(label, select);
       });
@@ -2544,6 +2976,7 @@
         action: 'create',
         customer: { name: $('neworder-name').value, phone: $('neworder-phone').value, address: $('neworder-address').value },
         items: state.draft.map((l) => (l.productId ? { productId: l.productId, quantity: l.quantity, options: l.options || [] } : { name: l.name, price: l.price, quantity: l.quantity })),
+        zone: $('neworder-zone').value,
         deliveryFee: $('neworder-fee').value.trim(),
         discount: $('neworder-discount').value.trim(),
         note: $('neworder-note').value
@@ -2553,7 +2986,7 @@
       const { ok, status, data } = await api('/api/orders', body);
       busy(btn, false);
       if (status === 401) return sessionLost();
-      const fields = { name: 'name', phone: 'phone', address: 'address', items: 'product', deliveryFee: 'fee', discount: 'discount', note: 'note' };
+      const fields = { name: 'name', phone: 'phone', address: 'address', items: 'product', zone: 'zone', deliveryFee: 'fee', discount: 'discount', note: 'note' };
       if (!ok) return showError('neworder', data.error || 'Could not create the order.', fields[data.field]);
       renderOrder(data.order);
       switchView('order');
@@ -2968,46 +3401,93 @@
     // ---------- customers ----------
     $('open-customers').addEventListener('click', loadCustomers);
 
+    let custTicket = 0;
+    let custTimer = null;
     async function loadCustomers() {
       switchView('customers');
+      $('customers-search').value = state.custQuery.q;
+      renderCustSort();
+      await fetchCustomers();
+    }
+
+    function renderCustSort() {
+      document.querySelectorAll('#customers-sort button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.sort === state.custQuery.sort)));
+    }
+    document.querySelectorAll('#customers-sort button').forEach((b) => b.addEventListener('click', () => {
+      if (state.custQuery.sort === b.dataset.sort) return;
+      state.custQuery.sort = b.dataset.sort;
+      renderCustSort();
+      fetchCustomers();
+    }));
+    $('customers-search').addEventListener('input', () => {
+      clearTimeout(custTimer);
+      custTimer = setTimeout(() => { state.custQuery.q = $('customers-search').value.trim(); fetchCustomers(); }, 300);
+    });
+
+    function custAvatar(name, className) {
+      const av = el('span', className || 'avatar', initials(name));
+      av.style.background = ['var(--coral)', 'var(--sky)', 'var(--sun)', 'var(--lilac)', 'var(--brand)'][TINTS.indexOf(tintFor(name))];
+      return av;
+    }
+    function remindLink(c, owingKobo) {
+      const first = c.name.split(' ')[0];
+      const msg = 'Hi ' + first + ', a quick reminder from ' + state.vendor.businessName + ': ' + formatNaira(owingKobo) + ' is still outstanding on your order. Thank you!';
+      return 'https://wa.me/' + c.phone + '?text=' + encodeURIComponent(msg);
+    }
+
+    async function fetchCustomers() {
       const box = $('customers-list');
-      box.innerHTML = '<p class="empty">Loading…</p>';
-      const { ok, status, data } = await api('/api/orders?view=customers');
+      if (!box.children.length) box.innerHTML = '<p class="empty">Loading…</p>';
+      const qs = new URLSearchParams({ view: 'customers', sort: state.custQuery.sort });
+      if (state.custQuery.q) qs.set('q', state.custQuery.q);
+      if (state.custQuery.tag) qs.set('tag', state.custQuery.tag);
+      const ticket = ++custTicket;
+      const { ok, status, data } = await api('/api/orders?' + qs.toString());
+      if (ticket !== custTicket || !state.vendor) return;
       if (status === 401) return sessionLost();
       box.textContent = '';
       if (!ok) return box.appendChild(el('p', 'empty', data.error || 'Could not load customers.'));
-      if (!data.customers.length) return box.appendChild(emptyBox('No customers yet. They appear here after their first order.'));
+      state.custTags = data.tags.map((t) => t.tag);
+      state.custCount = data.total;
+      renderCustTags(data.tags);
+      const filtered = !!(state.custQuery.q || state.custQuery.tag);
+      $('customers-search').hidden = !data.total;
+      $('customers-sort').hidden = !data.total;
+      if (!data.total) {
+        $('customers-sub').textContent = 'Everyone who has ordered, and who still owes you.';
+        return box.appendChild(emptyBox('No customers yet. They appear here after their first order.'));
+      }
       const owing = data.customers.filter((c) => c.owingKobo > 0);
       const total = owing.reduce((s, c) => s + c.owingKobo, 0);
-      $('customers-sub').textContent = owing.length
-        ? owing.length + (owing.length === 1 ? ' customer owes you ' : ' customers owe you ') + formatNaira(total) + ' in total.'
-        : 'Nobody owes you anything right now.';
+      $('customers-sub').textContent = filtered
+        ? data.customers.length + (data.customers.length === 1 ? ' customer found.' : ' customers found.')
+        : owing.length
+          ? owing.length + (owing.length === 1 ? ' customer owes you ' : ' customers owe you ') + formatNaira(total) + ' in total.'
+          : 'Nobody owes you anything right now.';
+      if (!data.customers.length) return box.appendChild(el('p', 'empty', 'No customers match.'));
       const list = el('div', 'list stagger');
       data.customers.forEach((c) => {
         const row = el('div', 'cust-row');
         const top = el('div', 'cust-top');
         const main = el('button');
         main.type = 'button';
-        const av = el('span', 'avatar', initials(c.name));
-        av.style.background = ['var(--coral)', 'var(--sky)', 'var(--sun)', 'var(--lilac)', 'var(--brand)'][TINTS.indexOf(tintFor(c.name))];
         const who = el('div', 'row-main');
-        who.appendChild(el('div', 'row-name', c.name));
+        const name = el('div', 'row-name', c.name);
+        if (c.hasNotes) name.appendChild(el('span', 'note-flag', '· note'));
+        who.appendChild(name);
         who.appendChild(el('div', 'row-sub', c.orderCount + (c.orderCount === 1 ? ' order' : ' orders') + (c.lastOrderAt ? ' · last ' + when(c.lastOrderAt) : '')));
-        main.append(av, who);
-        main.addEventListener('click', () => {
-          state.customerFilter = { id: c.id, name: c.name };
-          state.filter = 'all';
-          state.orders = [];
-          keepCustomerFilter = true;
-          goTab('orders');
-        });
+        if (c.tags.length) {
+          const tags = el('div', 'cust-tags');
+          c.tags.forEach((t) => tags.appendChild(el('span', 'tag', t)));
+          who.appendChild(tags);
+        }
+        main.append(custAvatar(c.name), who);
+        main.addEventListener('click', () => openCustomer(c.id));
         top.append(main, c.owingKobo > 0 ? el('span', 'owing', formatNaira(c.owingKobo)) : el('span', 'paid-up', 'Paid up'));
         row.appendChild(top);
         if (c.owingKobo > 0) {
-          const first = c.name.split(' ')[0];
-          const msg = 'Hi ' + first + ', a quick reminder from ' + state.vendor.businessName + ': ' + formatNaira(c.owingKobo) + ' is still outstanding on your order. Thank you!';
           const remind = el('a', 'remind', 'Remind on WhatsApp');
-          remind.href = 'https://wa.me/' + c.phone + '?text=' + encodeURIComponent(msg);
+          remind.href = remindLink(c, c.owingKobo);
           remind.target = '_blank';
           remind.rel = 'noopener';
           row.appendChild(remind);
@@ -3016,6 +3496,675 @@
       });
       box.appendChild(list);
     }
+
+    function renderCustTags(tags) {
+      const box = $('customers-tags');
+      box.textContent = '';
+      box.hidden = !tags.length && !state.custQuery.tag;
+      const all = el('button', 'chip' + (state.custQuery.tag ? '' : ' active'), 'All');
+      all.type = 'button';
+      all.addEventListener('click', () => { state.custQuery.tag = ''; fetchCustomers(); });
+      box.appendChild(all);
+      tags.forEach((t) => {
+        const chip = el('button', 'chip' + (state.custQuery.tag === t.tag ? ' active' : ''), t.tag);
+        chip.type = 'button';
+        chip.appendChild(el('span', null, String(t.count)));
+        chip.addEventListener('click', () => { state.custQuery.tag = state.custQuery.tag === t.tag ? '' : t.tag; fetchCustomers(); });
+        box.appendChild(chip);
+      });
+    }
+
+    // ---------- one customer ----------
+    const TAG_IDEAS = ['VIP', 'Wholesale', 'Regular', 'Pays late', 'Lagos', 'Abuja'];
+    async function openCustomer(id, opts = {}) {
+      const { ok, status, data } = await api('/api/orders?view=customer&id=' + id);
+      if (status === 401) return sessionLost();
+      if (!ok) {
+        toast(data.error || 'Could not open that customer.');
+        if (opts.fallback) { navMode = 'replace'; return loadCustomers(); }
+        return;
+      }
+      renderCustomer(data);
+      switchView('customer');
+    }
+
+    function renderCustomer(d) {
+      state.customer = d;
+      const c = d.customer;
+      const s = d.stats;
+      const av = custAvatar(c.name);
+      av.id = 'cust-avatar';
+      $('cust-avatar').replaceWith(av);
+      $('cust-name').textContent = c.name;
+      $('cust-phone').textContent = formatPhone(c.phone);
+      $('cust-address').textContent = c.address || 'No delivery address saved';
+      const tagsView = $('cust-tags-view');
+      tagsView.textContent = '';
+      c.tags.forEach((t) => tagsView.appendChild(el('span', 'tag', t)));
+      $('cust-call').href = 'tel:+' + c.phone;
+      $('cust-chat').href = 'https://wa.me/' + c.phone;
+      $('cust-orders-n').textContent = String(s.orderCount);
+      $('cust-spent').textContent = formatNaira(s.spentKobo);
+      $('cust-owing').textContent = formatNaira(s.owingKobo);
+      $('cust-average').textContent = formatNaira(s.averageKobo);
+      $('cust-remind').hidden = !s.owingKobo;
+      if (s.owingKobo) $('cust-remind').href = remindLink(c, s.owingKobo);
+      $('cust-favs').hidden = !d.favourites.length;
+      $('cust-favs').textContent = 'Usually buys: ' + d.favourites.map((f) => f.name + ' ×' + f.quantity).join(', ');
+
+      // labels
+      const box = $('cust-tags');
+      box.textContent = '';
+      if (!c.tags.length) box.appendChild(el('span', 'muted', 'No labels yet.'));
+      c.tags.forEach((t) => {
+        const tag = el('span', 'tag', t);
+        const x = el('button', null, '×');
+        x.type = 'button';
+        x.setAttribute('aria-label', 'Remove label ' + t);
+        x.addEventListener('click', () => saveCustomer({ tags: c.tags.filter((y) => y !== t) }, 'Label removed', 'cust-tag'));
+        tag.appendChild(x);
+        box.appendChild(tag);
+      });
+      const have = new Set(c.tags.map((t) => t.toLowerCase()));
+      const ideas = [...new Set(state.custTags.concat(TAG_IDEAS))].filter((t) => !have.has(t.toLowerCase())).slice(0, 6);
+      const sug = $('cust-tag-suggest');
+      sug.textContent = '';
+      ideas.forEach((t) => {
+        const b = el('button', null, '+ ' + t);
+        b.type = 'button';
+        b.addEventListener('click', () => saveCustomer({ tags: c.tags.concat(t) }, 'Label added', 'cust-tag'));
+        sug.appendChild(b);
+      });
+      $('cust-tag-input').value = '';
+
+      $('cust-notes').value = c.notes;
+      $('cust-edit-name').value = c.name;
+      $('cust-edit-address').value = c.address;
+
+      const list = $('cust-orders');
+      list.textContent = '';
+      if (!d.orders.length) list.appendChild(el('p', 'muted', 'No orders yet.'));
+      else {
+        const stack = el('div', 'orders-stack');
+        d.orders.forEach((o) => {
+          const row = el('button', 'row-btn order-row');
+          row.type = 'button';
+          const main = el('div', 'row-main');
+          const name = el('div', 'row-name');
+          name.append(el('span', 'order-num', '#' + o.number), document.createTextNode(o.itemsSummary || 'Order'));
+          main.append(name, orderBadges(o));
+          const side = el('div', 'row-side');
+          side.append(el('div', 'price', formatNaira(o.totalKobo)), el('div', 'row-time', when(o.createdAt)));
+          row.append(main, side);
+          row.addEventListener('click', () => openOrder(o.id));
+          stack.appendChild(row);
+        });
+        list.appendChild(stack);
+      }
+    }
+
+    async function saveCustomer(body, doneText, errView) {
+      const { ok, status, data } = await api('/api/orders', { action: 'customer', id: state.customer.customer.id, ...body });
+      if (status === 401) { sessionLost(); return false; }
+      if (!ok) {
+        const fieldMap = { name: 'name', address: 'address', notes: 'notes', tags: 'input' };
+        showError(errView, data.error || 'Could not save.', fieldMap[data.field]);
+        return false;
+      }
+      renderCustomer(data);
+      toast(doneText, 'good');
+      return true;
+    }
+    $('cust-tag-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const tag = $('cust-tag-input').value.trim();
+      if (!tag) return showError('cust-tag', 'Type a label first, like VIP.', 'input');
+      saveCustomer({ tags: state.customer.customer.tags.concat(tag) }, 'Label added', 'cust-tag');
+    });
+    $('cust-save-notes').addEventListener('click', async () => {
+      const btn = $('cust-save-notes');
+      busy(btn, true, 'Saving…');
+      await saveCustomer({ notes: $('cust-notes').value }, 'Notes saved', 'cust');
+      busy(btn, false);
+    });
+    $('cust-save-details').addEventListener('click', async () => {
+      const name = $('cust-edit-name').value.trim();
+      if (name.length < 2) return showError('cust-edit', "Enter the customer's name.", 'name');
+      const btn = $('cust-save-details');
+      busy(btn, true, 'Saving…');
+      const saved = await saveCustomer({ name, address: $('cust-edit-address').value }, 'Saved', 'cust-edit');
+      busy(btn, false);
+      if (saved) $('cust-details').open = false;
+    });
+    $('cust-new-order').addEventListener('click', () => {
+      const c = state.customer.customer;
+      state.prefill = { name: c.name, phone: formatPhone(c.phone), address: c.address };
+      openNewOrder();
+    });
+
+    // ---------- More ----------
+    function renderMore() {
+      const v = state.vendor;
+      if (!v) return;
+      const low = state.stats ? state.stats.lowStock || 0 : 0;
+      $('more-stock-n').textContent = low ? String(low) : '';
+      $('more-stock-sub').textContent = low ? low + ' low or sold out' : "Count what's left";
+      const zones = v.deliveryZones || [];
+      $('more-delivery-sub').textContent = zones.length
+        ? zones.length + (zones.length === 1 ? ' area' : ' areas') + ' with their own fees'
+        : v.deliveryFeeKobo ? formatNaira(v.deliveryFeeKobo) + ' everywhere · add areas' : 'Fees by area';
+      const sub = $('more-away-sub');
+      sub.textContent = '';
+      if (v.awayMessage) sub.append(el('span', 'on-pill', 'On'), document.createTextNode(' ' + v.awayMessage));
+      else sub.textContent = "Off · show a note while you're away";
+      $('more-customers-n').textContent = state.custCount ? String(state.custCount) : '';
+    }
+    document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => {
+      const name = b.dataset.open;
+      if (name === 'customers') return loadCustomers();
+      if (name === 'replies') return openReplies();
+      if (name === 'stock') return openStock();
+      if (name === 'delivery') return openDelivery();
+      if (name === 'status') return openStatus();
+      if (name === 'report') return loadReport();
+      if (name === 'away') return goTab('settings', 'away-switch');
+      if (name === 'settings') return goTab('settings');
+    }));
+    $('home-low-stock').addEventListener('click', () => { state.stockFilter = 'all'; openStock(); });
+
+    // ---------- away mode (in Settings) ----------
+    const AWAY_IDEAS = ['Back on Monday. You can still order.', 'On holiday. Orders go out next week.', 'Restocking. Orders ship in 3 days.'];
+    function fillAway() {
+      const msg = state.vendor.awayMessage || '';
+      $('away-switch').checked = !!msg;
+      $('away-body').hidden = !msg;
+      $('away-card').classList.toggle('on', !!msg);
+      $('away-message').value = msg;
+      const chips = $('away-chips');
+      chips.textContent = '';
+      AWAY_IDEAS.forEach((t) => {
+        const b = el('button', null, t);
+        b.type = 'button';
+        b.addEventListener('click', () => { $('away-message').value = t; });
+        chips.appendChild(b);
+      });
+    }
+    async function saveAway(message) {
+      const btn = $('away-save');
+      busy(btn, true, 'Saving…');
+      const { ok, status, data } = await api('/api/me', { awayMessage: message }, 'PATCH');
+      busy(btn, false);
+      if (status === 401) return sessionLost();
+      if (!ok) { fillAway(); return showError('away', data.error || 'Could not save away mode.', 'message'); }
+      state.vendor = data.vendor;
+      fillAway();
+      renderMore();
+      toast(message ? 'Away mode is on. Customers see your note.' : 'Away mode is off', 'good');
+    }
+    $('away-switch').addEventListener('change', () => {
+      if ($('away-switch').checked) {
+        $('away-body').hidden = false;
+        if (!$('away-message').value.trim()) $('away-message').value = AWAY_IDEAS[0];
+        $('away-message').focus();
+        return;
+      }
+      if (state.vendor.awayMessage) saveAway('');
+      else $('away-body').hidden = true;
+    });
+    $('away-save').addEventListener('click', () => {
+      const message = $('away-message').value.trim();
+      if (!message) return showError('away', 'Write a short note, or turn away mode off.', 'message');
+      saveAway(message);
+    });
+
+    // ---------- delivery areas ----------
+    const ZONE_IDEAS = ['Pick up', 'Same city', 'Outside the city', 'Island', 'Mainland', 'Other states'];
+    function openDelivery() {
+      const v = state.vendor;
+      state.zoneDraft = (v.deliveryZones || []).map((z) => ({ id: z.id, name: z.name, fee: koboToInput(z.feeKobo) }));
+      $('delivery-fee').value = v.deliveryFeeKobo ? koboToInput(v.deliveryFeeKobo) : '';
+      $('delivery-note').value = v.deliveryNote || '';
+      renderZones();
+      switchView('delivery');
+    }
+    function renderZones(focus) {
+      const box = $('zone-list');
+      box.textContent = '';
+      if (!state.zoneDraft.length) {
+        const none = el('p', 'muted', 'No areas yet, so everyone pays the same fee below.');
+        none.style.margin = '12px 0 0';
+        box.appendChild(none);
+      }
+      state.zoneDraft.forEach((z, i) => {
+        const row = el('div', 'zone-row');
+        const name = document.createElement('input');
+        name.type = 'text';
+        name.className = 'zname';
+        name.maxLength = 40;
+        name.value = z.name;
+        name.placeholder = 'e.g. Lekki';
+        name.setAttribute('aria-label', 'Area name');
+        name.addEventListener('input', () => { z.name = name.value; });
+        const pre = el('div', 'prefix');
+        pre.appendChild(el('span', null, '₦'));
+        const fee = document.createElement('input');
+        fee.type = 'text';
+        fee.inputMode = 'decimal';
+        fee.value = z.fee;
+        fee.placeholder = '0';
+        fee.setAttribute('aria-label', 'Fee for this area');
+        fee.addEventListener('input', () => { z.fee = fee.value; });
+        pre.appendChild(fee);
+        const x = el('button', 'x', '×');
+        x.type = 'button';
+        x.setAttribute('aria-label', 'Remove this area');
+        x.addEventListener('click', () => { state.zoneDraft.splice(i, 1); renderZones(); });
+        row.append(name, pre, x);
+        box.appendChild(row);
+      });
+      const used = new Set(state.zoneDraft.map((z) => z.name.trim().toLowerCase()));
+      const sug = $('zone-suggest');
+      sug.textContent = '';
+      ZONE_IDEAS.filter((n) => !used.has(n.toLowerCase())).slice(0, 4).forEach((n) => {
+        const b = el('button', null, '+ ' + n);
+        b.type = 'button';
+        b.addEventListener('click', () => {
+          state.zoneDraft.push({ name: n, fee: n === 'Pick up' ? '0' : '' });
+          renderZones({ i: state.zoneDraft.length - 1, field: 'fee' });
+        });
+        sug.appendChild(b);
+      });
+      sug.hidden = state.zoneDraft.length >= 20;
+      $('zone-add').hidden = state.zoneDraft.length >= 20;
+      const has = state.zoneDraft.length > 0;
+      $('delivery-fee-label').textContent = has ? 'Fee when no area is picked' : 'Delivery fee';
+      $('delivery-fee-hint').textContent = has
+        ? 'For orders you add yourself without an area. Customers on your store always pick an area.'
+        : 'Charged on every order. Add areas above to charge by location.';
+      if (focus) {
+        const rows = box.querySelectorAll('.zone-row');
+        const row = rows[focus.i];
+        if (row) row.querySelectorAll('input')[focus.field === 'fee' ? 1 : 0].focus();
+      }
+    }
+    $('zone-add').addEventListener('click', () => {
+      state.zoneDraft.push({ name: '', fee: '' });
+      renderZones({ i: state.zoneDraft.length - 1, field: 'name' });
+    });
+    $('delivery-save').addEventListener('click', async () => {
+      const fee = $('delivery-fee').value.trim();
+      if (fee && !looksLikeNaira(fee)) return showError('delivery', 'Enter the delivery fee in naira, like 1500.', 'fee');
+      const zones = [];
+      for (const z of state.zoneDraft) {
+        const name = z.name.trim();
+        const zfee = String(z.fee || '').trim();
+        if (!name && !zfee) continue;
+        if (name.length < 2) return showError('delivery', 'Give each area a name, like Lekki or Pick up.');
+        if (zfee && !looksLikeNaira(zfee)) return showError('delivery', 'Enter the fee for ' + name + ' in naira, like 1500 (0 for free).');
+        zones.push({ id: z.id, name, fee: zfee });
+      }
+      const btn = $('delivery-save');
+      busy(btn, true, 'Saving…');
+      const { ok, status, data } = await api('/api/me', { deliveryFee: fee, deliveryNote: $('delivery-note').value, deliveryZones: zones }, 'PATCH');
+      busy(btn, false);
+      if (status === 401) return sessionLost();
+      if (!ok) return showError('delivery', data.error || 'Could not save delivery.', { deliveryFee: 'fee', deliveryNote: 'note' }[data.field]);
+      state.vendor = data.vendor;
+      state.setup = data.setup;
+      openDeliveryRefresh();
+      renderMore();
+      toast('Delivery saved', 'good');
+    });
+    function openDeliveryRefresh() {
+      const v = state.vendor;
+      state.zoneDraft = (v.deliveryZones || []).map((z) => ({ id: z.id, name: z.name, fee: koboToInput(z.feeKobo) }));
+      $('delivery-fee').value = v.deliveryFeeKobo ? koboToInput(v.deliveryFeeKobo) : '';
+      $('delivery-note').value = v.deliveryNote || '';
+      renderZones();
+    }
+
+    // ---------- stock ----------
+    async function openStock() {
+      switchView('stock');
+      if (!state.products) $('stock-list').innerHTML = '<p class="empty">Loading…</p>';
+      const edits = productEdits;
+      const { ok, status, data } = await api('/api/products');
+      if (status === 401) return sessionLost();
+      if (ok && (edits === productEdits || !state.products)) { state.products = data.products; state.photoLimit = data.photoLimit || 1; }
+      renderStock();
+    }
+    function stockRows() {
+      const rows = [];
+      const uncounted = [];
+      (state.products || []).forEach((p) => {
+        let counted = false;
+        if (p.stock !== null && p.stock !== undefined) { rows.push({ p, choice: null, qty: p.stock }); counted = true; }
+        (p.options || []).forEach((g) => g.choices.forEach((c) => {
+          if (c.stock !== null && c.stock !== undefined) { rows.push({ p, g, choice: c, qty: c.stock }); counted = true; }
+        }));
+        if (!counted) uncounted.push(p);
+      });
+      return { rows, uncounted };
+    }
+    const stockKind = (qty) => (qty <= 0 ? 'out' : qty <= LOW_STOCK ? 'low' : 'ok');
+    function renderStock() {
+      const { rows, uncounted } = stockRows();
+      const low = rows.filter((r) => stockKind(r.qty) === 'low').length;
+      const out = rows.filter((r) => stockKind(r.qty) === 'out').length;
+      $('stock-low-n').textContent = low ? String(low) : '';
+      $('stock-out-n').textContent = out ? String(out) : '';
+      document.querySelectorAll('#stock-filters .chip').forEach((c) => c.classList.toggle('active', c.dataset.sf === state.stockFilter));
+      $('stock-filters').hidden = !rows.length;
+      const box = $('stock-list');
+      box.textContent = '';
+      // Sold out first, then running low, then the rest.
+      const rank = { out: 0, low: 1, ok: 2 };
+      const shown = state.stockFilter === 'all'
+        ? rows.slice().sort((a, b) => rank[stockKind(a.qty)] - rank[stockKind(b.qty)])
+        : rows.filter((r) => stockKind(r.qty) === state.stockFilter);
+      if (!(state.products || []).length) box.appendChild(emptyBox('No products yet. Add products first, then count them here.'));
+      else if (!rows.length) box.appendChild(emptyBox("You're not counting anything yet. Tap a product below to start."));
+      else if (!shown.length) box.appendChild(el('p', 'empty', state.stockFilter === 'low' ? 'Nothing is running low.' : 'Nothing is sold out.'));
+      else {
+        const list = el('div', 'list stagger');
+        shown.forEach((r) => list.appendChild(stockRow(r)));
+        box.appendChild(list);
+      }
+      $('stock-uncounted-box').hidden = !uncounted.length;
+      const ub = $('stock-uncounted');
+      ub.textContent = '';
+      if (uncounted.length) {
+        const list = el('div', 'list');
+        uncounted.forEach((p) => {
+          const row = el('button', 'row-btn');
+          row.type = 'button';
+          row.appendChild(photoBox(p, 'sthumb ph'));
+          const main = el('div', 'row-main');
+          main.appendChild(el('div', 'row-name', p.name));
+          main.appendChild(el('div', 'row-sub', (p.options || []).length ? 'Count each ' + p.options.map((g) => g.name.toLowerCase()).join(' and ') + ' in the product' : 'Tap to count'));
+          row.append(main, el('span', 'chev', '›'));
+          row.addEventListener('click', () => ((p.options || []).length ? openProduct(p) : startCount(p)));
+          list.appendChild(row);
+        });
+        ub.appendChild(list);
+      }
+    }
+    function stockLabel(r, qty) {
+      const kind = stockKind(qty);
+      return kind === 'out' ? 'Sold out' : kind === 'low' ? 'Running low' : 'In stock';
+    }
+    function stockRow(r) {
+      const row = el('div', 'stock-row ' + stockKind(r.qty));
+      row.appendChild(photoBox(r.p, 'sthumb ph'));
+      const main = el('div', 'row-main');
+      main.appendChild(el('div', 'row-name', r.p.name));
+      if (r.choice) main.appendChild(el('span', 'choice-name', r.choice.label));
+      const sub = el('div', 'row-sub', stockLabel(r, r.qty));
+      main.appendChild(sub);
+      const step = el('div', 'stock-step');
+      const minus = el('button', null, '−');
+      const plus = el('button', null, '+');
+      [minus, plus].forEach((b) => { b.type = 'button'; });
+      const label = r.p.name + (r.choice ? ' ' + r.choice.label : '');
+      minus.setAttribute('aria-label', 'One less ' + label);
+      plus.setAttribute('aria-label', 'One more ' + label);
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.inputMode = 'numeric';
+      input.value = String(r.qty);
+      input.setAttribute('aria-label', 'How many ' + label);
+      step.append(minus, input, plus);
+      row.append(main, step);
+      const paint = (qty) => {
+        row.className = 'stock-row ' + stockKind(qty);
+        sub.textContent = stockLabel(r, qty);
+        if (document.activeElement !== input) input.value = String(qty);
+      };
+      let pending = 0;
+      const send = async (body, optimistic) => {
+        if (optimistic !== undefined) paint(optimistic);
+        pending += 1;
+        const { ok, status, data } = await api('/api/products', { action: 'stock', id: r.p.id, choiceId: r.choice ? r.choice.id : undefined, ...body });
+        pending -= 1;
+        if (status === 401) return sessionLost();
+        if (!ok) { toast(data.error || 'Could not change the count.'); return openStock(); }
+        productEdits += 1;
+        state.products = state.products.map((x) => (x.id === data.product.id ? data.product : x));
+        const fresh = r.choice
+          ? (data.product.options || []).flatMap((g) => g.choices).find((c) => c.id === r.choice.id)
+          : data.product;
+        const qty = fresh ? fresh.stock : null;
+        if (qty === null || qty === undefined) return renderStock();
+        r.qty = qty;
+        if (!pending) { paint(qty); updateStockChips(); }
+      };
+      minus.addEventListener('click', () => { const n = Math.max(0, Number(input.value) - 1 || 0); send({ add: -1 }, n); OP.buzz(6); });
+      plus.addEventListener('click', () => { const n = (Number(input.value) || 0) + 1; send({ add: 1 }, n); OP.buzz(6); });
+      input.addEventListener('input', () => { input.value = input.value.replace(/\D/g, '').slice(0, 7); });
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
+      input.addEventListener('change', () => {
+        const v = input.value.trim();
+        if (v === '') {
+          if (!confirm('Stop counting ' + label + '?')) { input.value = String(r.qty); return; }
+          return send({ stock: null });
+        }
+        send({ stock: v }, Number(v));
+      });
+      return row;
+    }
+    function updateStockChips() {
+      const { rows } = stockRows();
+      const low = rows.filter((r) => stockKind(r.qty) === 'low').length;
+      const out = rows.filter((r) => stockKind(r.qty) === 'out').length;
+      $('stock-low-n').textContent = low ? String(low) : '';
+      $('stock-out-n').textContent = out ? String(out) : '';
+    }
+    async function startCount(p) {
+      const v = prompt('How many "' + p.name + '" do you have?', '');
+      if (v === null) return;
+      const n = v.replace(/[,\s]/g, '');
+      if (!/^\d+$/.test(n)) return toast('Enter a whole number, like 12.');
+      const { ok, status, data } = await api('/api/products', { action: 'stock', id: p.id, stock: n });
+      if (status === 401) return sessionLost();
+      if (!ok) return toast(data.error || 'Could not save the count.');
+      productEdits += 1;
+      state.products = state.products.map((x) => (x.id === data.product.id ? data.product : x));
+      renderStock();
+      toast('Counting ' + p.name, 'good');
+    }
+    document.querySelectorAll('#stock-filters .chip').forEach((chip) => chip.addEventListener('click', () => {
+      state.stockFilter = chip.dataset.sf;
+      renderStock();
+    }));
+
+    // ---------- quick replies ----------
+    const PLACEHOLDERS = ['{name}', '{order}', '{total}', '{balance}', '{link}', '{store}'];
+    function openReplies() {
+      state.replyDraft = (state.vendor.quickReplies || []).map((r) => ({ ...r }));
+      renderReplies();
+      switchView('replies');
+    }
+    function renderReplies(focusIndex) {
+      const box = $('reply-list');
+      box.textContent = '';
+      state.replyDraft.forEach((r, i) => {
+        const card = el('div', 'reply-edit');
+        const head = el('div', 'opt-head');
+        const title = document.createElement('input');
+        title.type = 'text';
+        title.maxLength = 30;
+        title.value = r.title;
+        title.placeholder = 'Title, like Payment received';
+        title.setAttribute('aria-label', 'Reply title');
+        title.addEventListener('input', () => { r.title = title.value; });
+        const x = el('button', 'x', '×');
+        x.type = 'button';
+        x.setAttribute('aria-label', 'Delete this reply');
+        x.addEventListener('click', () => { state.replyDraft.splice(i, 1); renderReplies(); });
+        head.append(title, x);
+        const body = document.createElement('textarea');
+        body.maxLength = 500;
+        body.value = r.body;
+        body.placeholder = 'Hi {name}, …';
+        body.setAttribute('aria-label', 'Message');
+        body.addEventListener('input', () => { r.body = body.value; });
+        const chips = el('div', 'ph-chips');
+        PLACEHOLDERS.forEach((token) => {
+          const b = el('button', null, token);
+          b.type = 'button';
+          b.addEventListener('mousedown', (e) => e.preventDefault()); // keep the cursor in the message
+          b.addEventListener('click', () => {
+            const start = body.selectionStart == null ? body.value.length : body.selectionStart;
+            const end = body.selectionEnd == null ? start : body.selectionEnd;
+            body.value = body.value.slice(0, start) + token + body.value.slice(end);
+            r.body = body.value;
+            body.focus();
+            body.setSelectionRange(start + token.length, start + token.length);
+          });
+          chips.appendChild(b);
+        });
+        card.append(head, body, chips);
+        box.appendChild(card);
+      });
+      if (!state.replyDraft.length) box.appendChild(el('p', 'empty', 'No quick replies. Add one, or go back to the starter messages.'));
+      $('reply-add').hidden = state.replyDraft.length >= 20;
+      if (focusIndex !== undefined) {
+        const cards = box.querySelectorAll('.reply-edit');
+        if (cards[focusIndex]) {
+          cards[focusIndex].scrollIntoView({ block: 'center' });
+          cards[focusIndex].querySelector('input').focus({ preventScroll: true });
+        }
+      }
+    }
+    $('reply-add').addEventListener('click', () => {
+      state.replyDraft.push({ title: '', body: '' });
+      renderReplies(state.replyDraft.length - 1);
+    });
+    async function saveReplies(list, doneText) {
+      const btn = $('replies-save');
+      busy(btn, true, 'Saving…');
+      const { ok, status, data } = await api('/api/me', { quickReplies: list }, 'PATCH');
+      busy(btn, false);
+      if (status === 401) return sessionLost();
+      if (!ok) return showError('replies', data.error || 'Could not save your quick replies.');
+      state.vendor = data.vendor;
+      state.replyDraft = data.vendor.quickReplies.map((r) => ({ ...r }));
+      renderReplies();
+      toast(doneText, 'good');
+    }
+    $('replies-save').addEventListener('click', () => {
+      const out = [];
+      for (const r of state.replyDraft) {
+        const title = r.title.trim();
+        const body = r.body.trim();
+        if (!title && !body) continue;
+        if (!title) return showError('replies', 'Give each quick reply a short title.');
+        if (!body) return showError('replies', 'Write the message for "' + title + '".');
+        out.push({ id: r.id, title, body });
+      }
+      saveReplies(out, 'Quick replies saved');
+    });
+    $('replies-reset').addEventListener('click', () => {
+      if (!confirm('Replace your quick replies with the 4 starter messages?')) return;
+      saveReplies([], 'Starter messages are back');
+    });
+
+    // On an order: pick a reply, it opens WhatsApp filled in.
+    function fillReply(text, o) {
+      const values = {
+        name: (o.customerName || '').split(' ')[0], order: String(o.number), total: formatNaira(o.totalKobo),
+        balance: formatNaira(o.balanceKobo), link: invoiceUrl(o), store: state.vendor.businessName
+      };
+      return text.replace(/\{(name|order|total|balance|link|store)\}/g, (m, k) => values[k]);
+    }
+    function closeSheet() {
+      if (!state.sheet) return;
+      state.sheet.forEach((n) => n.remove());
+      state.sheet = null;
+    }
+    function openQuickReplies() {
+      const o = state.order;
+      if (!o) return;
+      closeSheet();
+      const back = el('div', 'sheet-backdrop');
+      const sheet = el('div', 'sheet');
+      sheet.id = 'reply-sheet';
+      sheet.setAttribute('role', 'dialog');
+      sheet.setAttribute('aria-label', 'Quick reply');
+      sheet.appendChild(el('div', 'sheet-handle'));
+      const h = el('h2', null, 'Quick reply');
+      h.style.margin = '6px 0 0';
+      sheet.appendChild(h);
+      sheet.appendChild(el('p', 'muted', 'To ' + o.customerName + ' on WhatsApp. Tap one to send it.'));
+      (state.vendor.quickReplies || []).forEach((r) => {
+        const text = fillReply(r.body, o);
+        const a = el('a', 'reply-pick');
+        a.href = 'https://wa.me/' + o.customerPhone + '?text=' + encodeURIComponent(text);
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.append(el('b', null, r.title), el('span', null, text));
+        a.addEventListener('click', () => { closeSheet(); logOrder('quick_reply', r.title); });
+        sheet.appendChild(a);
+      });
+      const edit = el('button', 'btn secondary', 'Edit quick replies');
+      edit.type = 'button';
+      edit.style.marginTop = '14px';
+      edit.addEventListener('click', () => { closeSheet(); openReplies(); });
+      const close = el('button', 'link', 'Close');
+      close.type = 'button';
+      close.style.cssText = 'display:block;margin:12px auto 0';
+      close.addEventListener('click', closeSheet);
+      sheet.append(edit, close);
+      back.addEventListener('click', closeSheet);
+      document.body.append(back, sheet);
+      state.sheet = [back, sheet];
+    }
+    $('order-quick').addEventListener('click', openQuickReplies);
+    $('order-customer-page').addEventListener('click', () => { if (state.order && state.order.customerId) openCustomer(state.order.customerId); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
+
+    // ---------- order history ----------
+    const TL_ICONS = {
+      placed: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/>',
+      status: '<path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3"/><path d="M18 3v4h-4M6 21v-4h4"/>',
+      payment: '<path d="M5 12l5 5L20 7"/>',
+      payment_removed: '<path d="M6 6l12 12M18 6L6 18"/>',
+      customer_paid: '<path d="M12 3v18M17 7H9.5a3 3 0 0 0 0 6h5a3 3 0 0 1 0 6H6"/>',
+      note: '<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+      invoice_sent: '<path d="M4 5h16v11H9l-5 4z"/>',
+      quick_reply: '<path d="M4 5h16v11H9l-5 4z"/>'
+    };
+    function renderTimeline(o) {
+      const box = $('order-timeline');
+      box.textContent = '';
+      (o.timeline || []).forEach((e) => {
+        const li = el('li', e.kind === 'note' ? 'tl-is-note' : '');
+        const dot = el('span', 'tl-dot tl-' + e.kind);
+        dot.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (TL_ICONS[e.kind] || TL_ICONS.status) + '</svg>';
+        const text = el('div', 'tl-text', e.message);
+        text.appendChild(el('small', null, when(e.at)));
+        li.append(dot, text);
+        box.appendChild(li);
+      });
+    }
+    $('note-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const message = $('note-input').value.trim();
+      if (!message) return showError('note', 'Write the note first.', 'input');
+      const btn = $('note-save');
+      busy(btn, true, '…');
+      const ok = await orderAction({ action: 'note', message }, 'Note added');
+      busy(btn, false);
+      if (ok) $('note-input').value = '';
+    });
+    // Sending the invoice or a quick reply happens in WhatsApp, so note it here.
+    async function logOrder(kind, title) {
+      const o = state.order;
+      if (!o) return;
+      const { ok, data } = await api('/api/orders', { action: 'log', id: o.id, kind, title });
+      if (ok && state.order && state.order.id === o.id) { state.order = data.order; renderTimeline(data.order); }
+    }
+    $('order-send-invoice').addEventListener('click', () => logOrder('invoice_sent'));
 
     // ---------- report (Pro) ----------
     $('open-report').addEventListener('click', loadReport);
@@ -3122,6 +4271,11 @@
       state.stats = null;
       state.billing = null;
       state.customerFilter = null;
+      state.q = '';
+      state.customer = null;
+      state.custQuery = { q: '', tag: '', sort: 'owing' };
+      state.custCount = null;
+      $('orders-search').value = '';
       setUnread(0);
       $('login-email').value = remembered();
       switchView('login');
@@ -3138,7 +4292,7 @@
         const logged = ['login', 'signup', 'forgot', 'verify', 'reset'].includes(route.split('/')[0]);
         await enterApp(data.vendor, data.setup, reference || logged ? '' : route);
         // Coming back to a list after a full reload: same scroll position.
-        if (savedY && route && !logged) setTimeout(() => window.scrollTo(0, savedY), 80);
+        if (savedY && route && !logged) restoreScroll(savedY);
         OP.endSplash();
         if (reference) finishCheckout(reference);
         return;

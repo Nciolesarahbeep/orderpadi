@@ -37,6 +37,9 @@ CREATE TABLE vendors (
   default_delivery_fee_kobo   BIGINT NOT NULL DEFAULT 0 CHECK (default_delivery_fee_kobo >= 0),
   store_theme                 TEXT NOT NULL DEFAULT 'green'   -- colour of the store and invoices (added in the redesign)
                               CHECK (store_theme IN ('green', 'coral', 'sun', 'sky', 'grape', 'night')),
+  delivery_zones              JSONB NOT NULL DEFAULT '[]'::jsonb,  -- [{id, name, feeKobo}] delivery areas
+  quick_replies               JSONB NOT NULL DEFAULT '[]'::jsonb,  -- [{id, title, body}] saved WhatsApp messages
+  away_message                TEXT,                               -- shown on the store while away
 
   -- plan & billing
   plan                        TEXT NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'pro')),
@@ -107,6 +110,7 @@ CREATE TABLE products (
   category     TEXT,                          -- e.g. "Wigs"; groups products on the store page
   options      JSONB NOT NULL DEFAULT '[]'::jsonb  -- up to 2 options like Size/Colour, see lib/catalog.js
                CONSTRAINT products_options_is_array CHECK (jsonb_typeof(options) = 'array'),
+  stock        INTEGER CONSTRAINT products_stock_check CHECK (stock IS NULL OR stock >= 0),  -- NULL: not counted
   is_active    BOOLEAN NOT NULL DEFAULT TRUE, -- archive instead of delete
   sort_order   INTEGER NOT NULL DEFAULT 0,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -114,6 +118,14 @@ CREATE TABLE products (
 );
 CREATE INDEX products_vendor ON products (vendor_id, is_active, sort_order);
 CREATE INDEX products_vendor_category ON products (vendor_id, category);
+
+-- How many are left of one choice (like size 42); only counted choices have a row.
+CREATE TABLE choice_stock (
+  product_id  BIGINT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  choice_id   TEXT NOT NULL,
+  qty         INTEGER NOT NULL CONSTRAINT choice_stock_qty_check CHECK (qty >= 0),
+  PRIMARY KEY (product_id, choice_id)
+);
 
 -- Product photos (added in the redesign), shrunk on the seller's phone before
 -- upload. Served at /p/<public_id>; a replaced photo gets a new public_id.
@@ -141,6 +153,8 @@ CREATE TABLE customers (
   name        TEXT NOT NULL,
   phone       TEXT NOT NULL,                  -- normalised to 234XXXXXXXXXX
   address     TEXT,
+  notes       TEXT,                           -- the seller's own notes
+  tags        JSONB NOT NULL DEFAULT '[]'::jsonb,  -- labels like "VIP" or "Wholesale"
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (vendor_id, phone)
 );
@@ -176,6 +190,8 @@ CREATE TABLE orders (
   status                   TEXT NOT NULL DEFAULT 'new'
                              CHECK (status IN ('new', 'processing', 'delivered', 'cancelled')),
   customer_marked_paid_at  TIMESTAMPTZ,       -- buyer tapped "I've paid" on the invoice; vendor still confirms
+  delivery_zone            TEXT,              -- the delivery area picked, if the seller has areas
+  stock_state              TEXT NOT NULL DEFAULT 'none',  -- 'taken' once stock came off, 'returned' after a cancel
 
   created_ip               TEXT,              -- rate-limits the public order form
   created_at               TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -198,11 +214,23 @@ CREATE TABLE order_items (
   product_id       BIGINT REFERENCES products(id) ON DELETE SET NULL,  -- NULL for custom manual lines
   name             TEXT NOT NULL,
   option_text      TEXT,              -- the picked options, e.g. "22 inches, Black"
+  option_ids       JSONB,             -- the picked choice ids, to put stock back on cancel
   unit_price_kobo  BIGINT NOT NULL CHECK (unit_price_kobo >= 0),
   quantity         INTEGER NOT NULL CHECK (quantity > 0),
   line_total_kobo  BIGINT NOT NULL CHECK (line_total_kobo >= 0)
 );
 CREATE INDEX order_items_order ON order_items (order_id);
+
+-- Everything that happened to an order: placed, status, payments, notes...
+CREATE TABLE order_events (
+  id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  order_id    BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  vendor_id   BIGINT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+  kind        TEXT NOT NULL,
+  message     TEXT NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX order_events_order ON order_events (order_id, created_at, id);
 
 
 -- ---------------------------------------------------------------------

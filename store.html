@@ -44,6 +44,15 @@
     .store-search { margin-bottom: 4px; }
     .soldout-tag { position: absolute; top: 8px; left: 8px; padding: 1px 9px; border-radius: 999px; border: 2px solid var(--ink); background: var(--card); color: var(--text); font-family: var(--body); font-size: 12px; font-weight: 800; }
     .product.is-soldout .p-photo .ph { filter: grayscale(1); opacity: .65; }
+    .left-tag { position: absolute; top: 8px; left: 8px; padding: 1px 9px; border-radius: 999px; border: 2px solid var(--ink); background: var(--sun); color: #1B1530; font-family: var(--body); font-size: 12px; font-weight: 800; }
+    .stepper button:disabled { opacity: .4; cursor: default; }
+    .away { display: flex; gap: 10px; align-items: flex-start; background: var(--sky); }
+    .away svg { flex: none; width: 22px; height: 22px; margin-top: 1px; }
+    .zone-pick { display: grid; gap: 8px; margin-top: 8px; }
+    .zone-pick button { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border: var(--bw) solid var(--ink); border-radius: 16px; background: var(--card); color: var(--text); font: inherit; font-weight: 800; text-align: left; cursor: pointer; box-shadow: var(--shadow-sm); }
+    .zone-pick button span:last-child { font-family: var(--display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .zone-pick button[aria-checked="true"] { background: var(--theme); color: var(--theme-ink); animation: op-pop .3s cubic-bezier(.2, .9, .3, 1.5); }
+    .zone-title { font-weight: 800; margin: 0; }
     .in-cart { flex: none; padding: 5px 10px; border-radius: 12px; border: 2px solid var(--ink); background: var(--sun); color: #1B1530; font-size: 13px; font-weight: 800; cursor: pointer; font-family: inherit; }
     .opt-label { font-weight: 800; margin: 14px 0 6px; }
     .opt-chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -159,6 +168,7 @@
           Chat with the seller
         </a>
       </header>
+      <p class="mode away" id="shop-away" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg><span id="shop-away-text"></span></p>
       <p class="mode" id="shop-mode" hidden></p>
       <p class="error" id="shop-error"></p>
       <div class="section-row"><h2 id="products-title">Products</h2><span class="muted" id="products-count"></span></div>
@@ -172,9 +182,13 @@
       <button class="back" type="button" data-go="shop">‹ Keep shopping</button>
       <h1 class="page-title">Your order</h1>
       <div class="card lines" id="checkout-lines"></div>
+      <div class="card" id="zone-card" hidden>
+        <p class="zone-title">Where should it go?</p>
+        <div class="zone-pick" id="zone-pick" role="radiogroup" aria-label="Delivery area"></div>
+      </div>
       <div class="card totals">
         <div class="sum"><span>Subtotal</span><span id="sum-subtotal"></span></div>
-        <div class="sum" id="sum-delivery-row"><span>Delivery</span><span id="sum-delivery"></span></div>
+        <div class="sum" id="sum-delivery-row"><span id="sum-delivery-label">Delivery</span><span id="sum-delivery"></span></div>
         <div class="sum total"><span>Total</span><span id="sum-total"></span></div>
       </div>
       <form id="checkout-form" class="card" novalidate>
@@ -190,6 +204,7 @@
         <button class="btn theme" type="submit" id="checkout-submit">Place order</button>
       </form>
       <p class="fine">You'll pay the seller by bank transfer. They'll confirm your order on WhatsApp.</p>
+      <p class="fine" id="checkout-away" hidden></p>
     </section>
 
     <!-- Order placed -->
@@ -222,6 +237,8 @@
     </button>
   </div>
 
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
   <div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-labelledby="viewer-name">
     <div class="viewer-card">
       <button class="viewer-close" type="button" id="viewer-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -242,7 +259,9 @@
     const CART_KEY = 'op_cart_' + slug;
     // cart: Map(lineKey -> { productId, choices: [choiceId], qty }). lineKey is
     // "productId" or "productId:choiceA.choiceB" (sorted), the same as the server's.
-    const state = { store: null, products: [], cart: new Map(), viewing: null, picks: {}, category: '', query: '' };
+    const state = { store: null, products: [], cart: new Map(), viewing: null, picks: {}, category: '', query: '', zone: '' };
+    const ZONE_KEY = 'op_zone_' + slug;
+    try { state.zone = sessionStorage.getItem(ZONE_KEY) || ''; } catch (e) {}
     const THEME_HEX = { green: '#12B76A', coral: '#FF8A7A', sun: '#FFD23F', sky: '#6CCFF6', grape: '#6A4CE0', night: '#1B1530' };
     const TINTS = ['t0', 't1', 't2', 't3', 't4'];
     const tintFor = (text) => TINTS[[...String(text || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % TINTS.length];
@@ -330,6 +349,14 @@
         return { ok: false, status: 0, data: { error: "Can't connect. Check your internet and try again." } };
       }
     }
+    let toastTimer = null;
+    function toast(text) {
+      const t = $('toast');
+      t.textContent = text;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+    }
     function waLink(phone, text) { return 'https://wa.me/' + phone + (text ? '?text=' + encodeURIComponent(text) : ''); }
 
     // ---------- products, options and prices ----------
@@ -339,8 +366,39 @@
       const ids = (choices || []).slice().sort();
       return ids.length ? productId + ':' + ids.join('.') : String(productId);
     }
-    // Sold out when any option has no choice left.
-    function soldOut(p) { return (p.options || []).some((g) => !g.choices.some((c) => !c.soldOut)); }
+    const counted = (n) => n !== null && n !== undefined;
+    // Sold out when the count is 0, or any option has no choice left.
+    function soldOut(p) {
+      return (counted(p.stock) && p.stock <= 0) || (p.options || []).some((g) => !g.choices.some((c) => !c.soldOut));
+    }
+    // A choice with a count of 0 is sold out like one the seller marked.
+    function prepareProducts(list) {
+      list.forEach((p) => (p.options || []).forEach((g) => g.choices.forEach((c) => { if (counted(c.stock) && c.stock <= 0) c.soldOut = true; })));
+      return list;
+    }
+    // How many of this line can be in the order, given the seller's counts
+    // and the other lines already in the cart.
+    function maxFor(productId, choices, exceptKey) {
+      const p = productById(productId);
+      if (!p) return 0;
+      const others = [...state.cart].filter(([k]) => k !== exceptKey).map(([, l]) => l).filter((l) => l.productId === productId);
+      let max = 99;
+      if (counted(p.stock)) max = Math.min(max, p.stock - others.reduce((s, l) => s + l.qty, 0));
+      (p.options || []).forEach((g) => g.choices.forEach((c) => {
+        if (choices.includes(c.id) && counted(c.stock)) {
+          max = Math.min(max, c.stock - others.filter((l) => l.choices.includes(c.id)).reduce((s, l) => s + l.qty, 0));
+        }
+      }));
+      return Math.max(0, max);
+    }
+    // Trims the cart to what's left (after the store reloads).
+    function capCart() {
+      [...state.cart].forEach(([key, line]) => {
+        const max = maxFor(line.productId, line.choices, key);
+        if (max <= 0) state.cart.delete(key);
+        else if (line.qty > max) line.qty = max;
+      });
+    }
     // "From ₦40,000" when choices change the price (sold-out choices don't count).
     function priceLabel(p) {
       let min = p.priceKobo;
@@ -409,6 +467,12 @@
     function setLineQty(productId, choices, qty) {
       const key = lineKey(productId, choices);
       const before = state.cart.has(key) ? state.cart.get(key).qty : 0;
+      const max = maxFor(productId, choices, key);
+      if (qty > max) {
+        toast(max ? 'Only ' + max + ' available' : 'No more left');
+        if (before >= max) return;
+        qty = max;
+      }
       if (qty <= 0) state.cart.delete(key);
       else state.cart.set(key, { productId, choices: choices.slice(), qty: Math.min(99, qty) });
       saveCart();
@@ -430,15 +494,19 @@
       const t = cartTotals();
       const lines = cartLines().map(({ line, info }) => line.qty + ' × ' + lineName(info) + ' — ' + formatNaira(info.price * line.qty));
       return ['Hi ' + state.store.businessName + ', I\'d like to order:', '', ...lines,
-        t.delivery ? 'Delivery: ' + formatNaira(t.delivery) : null,
-        'Total: ' + formatNaira(t.total)].filter((x) => x !== null).join('\n');
+        t.needsZone ? 'Delivery: depends on my area' : t.delivery ? 'Delivery' + (t.zone ? ' (' + t.zone.name + ')' : '') + ': ' + formatNaira(t.delivery) : null,
+        (t.needsZone ? 'Total before delivery: ' : 'Total: ') + formatNaira(t.total)].filter((x) => x !== null).join('\n');
     }
 
+    const zones = () => (state.store && state.store.deliveryZones) || [];
+    const pickedZone = () => zones().find((z) => z.id === state.zone) || null;
     function cartTotals() {
       let count = 0, subtotal = 0;
       cartLines().forEach(({ line, info }) => { count += line.qty; subtotal += info.price * line.qty; });
-      const delivery = state.store ? state.store.deliveryFeeKobo : 0;
-      return { count, subtotal, delivery, total: subtotal + delivery };
+      const zone = pickedZone();
+      const needsZone = zones().length > 0 && !zone;
+      const delivery = !state.store ? 0 : zones().length ? (zone ? zone.feeKobo : 0) : state.store.deliveryFeeKobo;
+      return { count, subtotal, delivery, zone, needsZone, total: subtotal + delivery };
     }
 
     function stepper(productId, choices, qty) {
@@ -450,6 +518,7 @@
       const plus = el('button', null, '+');
       plus.type = 'button';
       plus.setAttribute('aria-label', 'One more');
+      plus.disabled = qty >= maxFor(productId, choices, lineKey(productId, choices));
       plus.addEventListener('click', () => setLineQty(productId, choices, qty + 1));
       box.append(minus, el('span', null, String(qty)), plus);
       return box;
@@ -490,8 +559,19 @@
       $('store-name').textContent = s.businessName;
       $('store-initials').textContent = initials(s.businessName);
       const delivery = [];
-      if (s.deliveryFeeKobo) delivery.push('Delivery ' + formatNaira(s.deliveryFeeKobo));
+      const zs = s.deliveryZones || [];
+      if (zs.length) {
+        const fees = zs.map((z) => z.feeKobo);
+        const paid = fees.filter((f) => f > 0);
+        if (!paid.length) delivery.push('Free delivery');
+        else if (paid.length < fees.length) delivery.push('Free pick up · delivery from ' + formatNaira(Math.min(...paid)));
+        else delivery.push('Delivery from ' + formatNaira(Math.min(...paid)));
+      } else if (s.deliveryFeeKobo) delivery.push('Delivery ' + formatNaira(s.deliveryFeeKobo));
       if (s.deliveryNote) delivery.push(s.deliveryNote);
+      $('shop-away').hidden = !s.awayMessage;
+      $('shop-away-text').textContent = s.awayMessage || '';
+      $('checkout-away').hidden = !s.awayMessage;
+      $('checkout-away').textContent = s.awayMessage ? 'Note from the seller: ' + s.awayMessage : '';
       $('store-delivery').textContent = delivery.join(' · ') || 'Order online, pay by bank transfer';
       if (s.whatsappPhone) {
         $('store-chat').href = waLink(s.whatsappPhone, 'Hi ' + s.businessName + ', I have a question about your store.');
@@ -544,6 +624,7 @@
         photo.appendChild(more);
       }
       if (out) photo.appendChild(el('span', 'soldout-tag', 'Sold out'));
+      else if (counted(p.stock) && p.stock <= 5) photo.appendChild(el('span', 'left-tag', 'Only ' + p.stock + ' left'));
       photo.addEventListener('click', () => openViewer(p.id));
       card.appendChild(photo);
       const body = el('div', 'p-body');
@@ -681,6 +762,7 @@
           b.type = 'button';
           b.appendChild(document.createTextNode(c.label));
           if (c.extraKobo) b.appendChild(el('small', null, ' +' + formatNaira(c.extraKobo)));
+          if (!c.soldOut && counted(c.stock) && c.stock <= 5) b.appendChild(el('small', null, ' · ' + c.stock + ' left'));
           b.disabled = c.soldOut;
           if (c.soldOut) b.setAttribute('aria-label', c.label + ', sold out');
           b.setAttribute('aria-pressed', String(state.picks[gi] === c.id));
@@ -712,9 +794,12 @@
         return;
       }
       const missing = options.find((g, gi) => !state.picks[gi]);
-      const add = el('button', 'btn theme', missing ? 'Choose a ' + missing.name.toLowerCase() : 'Add to order · ' + formatNaira(price));
+      const pickedIds = picked.map((c) => c.id);
+      const pickedKey = lineKey(p.id, pickedIds);
+      const full = !missing && (state.cart.has(pickedKey) ? state.cart.get(pickedKey).qty : 0) >= maxFor(p.id, pickedIds, pickedKey);
+      const add = el('button', 'btn theme', missing ? 'Choose a ' + missing.name.toLowerCase() : full ? 'No more left of this one' : 'Add to order · ' + formatNaira(price));
       add.type = 'button';
-      add.disabled = !!missing;
+      add.disabled = !!missing || full;
       add.addEventListener('click', () => {
         const choices = picked.map((c) => c.id);
         const key = lineKey(p.id, choices);
@@ -755,12 +840,38 @@
         row.append(photoTile(info.product, 'thumb'), main, stepper(line.productId, line.choices, line.qty));
         box.appendChild(row);
       });
+      renderZones();
       const t = cartTotals();
       $('sum-subtotal').textContent = formatNaira(t.subtotal);
-      $('sum-delivery').textContent = formatNaira(t.delivery);
-      $('sum-delivery-row').hidden = !t.delivery;
+      $('sum-delivery-label').textContent = 'Delivery' + (t.zone ? ' · ' + t.zone.name : '');
+      $('sum-delivery').textContent = t.needsZone ? 'Pick an area' : formatNaira(t.delivery);
+      $('sum-delivery-row').hidden = !t.delivery && !t.zone && !t.needsZone;
       $('sum-total').textContent = formatNaira(t.total);
       if (!t.count) { setRoute('', false); switchView('shop'); }
+    }
+
+    function renderZones() {
+      const list = zones();
+      $('zone-card').hidden = !list.length;
+      if (state.zone && !pickedZone()) state.zone = '';
+      const box = $('zone-pick');
+      box.textContent = '';
+      list.forEach((z) => {
+        const b = el('button');
+        b.type = 'button';
+        b.setAttribute('role', 'radio');
+        b.setAttribute('aria-checked', String(z.id === state.zone));
+        b.append(el('span', null, z.name), el('span', null, z.feeKobo ? formatNaira(z.feeKobo) : 'Free'));
+        b.addEventListener('click', () => {
+          state.zone = z.id;
+          try { sessionStorage.setItem(ZONE_KEY, z.id); } catch (e) {}
+          const err = $('checkout-error');
+          if (err.classList.contains('show')) { err.classList.remove('show'); err.textContent = ''; }
+          renderCheckout();
+          OP.buzz(6);
+        });
+        box.appendChild(b);
+      });
     }
 
     function openCheckout(fromRoute) {
@@ -805,12 +916,16 @@
       if (customer.name.length < 2) return showError('Enter your name.', 'name');
       if (customer.phone.replace(/\D/g, '').length < 10) return showError('Enter your phone number, like 0803 123 4567.', 'phone');
       if (!customer.address) return showError('Enter your delivery address, or "Pick up" if you\'ll collect it.', 'address');
+      if (cartTotals().needsZone) {
+        $('zone-card').scrollIntoView({ block: 'center', behavior: OP.reducedMotion ? 'auto' : 'smooth' });
+        return showError('Choose where your order should go.');
+      }
 
       const items = cartLines().map(({ line }) => ({ productId: line.productId, quantity: line.qty, options: line.choices }));
       const btn = $('checkout-submit');
       btn.disabled = true;
       btn.textContent = 'Placing order…';
-      const { ok, status, data } = await api('/api/public', { action: 'order', store: slug, items, customer, note });
+      const { ok, status, data } = await api('/api/public', { action: 'order', store: slug, items, customer, note, zone: state.zone || undefined });
       btn.disabled = false;
       btn.textContent = 'Place order';
 
@@ -836,7 +951,24 @@
           }
           renderCheckout();
         }
-        return showError(data.error || 'Could not place your order. Please try again.', data.field);
+        if (status === 409 && Array.isArray(data.shortfalls)) {
+          // Fewer left than asked for: lower those lines to what's left.
+          data.shortfalls.forEach((s) => {
+            const line = state.cart.get(s.key);
+            if (!line) return;
+            if (s.left > 0) line.qty = Math.min(line.qty, s.left);
+            else state.cart.delete(s.key);
+          });
+          saveCart();
+          await loadStore(true);
+          if (cartTotals().count === 0) { setRoute('', false); switchView('shop'); return; }
+          renderCheckout();
+        } else if (status === 409 && data.stock) {
+          await loadStore(true);
+          renderCheckout();
+        }
+        if (data.field === 'zone') { state.zone = ''; renderCheckout(); }
+        return showError(data.error || 'Could not place your order. Please try again.', data.field === 'zone' ? null : data.field);
       }
 
       saveCustomer(customer);
@@ -853,7 +985,7 @@
         'Hi ' + store.businessName + ', I just placed order #' + order.number + '.',
         '',
         ...lines,
-        order.deliveryFeeKobo ? 'Delivery: ' + formatNaira(order.deliveryFeeKobo) : null,
+        order.deliveryFeeKobo || order.deliveryZone ? 'Delivery' + (order.deliveryZone ? ' (' + order.deliveryZone + ')' : '') + ': ' + formatNaira(order.deliveryFeeKobo) : null,
         'Total: ' + formatNaira(order.totalKobo),
         '',
         'Name: ' + order.customer.name,
@@ -922,10 +1054,10 @@
         line.append(main, el('span', 'num', formatNaira(i.lineTotalKobo)));
         lines.appendChild(line);
       });
-      if (order.deliveryFeeKobo) {
+      if (order.deliveryFeeKobo || order.deliveryZone) {
         const line = el('div', 'line');
         const main = el('div', 'l-main');
-        main.appendChild(el('div', 'l-sub', 'Delivery'));
+        main.appendChild(el('div', 'l-sub', 'Delivery' + (order.deliveryZone ? ' · ' + order.deliveryZone : '')));
         line.append(main, el('span', 'num', formatNaira(order.deliveryFeeKobo)));
         lines.appendChild(line);
       }
@@ -946,9 +1078,10 @@
         return switchView('missing');
       }
       state.store = data.store;
-      state.products = data.products;
+      state.products = prepareProducts(data.products);
       if (state.category && !categories().some((c) => c.toLowerCase() === state.category.toLowerCase())) state.category = '';
       loadCart();
+      capCart();
       saveCart();
       renderStore();
       if (!quiet) {

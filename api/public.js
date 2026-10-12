@@ -1,10 +1,12 @@
 // The customer-facing side of a store. No login: anyone with the link.
 //   GET  /api/public?store=<slug>  -> { store, products }
 //   POST /api/public { action: "order", store, items: [{ productId, quantity, options?: [choiceId] }],
-//                      customer: { name, phone, address }, note }
+//                      customer: { name, phone, address }, note, zone? }
 //                    -> { order, store }   (store here includes bank details)
+//                    zone: the id of a delivery area, needed when the seller has areas
 //                    409 { unavailable: [productId], unavailableLines: [lineKey] } when
 //                    something sold out (lineKey is "productId" or "productId:choiceA.choiceB")
+//                    409 { shortfalls: [{ key, left }] } when fewer are left than asked for
 //   GET  /api/public?invoice=<publicId>        -> { invoice, store }
 //   POST /api/public { action: "paid", invoice } -> customer says they've paid
 //   GET  /api/public?site=contact              -> { contact: { email, whatsapp } }
@@ -21,7 +23,8 @@ const { createOrder, invoiceForCustomer } = require('../lib/orders');
 const { isPro, usage, noteUsage } = require('../lib/plan');
 const { renderPage } = require('../lib/pages');
 const { themeOf, photosByProduct, photoUrl, loadPhoto } = require('../lib/photos');
-const { optionsOf, lineKey, priceFor } = require('../lib/catalog');
+const { optionsOf, lineKey, priceFor, stockRowsFor, stockShortfalls } = require('../lib/catalog');
+const { zonesOf } = require('../lib/storeSettings');
 
 const MAX_LINES = 50;
 const MAX_QUANTITY = 99;
@@ -47,6 +50,7 @@ function storeForCustomer(v, { withBank = false } = {}) {
     deliveryFeeKobo: Number(v.default_delivery_fee_kobo || 0),
     deliveryNote: v.delivery_note || null,
     theme: themeOf(v),
+    awayMessage: v.away_message || null,
     branded: !isPro(v)
   };
   if (withBank) {
@@ -62,22 +66,25 @@ async function getStore(req, res) {
   const vendor = await findStore(slug);
   if (!vendor) throw new HttpError(404, "This store doesn't exist. Check the link with the seller.");
   const products = await sql`
-    SELECT id, name, description, price_kobo, category, options FROM products
+    SELECT id, name, description, price_kobo, category, options, stock FROM products
     WHERE vendor_id = ${vendor.id} AND is_active = TRUE
     ORDER BY sort_order, created_at, id
   `;
   // On the free plan, after 20 orders this month the store takes orders on
   // WhatsApp only (the page builds the message; nothing is saved).
-  const [{ capReached }, photos] = await Promise.all([usage(vendor), photosByProduct(vendor.id)]);
+  const [{ capReached }, photos, stock] = await Promise.all([
+    usage(vendor), photosByProduct(vendor.id), stockRowsFor(sql, products.map((p) => p.id))
+  ]);
   return res.status(200).json({
-    store: { ...storeForCustomer(vendor), acceptingOrders: !capReached },
+    store: { ...storeForCustomer(vendor), deliveryZones: zonesOf(vendor), acceptingOrders: !capReached },
     products: products.map((p) => ({
       id: Number(p.id),
       name: p.name,
       description: p.description || '',
       priceKobo: Number(p.price_kobo),
       category: p.category || '',
-      options: optionsOf(p),
+      options: optionsOf(p, stock.get(Number(p.id)) || []),
+      stock: p.stock == null ? null : Number(p.stock),
       photos: (photos.get(Number(p.id)) || []).map((ph) => ph.url)
     }))
   });
@@ -124,6 +131,12 @@ async function placeOrder(req, res, body) {
   const cart = readCart(body.items);
   const customer = readCustomer(body);
   const ip = getClientIp(req);
+  const zones = zonesOf(vendor);
+  let zone = null;
+  if (zones.length) {
+    zone = zones.find((z) => z.id === String(body.zone || ''));
+    if (!zone) throw new HttpError(400, 'Choose where we should deliver to.', { field: 'zone' });
+  }
 
   if ((await usage(vendor)).capReached) {
     throw new HttpError(403, 'This store is taking orders on WhatsApp right now. Tap the button to send your order to the seller.', { capReached: true });
@@ -140,11 +153,12 @@ async function placeOrder(req, res, body) {
   // Current prices and options from the database, only for this seller's live products.
   const ids = JSON.stringify([...new Set([...cart.values()].map((l) => l.productId))]);
   const rows = await sql`
-    SELECT id, name, price_kobo, options FROM products
+    SELECT id, name, price_kobo, options, stock FROM products
     WHERE vendor_id = ${vendor.id} AND is_active = TRUE
       AND id IN (SELECT jsonb_array_elements_text(${ids}::jsonb)::bigint)
   `;
-  const found = new Map(rows.map((r) => [Number(r.id), r]));
+  const stock = await stockRowsFor(sql, rows.map((r) => r.id));
+  const found = new Map(rows.map((r) => [Number(r.id), { ...r, stock_rows: stock.get(Number(r.id)) || [] }]));
   const unavailable = [...new Set([...cart.values()].filter((l) => !found.has(l.productId)).map((l) => l.productId))];
   const unavailableLines = [];
   const lines = [];
@@ -152,18 +166,32 @@ async function placeOrder(req, res, body) {
     const p = found.get(l.productId);
     if (!p) { unavailableLines.push(key); continue; }
     const priced = priceFor(p, l.choices);
-    if (priced.problem) { unavailableLines.push(key); continue; }
-    lines.push({ product_id: l.productId, name: p.name, option_text: priced.optionText, unit_price_kobo: priced.unitPriceKobo, quantity: l.quantity });
+    if (priced.problem || (p.stock !== null && Number(p.stock) <= 0)) { unavailableLines.push(key); continue; }
+    lines.push({
+      key, product_id: l.productId, name: p.name, option_text: priced.optionText, option_ids: priced.optionIds,
+      unit_price_kobo: priced.unitPriceKobo, quantity: l.quantity
+    });
   }
   if (unavailableLines.length) {
     throw new HttpError(409, 'Some items or choices are no longer available, so we removed them. Check your order and try again.', { unavailable, unavailableLines });
+  }
+  const short = stockShortfalls(
+    lines.map((l) => ({ key: l.key, productId: l.product_id, quantity: l.quantity, optionIds: l.option_ids, optionText: l.option_text })),
+    found
+  );
+  if (short.length) {
+    const s = short[0];
+    throw new HttpError(409, `Only ${s.left} left of ${s.name}. We changed your order to match. Check it and try again.`, {
+      shortfalls: short.map((x) => ({ key: x.key, left: x.left }))
+    });
   }
 
   const order = await createOrder({
     vendorId: vendor.id,
     customer,
-    lines,
-    deliveryFeeKobo: Number(vendor.default_delivery_fee_kobo || 0),
+    lines: lines.map(({ key, ...line }) => line),
+    deliveryFeeKobo: zone ? zone.feeKobo : Number(vendor.default_delivery_fee_kobo || 0),
+    deliveryZone: zone ? zone.name : null,
     note: customer.note,
     source: 'link',
     ip,
@@ -185,7 +213,7 @@ async function loadInvoice(publicId) {
   const rows = await sql`
     SELECT o.*, v.business_name, v.slug, v.whatsapp_phone, v.bank_name, v.bank_account_number,
            v.bank_account_name, v.default_delivery_fee_kobo, v.delivery_note, v.plan, v.plan_renews_at,
-           v.store_theme
+           v.store_theme, v.away_message
     FROM orders o
     JOIN vendors v ON v.id = o.vendor_id
     WHERE o.public_id = ${id} AND v.is_suspended = FALSE
@@ -208,7 +236,7 @@ async function loadInvoice(publicId) {
     business_name: order.business_name, slug: order.slug, whatsapp_phone: order.whatsapp_phone,
     bank_name: order.bank_name, bank_account_number: order.bank_account_number, bank_account_name: order.bank_account_name,
     default_delivery_fee_kobo: order.default_delivery_fee_kobo, delivery_note: order.delivery_note, plan: order.plan,
-    plan_renews_at: order.plan_renews_at, store_theme: order.store_theme
+    plan_renews_at: order.plan_renews_at, store_theme: order.store_theme, away_message: order.away_message
   };
   return { order, items, payments, vendor: vendorShape };
 }
@@ -236,6 +264,11 @@ async function markPaid(body, res) {
         UPDATE orders SET customer_marked_paid_at = now(), updated_at = now()
         WHERE id = ${o.id} AND customer_marked_paid_at IS NULL
         RETURNING id
+      ),
+      history AS (
+        INSERT INTO order_events (order_id, vendor_id, kind, message)
+        SELECT id, ${o.vendor_id}, 'customer_paid', ${o.customer_name + ' tapped "I\'ve paid" on the invoice'} FROM marked
+        RETURNING 1
       )
       INSERT INTO notifications (vendor_id, type, message, order_id)
       SELECT ${o.vendor_id}, 'payment_claimed',
