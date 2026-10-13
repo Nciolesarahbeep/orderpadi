@@ -85,6 +85,12 @@
     .opt-chips button[aria-pressed="true"] { background: var(--theme); color: var(--theme-ink); animation: op-pop .3s cubic-bezier(.2, .9, .3, 1.5); }
     .opt-chips button:disabled { opacity: .45; text-decoration: line-through; box-shadow: none; cursor: default; }
     .v-lines { margin-top: 14px; }
+    .wait-box { margin-top: 14px; }
+    .wait-box > .muted { margin: 0 0 10px; font-weight: 700; }
+    .wait-form { margin-top: 6px; padding: 4px 14px 14px; border: var(--bw) solid var(--ink); border-radius: 18px; background: var(--card-2); }
+    .wait-form .btn { margin-top: 14px; }
+    .wait-done { margin: 0; padding: 12px 14px; border-radius: 16px; border: var(--bw) solid var(--ink); background: var(--brand-soft); font-weight: 800; }
+    .wait-box .link { display: block; margin-top: 12px; }
     .v-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 2px solid var(--line); font-weight: 700; }
     .product { position: relative; display: flex; flex-direction: column; background: var(--card); border: var(--bw) solid var(--ink); border-radius: 20px; box-shadow: var(--shadow); overflow: hidden; }
     .p-photo { position: relative; aspect-ratio: 1; border: 0; border-bottom: var(--bw) solid var(--ink); padding: 0; width: 100%; font-size: 46px; cursor: pointer; }
@@ -296,6 +302,7 @@
       <div id="viewer-options"></div>
       <div id="viewer-action"></div>
       <div class="v-lines" id="viewer-lines"></div>
+      <div id="viewer-wait"></div>
     </div>
   </div>
 
@@ -830,8 +837,10 @@
       box.textContent = '';
       const lines = $('viewer-lines');
       lines.textContent = '';
+      const wait = $('viewer-wait');
+      wait.textContent = '';
       if (!canOrder()) return;
-      if (soldOut(p)) { box.appendChild(el('p', 'muted', 'Sold out for now. Chat with the seller to ask when it\'s back.')); return; }
+      if (soldOut(p)) { box.appendChild(waitBox(p, null)); return; }
       if (!options.length) {
         const qty = state.cart.has(String(p.id)) ? state.cart.get(String(p.id)).qty : 0;
         if (qty) {
@@ -866,6 +875,75 @@
         row.append(el('span', null, info.text + ' · ' + formatNaira(info.price)), stepper(p.id, line.choices, line.qty));
         lines.appendChild(row);
       });
+      // Some choices sold out: customers can ask to be told when one is back.
+      const gone = [];
+      options.forEach((g) => g.choices.forEach((c) => { if (c.soldOut) gone.push({ id: c.id, text: g.name + ': ' + c.label }); }));
+      if (gone.length) wait.appendChild(waitBox(p, gone));
+    }
+
+    // "Tell me when it's back": name and WhatsApp number, sent to the seller.
+    function waitBox(p, soldChoices) {
+      const key = 'op_wait_' + slug + '_' + p.id;
+      const wrap = el('div', 'wait-box');
+      let asked = false;
+      try { asked = !!localStorage.getItem(key); } catch (e) { /* private mode */ }
+      const store = (state.store && state.store.businessName) || 'The seller';
+      const done = () => el('p', 'wait-done', '✓ ' + store + " will message you on WhatsApp when it's back.");
+      if (asked && !soldChoices) { wrap.appendChild(done()); return wrap; }
+      if (!soldChoices) wrap.appendChild(el('p', 'muted', 'Sold out for now.'));
+      const open = el('button', soldChoices ? 'link' : 'btn theme', soldChoices ? "Want a sold-out one? Get told when it's back" : "Tell me when it's back");
+      open.type = 'button';
+      open.id = 'wait-open';
+      const form = el('form', 'wait-form');
+      form.id = 'wait-form';
+      form.noValidate = true;
+      form.hidden = true;
+      const c = savedCustomer();
+      let select = null;
+      if (soldChoices) {
+        const l = el('label', null, 'Which one do you want?');
+        l.htmlFor = 'wait-choice';
+        select = document.createElement('select');
+        select.id = 'wait-choice';
+        soldChoices.forEach((x) => select.appendChild(Object.assign(document.createElement('option'), { value: x.id, textContent: x.text })));
+        form.append(l, select);
+      }
+      const nl = el('label', null, 'Your name');
+      nl.htmlFor = 'wait-name';
+      const name = Object.assign(document.createElement('input'), { id: 'wait-name', type: 'text', maxLength: 60, autocomplete: 'name', value: c.name || '' });
+      const pl = el('label', null, 'WhatsApp number');
+      pl.htmlFor = 'wait-phone';
+      const phone = Object.assign(document.createElement('input'), { id: 'wait-phone', type: 'tel', inputMode: 'tel', autocomplete: 'tel', placeholder: '0803 123 4567', value: c.phone || '' });
+      const err = el('p', 'error');
+      err.id = 'wait-error';
+      const send = el('button', 'btn theme', "Tell me when it's back");
+      send.type = 'submit';
+      send.id = 'wait-send';
+      form.append(nl, name, pl, phone, err, send);
+      open.addEventListener('click', () => { open.hidden = true; form.hidden = false; (name.value ? phone : name).focus(); });
+      [name, phone].forEach((input) => input.addEventListener('input', () => err.classList.remove('show')));
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        err.classList.remove('show');
+        const fail = (text) => { err.textContent = text; err.classList.add('show'); };
+        if (name.value.trim().length < 2) { name.focus(); return fail('Enter your name.'); }
+        if (phone.value.replace(/\D/g, '').length < 10) { phone.focus(); return fail('Enter your WhatsApp number, like 0803 123 4567.'); }
+        send.disabled = true;
+        send.textContent = 'Sending…';
+        const { ok, data } = await api('/api/public', {
+          action: 'stock-alert', store: slug, productId: p.id, name: name.value.trim(), phone: phone.value.trim(),
+          choiceId: select ? select.value : undefined
+        });
+        send.disabled = false;
+        send.textContent = "Tell me when it's back";
+        if (!ok) return fail(data.error || "Couldn't send that. Try again.");
+        try { if (!soldChoices) localStorage.setItem(key, '1'); } catch (er) { /* private mode */ }
+        saveCustomer({ ...savedCustomer(), name: name.value.trim(), phone: phone.value.trim() });
+        wrap.textContent = '';
+        wrap.appendChild(done());
+      });
+      wrap.append(open, form);
+      return wrap;
     }
     function closeViewer(fromRoute) {
       $('viewer').hidden = true;
@@ -1264,8 +1342,15 @@
       renderStore();
       if (!quiet) {
         switchView('shop');
-        history.replaceState({ op: true, base: true }, '', location.href);
-        if (storeRoute()) applyRoute();
+        // A link to one product (/s/<slug>?p=12): open it, with the store underneath for Back.
+        const linked = Number(new URLSearchParams(location.search).get('p'));
+        if (!storeRoute() && linked && productById(linked)) {
+          history.replaceState({ op: true, base: true }, '', location.pathname);
+          openViewer(linked);
+        } else {
+          history.replaceState({ op: true, base: true }, '', location.href);
+          if (storeRoute()) applyRoute();
+        }
       }
     }
 

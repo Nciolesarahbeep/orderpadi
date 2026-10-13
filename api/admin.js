@@ -17,6 +17,7 @@
 // Every action is written to billing_events as "admin.<action>" with who did it.
 const crypto = require('crypto');
 const { sql } = require('../lib/db');
+const { notifyNow } = require('../lib/push');
 const { HttpError, getSessionVendor, isAdmin, endAllSessions } = require('../lib/auth');
 const { FREE_MONTHLY_ORDERS, PRO_PRICE_KOBO, GRACE_DAYS, isPro } = require('../lib/plan');
 const { configured, paystack } = require('../lib/paystack');
@@ -222,7 +223,7 @@ async function logAction(admin, sellerId, action, extra = {}) {
 }
 
 async function notify(sellerId, type, message) {
-  await sql`INSERT INTO notifications (vendor_id, type, message) VALUES (${sellerId}, ${type}, ${message})`;
+  await notifyNow(sellerId, type, message);
 }
 
 function niceDate(value) {

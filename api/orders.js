@@ -7,7 +7,8 @@
 //   GET  /api/orders?view=stats                 -> today / week / month sales, owed, plan usage
 //   GET  /api/orders?view=customers&q=&tag=&sort=owing|recent|top|name -> { customers, tags, total }
 //   GET  /api/orders?view=customer&id=<id>      -> { customer, stats, favourites, orders }
-//   GET  /api/orders?view=report                -> last 30 days by day + top products   (Pro)
+//   GET  /api/orders?view=report&period=30d|month|last -> sales by day, best sellers, and profit:
+//        sales − cost of items − expenses (lib/expenses.js)                          (Pro)
 //   GET  /api/orders?view=export                -> all orders as a CSV file              (Pro)
 //   GET  /api/orders?customer=<id>              -> the list, for one customer
 //   POST /api/orders { action: "create", customer, items, zone?, deliveryFee, discount, note } -> { order }
@@ -18,7 +19,8 @@
 //   POST /api/orders { action: "note", id, message }                     -> { order }   a note in the order's history
 //   POST /api/orders { action: "log", id, kind, title? }                 -> { order }
 //        kind: invoice_sent | invoice_copied | quick_reply (title = the reply's title) | review_asked
-//   POST /api/orders { action: "customer", id, name?, address?, notes?, tags? } -> customer page
+//   POST /api/orders { action: "customer", id, name?, address?, notes?, tags?, noMessages? } -> customer page
+//        noMessages: true leaves them out of messages to many customers (Customers › Message customers)
 //   POST /api/orders { action: "notifications-read" }                    -> { unread: 0 }
 const { sql } = require('../lib/db');
 const { HttpError, getSessionVendor } = require('../lib/auth');
@@ -28,6 +30,8 @@ const { priceFor, lineKey, stockRowsFor, stockShortfalls } = require('../lib/cat
 const { zonesOf } = require('../lib/storeSettings');
 const { loadSellable, resaleLine, RESALE_TEXT } = require('../lib/resell');
 const { isPro, usage, noteUsage, FREE_MONTHLY_ORDERS } = require('../lib/plan');
+const { flushPush } = require('../lib/push');
+const { periodRange, csvCell } = require('../lib/expenses');
 
 const PAGE_SIZE = 50;
 const FILTERS = ['all', 'new', 'unpaid', 'delivered'];
@@ -84,7 +88,7 @@ async function loadOrder(vendorId, id) {
     items: Array.isArray(so.items) ? so.items : [],
     supplier: { name: so.business_name, whatsappPhone: so.whatsapp_phone || null }
   }));
-  const resold = items.filter((i) => i.unit_cost_kobo != null);
+  const resold = items.filter((i) => i.stock_product_id != null && i.unit_cost_kobo != null);
   detail.resaleProfitKobo = resold.length
     ? resold.reduce((sum, i) => sum + Number(i.line_total_kobo) - Number(i.unit_cost_kobo) * Number(i.quantity), 0)
     : null;
@@ -232,7 +236,7 @@ async function customers(vendor, params) {
 // One customer: details, what they've spent, what they buy, their orders.
 async function customerPage(vendor, id) {
   const [c] = await sql`
-    SELECT c.id, c.name, c.phone, c.address, c.notes, c.tags, c.created_at,
+    SELECT c.id, c.name, c.phone, c.address, c.notes, c.tags, c.no_broadcast, c.created_at,
            count(o.id)::int AS order_count,
            coalesce(sum(o.total_kobo), 0)::bigint AS spent,
            coalesce(sum(o.amount_paid_kobo), 0)::bigint AS paid,
@@ -269,6 +273,7 @@ async function customerPage(vendor, id) {
       address: c.address || '',
       notes: c.notes || '',
       tags: tagsOf(c.tags),
+      noMessages: !!c.no_broadcast,
       createdAt: c.created_at
     },
     stats: {
@@ -337,9 +342,11 @@ async function updateCustomer(vendor, body) {
     notes = notes || null;
   }
   const tags = has('tags') ? await matchTags(vendor, readTags(body.tags)) : tagsOf(current.tags);
+  const noMessages = has('noMessages') ? body.noMessages === true : !!current.no_broadcast;
 
   await sql`
-    UPDATE customers SET name = ${name}, address = ${address}, notes = ${notes}, tags = ${JSON.stringify(tags)}::jsonb
+    UPDATE customers SET name = ${name}, address = ${address}, notes = ${notes}, tags = ${JSON.stringify(tags)}::jsonb,
+      no_broadcast = ${noMessages}
     WHERE id = ${id} AND vendor_id = ${vendor.id}
   `;
   return customerPage(vendor, id);
@@ -349,50 +356,90 @@ function requirePro(vendor, what) {
   if (!isPro(vendor)) throw new HttpError(402, `${what} are part of Pro.`, { upgrade: true });
 }
 
-async function report(vendor) {
+// Sales by day and best sellers for a period, and what's left after costs:
+// profit = sales − what the items cost − expenses. Items without a cost
+// price are counted so the app can say the profit is missing their cost.
+// Days are Lagos days.
+async function report(vendor, params) {
   requirePro(vendor, 'Sales reports');
-  const days = await sql`
-    SELECT to_char(d, 'YYYY-MM-DD') AS day,
-           count(o.id)::int AS orders,
-           coalesce(sum(o.total_kobo), 0)::bigint AS sales
-    FROM generate_series(
-      date_trunc('day', now() AT TIME ZONE 'Africa/Lagos') - interval '29 days',
-      date_trunc('day', now() AT TIME ZONE 'Africa/Lagos'),
-      interval '1 day'
-    ) AS d
-    LEFT JOIN orders o
-      ON o.vendor_id = ${vendor.id} AND o.status <> 'cancelled'
-     AND date_trunc('day', o.created_at AT TIME ZONE 'Africa/Lagos') = d
-    GROUP BY d
-    ORDER BY d
-  `;
-  const top = await sql`
-    SELECT i.name, sum(i.quantity)::int AS quantity, sum(i.line_total_kobo)::bigint AS sales
-    FROM order_items i
-    JOIN orders o ON o.id = i.order_id
-    WHERE o.vendor_id = ${vendor.id} AND o.status <> 'cancelled'
-      AND o.created_at >= now() - interval '30 days'
-    GROUP BY i.name
-    ORDER BY sales DESC, quantity DESC
-    LIMIT 5
-  `;
+  const r = periodRange(params.get('period'));
+  const from = r.start;
+  const to = r.stop;
+  const [days, top, [money], [items], expenses] = await Promise.all([
+    sql`
+      SELECT to_char(d, 'YYYY-MM-DD') AS day,
+             count(o.id)::int AS orders,
+             coalesce(sum(o.total_kobo), 0)::bigint AS sales
+      FROM generate_series(${from}::date::timestamp, ${r.lastDay}::date::timestamp, interval '1 day') AS d
+      LEFT JOIN orders o
+        ON o.vendor_id = ${vendor.id} AND o.status <> 'cancelled'
+       AND date_trunc('day', o.created_at AT TIME ZONE 'Africa/Lagos') = d
+      GROUP BY d
+      ORDER BY d
+    `,
+    sql`
+      SELECT i.name, sum(i.quantity)::int AS quantity, sum(i.line_total_kobo)::bigint AS sales,
+             CASE WHEN bool_and(i.unit_cost_kobo IS NOT NULL)
+                  THEN sum(i.line_total_kobo - i.unit_cost_kobo * i.quantity) END::bigint AS profit
+      FROM order_items i
+      JOIN orders o ON o.id = i.order_id
+      WHERE o.vendor_id = ${vendor.id} AND o.status <> 'cancelled'
+        AND o.created_at >= ${from}::timestamp AT TIME ZONE 'Africa/Lagos'
+        AND o.created_at < ${to}::timestamp AT TIME ZONE 'Africa/Lagos'
+      GROUP BY i.name
+      ORDER BY sales DESC, quantity DESC
+      LIMIT 5
+    `,
+    sql`
+      SELECT
+        (SELECT count(*) FROM orders o WHERE o.vendor_id = ${vendor.id} AND o.status <> 'cancelled'
+           AND o.created_at >= ${from}::timestamp AT TIME ZONE 'Africa/Lagos' AND o.created_at < ${to}::timestamp AT TIME ZONE 'Africa/Lagos')::int AS orders,
+        (SELECT coalesce(sum(o.total_kobo), 0) FROM orders o WHERE o.vendor_id = ${vendor.id} AND o.status <> 'cancelled'
+           AND o.created_at >= ${from}::timestamp AT TIME ZONE 'Africa/Lagos' AND o.created_at < ${to}::timestamp AT TIME ZONE 'Africa/Lagos')::bigint AS sales,
+        (SELECT coalesce(sum(p.amount_kobo), 0) FROM payments p WHERE p.vendor_id = ${vendor.id}
+           AND p.paid_at >= ${from}::timestamp AT TIME ZONE 'Africa/Lagos' AND p.paid_at < ${to}::timestamp AT TIME ZONE 'Africa/Lagos')::bigint AS received
+    `,
+    sql`
+      SELECT
+        coalesce(sum(i.unit_cost_kobo * i.quantity) FILTER (WHERE i.unit_cost_kobo IS NOT NULL), 0)::bigint AS cost,
+        coalesce(sum(i.quantity) FILTER (WHERE i.unit_cost_kobo IS NULL), 0)::int AS no_cost_items,
+        coalesce(sum(i.line_total_kobo) FILTER (WHERE i.unit_cost_kobo IS NULL), 0)::bigint AS no_cost_sales
+      FROM order_items i JOIN orders o ON o.id = i.order_id
+      WHERE o.vendor_id = ${vendor.id} AND o.status <> 'cancelled'
+        AND o.created_at >= ${from}::timestamp AT TIME ZONE 'Africa/Lagos' AND o.created_at < ${to}::timestamp AT TIME ZONE 'Africa/Lagos'
+    `,
+    sql`
+      SELECT category, sum(amount_kobo)::bigint AS total FROM expenses
+      WHERE vendor_id = ${vendor.id} AND spent_on >= ${from}::date AND spent_on < ${to}::date
+      GROUP BY category ORDER BY total DESC
+    `
+  ]);
   const list = days.map((d) => ({ day: d.day, orders: Number(d.orders), salesKobo: Number(d.sales) }));
+  const salesKobo = Number(money.sales);
+  const costKobo = Number(items.cost);
+  const expensesKobo = expenses.reduce((sum, e) => sum + Number(e.total), 0);
   return {
+    period: r.period,
+    label: r.label,
+    from,
+    to: r.lastDay,
     days: list,
-    totals: {
-      orders: list.reduce((s, d) => s + d.orders, 0),
-      salesKobo: list.reduce((s, d) => s + d.salesKobo, 0)
+    totals: { orders: Number(money.orders), salesKobo },
+    topProducts: top.map((t) => ({
+      name: t.name, quantity: Number(t.quantity), salesKobo: Number(t.sales), profitKobo: t.profit == null ? null : Number(t.profit)
+    })),
+    profit: {
+      salesKobo,
+      costKobo,
+      grossKobo: salesKobo - costKobo,
+      expensesKobo,
+      profitKobo: salesKobo - costKobo - expensesKobo,
+      receivedKobo: Number(money.received),
+      noCostItems: Number(items.no_cost_items),
+      noCostSalesKobo: Number(items.no_cost_sales)
     },
-    topProducts: top.map((t) => ({ name: t.name, quantity: Number(t.quantity), salesKobo: Number(t.sales) }))
+    expenses: expenses.map((e) => ({ category: e.category, totalKobo: Number(e.total) }))
   };
-}
-
-// CSV cells: quote everything, and stop spreadsheet apps treating a value
-// that starts with = + - @ as a formula.
-function csvCell(value) {
-  let text = value == null ? '' : String(value);
-  if (/^[=+\-@\t\r]/.test(text)) text = "'" + text;
-  return '"' + text.replace(/"/g, '""') + '"';
 }
 
 const CSV_LABELS = {
@@ -406,7 +453,8 @@ async function exportCsv(vendor, res) {
   const rows = await sql`
     SELECT o.*,
       to_char(o.created_at AT TIME ZONE 'Africa/Lagos', 'YYYY-MM-DD HH24:MI') AS placed,
-      (SELECT string_agg(i.quantity || ' x ' || i.name || coalesce(' (' || i.option_text || ')', ''), '; ' ORDER BY i.id) FROM order_items i WHERE i.order_id = o.id) AS items
+      (SELECT string_agg(i.quantity || ' x ' || i.name || coalesce(' (' || i.option_text || ')', ''), '; ' ORDER BY i.id) FROM order_items i WHERE i.order_id = o.id) AS items,
+      (SELECT CASE WHEN bool_and(i.unit_cost_kobo IS NOT NULL) THEN sum(i.unit_cost_kobo * i.quantity) END FROM order_items i WHERE i.order_id = o.id) AS item_cost
     FROM orders o
     WHERE o.vendor_id = ${vendor.id}
     ORDER BY o.order_number DESC
@@ -415,14 +463,15 @@ async function exportCsv(vendor, res) {
   const naira = (k) => (Number(k) / 100).toFixed(2);
   // 2348031234567 -> 0803 123 4567 (spaces stop spreadsheets turning it into a number)
   const phone = (p) => (/^234\d{10}$/.test(p || '') ? `0${p.slice(3, 6)} ${p.slice(6, 9)} ${p.slice(9)}` : p || '');
-  const header = ['Order', 'Date', 'Customer', 'Phone', 'Items', 'Total (NGN)', 'Paid (NGN)', 'Balance (NGN)', 'Payment', 'Status', 'Source', 'Delivery area', 'Address', 'Note'];
+  const header = ['Order', 'Date', 'Customer', 'Phone', 'Items', 'Total (NGN)', 'Paid (NGN)', 'Balance (NGN)', 'Payment', 'Status', 'Source', 'Delivery area', 'Address', 'Note', 'Delivery fee (NGN)', 'Discount (NGN)', 'Item cost (NGN)'];
   const lines = [header.map(csvCell).join(',')];
   rows.forEach((o) => {
     lines.push([
       o.order_number, o.placed, o.customer_name, phone(o.customer_phone), o.items || '',
       naira(o.total_kobo), naira(o.amount_paid_kobo), naira(Math.max(0, Number(o.total_kobo) - Number(o.amount_paid_kobo))),
       CSV_LABELS[o.payment_status] || o.payment_status, CSV_LABELS[o.status] || o.status,
-      CSV_LABELS[o.source] || o.source, o.delivery_zone || '', o.delivery_address || '', o.note || ''
+      CSV_LABELS[o.source] || o.source, o.delivery_zone || '', o.delivery_address || '', o.note || '',
+      naira(o.delivery_fee_kobo), naira(o.discount_kobo), o.item_cost == null ? '' : naira(o.item_cost)
     ].map(csvCell).join(','));
   });
   const date = new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' });
@@ -652,6 +701,11 @@ async function setStatus(vendor, body) {
     }
     throw err;
   }
+  // Suppliers of resold items were told to stop (or start again): alert their phones.
+  if (status === 'cancelled' || before.status === 'cancelled') {
+    const suppliers = await sql`SELECT DISTINCT supplier_vendor_id FROM supply_orders WHERE order_id = ${id}`;
+    if (suppliers.length) await flushPush(suppliers.map((r) => r.supplier_vendor_id));
+  }
   return { order: await loadOrder(vendor.id, id) };
 }
 
@@ -815,7 +869,7 @@ module.exports = async function handler(req, res) {
       if (view === 'unread') return res.status(200).json(await unread(vendor));
       if (view === 'stats') return res.status(200).json(await stats(vendor));
       if (view === 'customers') return res.status(200).json(await customers(vendor, params));
-      if (view === 'report') return res.status(200).json(await report(vendor));
+      if (view === 'report') return res.status(200).json(await report(vendor, params));
       if (view === 'export') return await exportCsv(vendor, res);
       return res.status(200).json(await list(vendor, params));
     }

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>You're offline · OrderPadi</title>
+  <meta name="theme-color" content="#F3EFFF">
+  <style>
+    :root { --bg: #F3EFFF; --card: #FFFFFF; --text: #1B1530; --muted: #5E5873; --ink: #1B1530; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #15112A; --card: #221C3D; --text: #F4F1FF; --muted: #B7AFD6; }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      background: var(--bg); color: var(--text);
+      font: 600 17px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+    }
+    .card {
+      width: 100%; max-width: 400px; text-align: center; background: var(--card);
+      border: 3px solid var(--ink); border-radius: 26px; box-shadow: 0 6px 0 var(--ink); padding: 30px 22px;
+    }
+    svg { width: 84px; height: 84px; }
+    h1 { font-size: 26px; line-height: 1.2; margin: 14px 0 6px; }
+    p { color: var(--muted); margin: 0 0 20px; }
+    button {
+      width: 100%; min-height: 54px; border-radius: 18px; border: 3px solid var(--ink); background: #12B76A; color: #1B1530;
+      font: 800 18px/1 inherit; font-family: inherit; box-shadow: 0 4px 0 var(--ink); cursor: pointer;
+    }
+    button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <svg viewBox="0 0 84 84" aria-hidden="true">
+      <circle cx="42" cy="42" r="38" fill="#FFD23F" stroke="#1B1530" stroke-width="3"/>
+      <path d="M22 37a28 28 0 0 1 40 0M29 45a18 18 0 0 1 26 0M36 53a8 8 0 0 1 12 0" fill="none" stroke="#1B1530" stroke-width="4" stroke-linecap="round"/>
+      <path d="M24 24l36 36" stroke="#FF5A47" stroke-width="5" stroke-linecap="round"/>
+    </svg>
+    <h1>You're offline</h1>
+    <p>OrderPadi needs the internet to load your orders. Check your data or Wi-Fi, then try again.</p>
+    <button type="button" onclick="location.reload()">Try again</button>
+  </main>
+</body>
+</html>

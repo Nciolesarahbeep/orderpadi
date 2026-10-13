@@ -1,4 +1,5 @@
-// Seller tools that grow the store: promo codes and reviews.
+// Seller tools that grow the store: promo codes, reviews, reselling,
+// messaging customers, back-in-stock requests and expenses.
 //   GET  /api/tools?view=promos                -> { promos, limit }
 //   POST /api/tools { action: "promo", id?, code, kind, value, minOrder?, maxUses?, expires?, isActive? }
 //        kind: "percent" (value 1–90) or "amount" (value in naira); expires: "2026-12-31"
@@ -15,6 +16,24 @@
 //   GET  /api/tools?view=supply&side=in|out    -> { supply }   in: orders you send for resellers; out: your resold items
 //   POST /api/tools { action: "supply-status", id, status }  (supplier) accepted | shipped | delivered | cancelled | new
 //   POST /api/tools { action: "supply-paid", id, paid }      (supplier) the reseller paid you, or not
+// Messaging customers (lib/broadcasts.js)
+//   GET  /api/tools?view=audiences             -> { audiences, tags, optedOut, maxRecipients, usage }
+//   GET  /api/tools?view=broadcasts            -> { broadcasts, usage }
+//   GET  /api/tools?view=broadcast&id=<id>     -> { broadcast }   with recipients
+//   POST /api/tools { action: "broadcast", audience, message }       -> { broadcast }   402 { upgrade } past the free limit
+//        audience: all | recent | quiet | owing | tag:<label>; message may use {name} {store} {link} {owed}
+//   POST /api/tools { action: "broadcast-sent", id, index, sent? }   -> { broadcast }   ticks a customer off
+//   POST /api/tools { action: "broadcast-edit", id, message }        -> { broadcast }
+//   POST /api/tools { action: "broadcast-delete", id }               -> { broadcasts, usage }
+// "Tell me when it's back" requests
+//   GET  /api/tools?view=waiting               -> { products: [{ productId, name, waiting, people }], total }
+//   POST /api/tools { action: "restock-message", productId, message? } -> { broadcast }  (kind "restock"; {product} {link})
+//   POST /api/tools { action: "waiting-remove", id }                 -> waiting list
+// Expenses (lib/expenses.js)
+//   GET  /api/tools?view=expenses&month=YYYY-MM -> { month, expenses, totalKobo, byCategory, categories, lastMonthKobo }
+//   GET  /api/tools?view=expenses-export        -> every expense as a CSV file   (Pro)
+//   POST /api/tools { action: "expense", id?, amount, category, note?, date? } -> the month's list + savedId
+//   POST /api/tools { action: "expense-delete", id }                 -> the month's list
 const { sql } = require('../lib/db');
 const { HttpError, getSessionVendor } = require('../lib/auth');
 const { promoLimit, readPromo, promoForClient } = require('../lib/promos');
@@ -25,6 +44,9 @@ const { ensureReferralCode, REWARD_DAYS } = require('../lib/referrals');
 const { optionsOf, stockRowsFor } = require('../lib/catalog');
 const { photosForProducts, themeOf } = require('../lib/photos');
 const { CATEGORIES } = require('../lib/directory');
+const { flushPush } = require('../lib/push');
+const broadcasts = require('../lib/broadcasts');
+const { expenseList, saveExpense, deleteExpense, expensesCsv } = require('../lib/expenses');
 
 const MAX_PRODUCTS = 200;
 
@@ -138,17 +160,25 @@ async function summary(vendor) {
         (SELECT count(*) FROM reviews r WHERE r.vendor_id = ${vendor.id} AND r.reply IS NULL AND NOT r.is_hidden)::int AS unreplied,
         (SELECT count(*) FROM supply_orders s WHERE s.supplier_vendor_id = ${vendor.id} AND s.status = 'new')::int AS supply_new,
         (SELECT coalesce(sum(i.quantity), 0) FROM order_items i JOIN orders o ON o.id = i.order_id, month
-           WHERE o.vendor_id = ${vendor.id} AND o.status <> 'cancelled' AND i.unit_cost_kobo IS NOT NULL AND o.created_at >= month.start)::int AS resold,
+           WHERE o.vendor_id = ${vendor.id} AND o.status <> 'cancelled' AND i.stock_product_id IS NOT NULL AND i.unit_cost_kobo IS NOT NULL AND o.created_at >= month.start)::int AS resold,
         (SELECT coalesce(sum(i.line_total_kobo - i.unit_cost_kobo * i.quantity), 0) FROM order_items i JOIN orders o ON o.id = i.order_id, month
-           WHERE o.vendor_id = ${vendor.id} AND o.status <> 'cancelled' AND i.unit_cost_kobo IS NOT NULL AND o.created_at >= month.start)::bigint AS earned,
-        (SELECT count(*) FROM vendors v WHERE v.referred_by = ${vendor.id} AND v.email_verified)::int AS invited
+           WHERE o.vendor_id = ${vendor.id} AND o.status <> 'cancelled' AND i.stock_product_id IS NOT NULL AND i.unit_cost_kobo IS NOT NULL AND o.created_at >= month.start)::bigint AS earned,
+        (SELECT count(*) FROM vendors v WHERE v.referred_by = ${vendor.id} AND v.email_verified)::int AS invited,
+        (SELECT count(*) FROM stock_alerts a WHERE a.vendor_id = ${vendor.id} AND a.notified_at IS NULL)::int AS waiting,
+        (SELECT count(DISTINCT a.product_id) FROM stock_alerts a WHERE a.vendor_id = ${vendor.id} AND a.notified_at IS NULL)::int AS waiting_products,
+        (SELECT count(*) FROM broadcasts b WHERE b.vendor_id = ${vendor.id} AND b.sent_count < b.total AND b.created_at > now() - interval '14 days')::int AS unfinished,
+        (SELECT coalesce(sum(e.amount_kobo), 0) FROM expenses e, month
+           WHERE e.vendor_id = ${vendor.id} AND e.spent_on >= (month.start AT TIME ZONE 'Africa/Lagos')::date)::bigint AS spent
     `,
     ratingSummary(sql, vendor.id)
   ]);
   return {
     activePromos: Number(row.promos), unreplied: Number(row.unreplied), rating: { average: rating.average, count: rating.count },
     supplyNew: Number(row.supply_new), invited: Number(row.invited),
-    resale: { itemsThisMonth: Number(row.resold), earnedThisMonthKobo: Number(row.earned) }
+    resale: { itemsThisMonth: Number(row.resold), earnedThisMonthKobo: Number(row.earned) },
+    waiting: { people: Number(row.waiting), products: Number(row.waiting_products) },
+    unfinishedMessages: Number(row.unfinished),
+    expensesThisMonthKobo: Number(row.spent)
   };
 }
 
@@ -322,6 +352,7 @@ async function supplyStatus(vendor, body) {
       SELECT u.reseller_vendor_id, 'supply_update', ${message} || ' for order #' || o.order_number, u.order_id
       FROM u JOIN orders o ON o.id = u.order_id
     `;
+    await flushPush([cur.reseller_vendor_id]);
   }
   return supplyOne(vendor, id);
 }
@@ -356,7 +387,11 @@ async function supplyOne(vendor, id) {
 
 const ACTIONS = {
   promo: savePromo, 'promo-delete': deletePromo, reply,
-  'resell-add': resellAdd, 'supply-status': supplyStatus, 'supply-paid': supplyPaid
+  'resell-add': resellAdd, 'supply-status': supplyStatus, 'supply-paid': supplyPaid,
+  broadcast: broadcasts.createBroadcast, 'broadcast-sent': broadcasts.markSent,
+  'broadcast-edit': broadcasts.editBroadcast, 'broadcast-delete': broadcasts.deleteBroadcast,
+  'restock-message': broadcasts.restockMessage, 'waiting-remove': broadcasts.waitingRemove,
+  expense: saveExpense, 'expense-delete': deleteExpense
 };
 
 module.exports = async function handler(req, res) {
@@ -379,6 +414,15 @@ module.exports = async function handler(req, res) {
       if (view === 'supply') return res.status(200).json(await supplyList(vendor, params));
       if (view === 'reviews') return res.status(200).json(await reviews(vendor));
       if (view === 'summary') return res.status(200).json(await summary(vendor));
+      if (view === 'audiences') return res.status(200).json(await broadcasts.audiences(vendor));
+      if (view === 'broadcasts') return res.status(200).json(await broadcasts.broadcastList(vendor));
+      if (view === 'broadcast') return res.status(200).json(await broadcasts.broadcastOne(vendor, readId(params.get('id'), 'message')));
+      if (view === 'waiting') return res.status(200).json(await broadcasts.waitingList(vendor));
+      if (view === 'expenses') return res.status(200).json(await expenseList(vendor, params.get('month')));
+      if (view === 'expenses-export') {
+        if (!isPro(vendor)) return res.status(402).json({ error: 'Exports are part of Pro.', upgrade: true });
+        return await expensesCsv(vendor, res);
+      }
       return res.status(400).json({ error: 'Unknown view.' });
     }
     if (!String(req.headers['content-type'] || '').includes('application/json')) {
@@ -387,7 +431,8 @@ module.exports = async function handler(req, res) {
     const body = req.body && typeof req.body === 'object' ? req.body : {};
     const run = ACTIONS[body.action];
     if (!run) return res.status(400).json({ error: 'Unknown action.' });
-    const created = (body.action === 'promo' && (body.id == null || body.id === '')) || body.action === 'resell-add';
+    const created = ((body.action === 'promo' || body.action === 'expense') && (body.id == null || body.id === ''))
+      || body.action === 'resell-add' || body.action === 'broadcast';
     return res.status(created ? 201 : 200).json(await run(vendor, body));
   } catch (err) {
     if (err instanceof HttpError) return res.status(err.status).json({ error: err.message, ...err.extra });

@@ -1,7 +1,9 @@
 // The logged-in vendor's products.
 //   GET    /api/products                                 -> { products, photoLimit }
-//   POST   /api/products { name, price, description?, category?, options?, stock? }   -> { product }
-//   PATCH  /api/products { id, name?, price?, description?, isActive?, category?, options?, stock? } -> { product }
+//   POST   /api/products { name, price, cost?, description?, category?, options?, stock? }   -> { product }
+//   PATCH  /api/products { id, name?, price?, cost?, description?, isActive?, category?, options?, stock? } -> { product }
+// cost: what one costs you, in naira ("" = not set). Saved on each order line for profit.
+// product.waiting: customers who asked to be told when it's back (lib/broadcasts.js)
 // options: up to 2, like [{ name: "Size", choices: [{ id?, label, extra?, soldOut?, stock? }] }]
 // where extra is what that choice adds to the price, in naira (lib/catalog.js).
 // stock: how many are left ("" or null = not counted). Orders take from it;
@@ -26,16 +28,19 @@ const { photoLimit, photosForProducts, addPhoto, removePhoto, makeCover } = requ
 const { readResellPrice, withResale, syncCopies, RESALE_TEXT } = require('../lib/resell');
 const { formatNaira } = require('../lib/format');
 const { readOptions, optionsOf, splitStock, readStock, readCategory, stockRowsFor, saveChoiceStock } = require('../lib/catalog');
+const { waitingCounts } = require('../lib/broadcasts');
 
 const MAX_PRODUCTS = 200;
 
 // p has gone through withResale (stock and stock_rows are the supplier's for a resold copy).
-function productForClient(p, photos = []) {
+function productForClient(p, photos = [], waiting = 0) {
   return {
     id: Number(p.id),
     name: p.name,
     description: p.description || '',
     priceKobo: Number(p.price_kobo),
+    // what one costs the seller (for a resold copy, what the supplier charges)
+    costKobo: p.cost_kobo == null ? null : Number(p.cost_kobo),
     isActive: !!p.is_active,
     category: p.category || '',
     options: optionsOf(p, p.stock_rows),
@@ -49,6 +54,7 @@ function productForClient(p, photos = []) {
       problemText: p.resale_problem ? RESALE_TEXT[p.resale_problem] : ''
     } : null,
     photos,
+    waiting,
     createdAt: p.created_at
   };
 }
@@ -56,8 +62,11 @@ function productForClient(p, photos = []) {
 // Products ready to send: resale details and photos (the supplier's for resold copies).
 async function forClient(rows) {
   const full = await withResale(rows);
-  const photos = await photosForProducts(full.map((p) => p.stock_product_id || p.id));
-  return full.map((p) => productForClient(p, photos.get(Number(p.stock_product_id || p.id)) || []));
+  const [photos, waiting] = await Promise.all([
+    photosForProducts(full.map((p) => p.stock_product_id || p.id)),
+    waitingCounts(full.map((p) => p.id))
+  ]);
+  return full.map((p) => productForClient(p, photos.get(Number(p.stock_product_id || p.id)) || [], waiting.get(Number(p.id)) || 0));
 }
 
 async function withPhotos(vendor, row) {
@@ -77,6 +86,15 @@ function readPrice(body) {
   if (kobo === null || kobo <= 0) {
     throw new HttpError(400, 'Enter the price in naira, like 4500.', { field: 'price' });
   }
+  return kobo;
+}
+
+// What one costs the seller. "" or null: not set.
+function readCost(body) {
+  const raw = body.cost;
+  if (raw == null || String(raw).trim() === '') return null;
+  const kobo = nairaToKobo(raw);
+  if (kobo === null || kobo < 0) throw new HttpError(400, 'Enter what one costs you in naira, like 30000, or leave it empty.', { field: 'cost' });
   return kobo;
 }
 
@@ -122,14 +140,15 @@ async function create(vendor, body) {
   const { saved: options, rows: choiceStock } = splitStock(readOptions(body.options));
   const stock = readStock(body.stock);
   const resellPrice = readResellPrice(body.resellPrice);
+  const cost = readCost(body);
   const category = await matchCategory(vendor, readCategory(body.category));
   const [{ n }] = await sql`SELECT count(*)::int AS n FROM products WHERE vendor_id = ${vendor.id}`;
   if (Number(n) >= MAX_PRODUCTS) {
     throw new HttpError(400, `You can have up to ${MAX_PRODUCTS} products. Delete some you no longer sell.`);
   }
   const [row] = await sql`
-    INSERT INTO products (vendor_id, name, description, price_kobo, category, options, stock, resell_price_kobo)
-    VALUES (${vendor.id}, ${name}, ${description}, ${priceKobo}, ${category}, ${JSON.stringify(options)}::jsonb, ${stock}, ${resellPrice})
+    INSERT INTO products (vendor_id, name, description, price_kobo, category, options, stock, resell_price_kobo, cost_kobo)
+    VALUES (${vendor.id}, ${name}, ${description}, ${priceKobo}, ${category}, ${JSON.stringify(options)}::jsonb, ${stock}, ${resellPrice}, ${cost})
     RETURNING *
   `;
   if (choiceStock.length) await saveChoiceStock(sql, row.id, choiceStock);
@@ -151,13 +170,14 @@ async function update(req, vendor, body) {
   const options = split ? split.saved : splitStock(optionsOf(current)).saved;
   const stock = has('stock') ? readStock(body.stock) : current.stock;
   const resellPrice = has('resellPrice') ? readResellPrice(body.resellPrice) : current.resell_price_kobo;
+  const cost = has('cost') ? readCost(body) : current.cost_kobo;
   const category = has('category') ? await matchCategory(vendor, readCategory(body.category)) : current.category;
 
   const [row] = await sql`
     UPDATE products SET
       name = ${name}, price_kobo = ${priceKobo}, description = ${description},
       is_active = ${isActive}, category = ${category}, options = ${JSON.stringify(options)}::jsonb,
-      stock = ${stock}, resell_price_kobo = ${resellPrice}, updated_at = now()
+      stock = ${stock}, resell_price_kobo = ${resellPrice}, cost_kobo = ${cost}, updated_at = now()
     WHERE id = ${id} AND vendor_id = ${vendor.id}
     RETURNING *
   `;

@@ -9,12 +9,18 @@
 //                  bio?, storeCategory?, state?, city?, inDirectory?: the listing at /stores
 //                  -> { vendor, setup }
 // Only the fields sent are changed. "setup" drives the checklist on Home.
+// Phone alerts (lib/push.js):
+//   GET   /api/me also returns push: { key, devices }  (key: the server's public key for subscribing)
+//   POST  /api/me { action: "push-on", subscription }  -> { push }   this phone gets alerts
+//   POST  /api/me { action: "push-off", endpoint }     -> { push }
+//   POST  /api/me { action: "push-test", endpoint }    -> { sent: true }   409 { resubscribe } if it must turn on again
 const { sql } = require('../lib/db');
-const { HttpError, getSessionVendor, vendorForClient } = require('../lib/auth');
+const { HttpError, getSessionVendor, vendorForClient, sessionJti } = require('../lib/auth');
 const { cleanSlug, slugProblem, cleanText, nairaToKobo, normalizeNgPhone } = require('../lib/format');
 const { STORE_THEMES } = require('../lib/photos');
 const { readZones, readQuickReplies, readAwayMessage } = require('../lib/storeSettings');
 const { readProfile } = require('../lib/directory');
+const { saveSubscription, removeSubscription, sendTest, pushInfo } = require('../lib/push');
 
 async function setupStatus(vendor) {
   const [row] = await sql`SELECT count(*)::int AS n FROM products WHERE vendor_id = ${vendor.id} AND is_active = TRUE`;
@@ -161,8 +167,8 @@ async function updateSettings(vendor, body) {
 
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
-  if (req.method !== 'GET' && req.method !== 'PATCH') {
-    res.setHeader('Allow', 'GET, PATCH');
+  if (req.method !== 'GET' && req.method !== 'PATCH' && req.method !== 'POST') {
+    res.setHeader('Allow', 'GET, PATCH, POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
@@ -172,13 +178,26 @@ module.exports = async function handler(req, res) {
     if (!vendor) return res.status(401).json({ error: 'Not logged in.' });
 
     if (req.method === 'GET') {
-      return res.status(200).json({ vendor: vendorForClient(vendor), setup: await setupStatus(vendor) });
+      const [setup, push] = await Promise.all([setupStatus(vendor), pushInfo(vendor.id).catch(() => null)]);
+      return res.status(200).json({ vendor: vendorForClient(vendor), setup, push });
     }
 
     if (!String(req.headers['content-type'] || '').includes('application/json')) {
       return res.status(415).json({ error: 'Send the request as JSON.' });
     }
     const body = req.body && typeof req.body === 'object' ? req.body : {};
+    if (req.method === 'POST') {
+      if (body.action === 'push-on') {
+        await saveSubscription(vendor.id, sessionJti(req), body.subscription, req.headers['user-agent']);
+        return res.status(200).json({ push: await pushInfo(vendor.id) });
+      }
+      if (body.action === 'push-off') {
+        await removeSubscription(vendor.id, body.endpoint);
+        return res.status(200).json({ push: await pushInfo(vendor.id) });
+      }
+      if (body.action === 'push-test') return res.status(200).json(await sendTest(vendor.id, body.endpoint));
+      return res.status(400).json({ error: 'Unknown action.' });
+    }
     const updated = await updateSettings(vendor, body);
     return res.status(200).json({ vendor: vendorForClient(updated), setup: await setupStatus(updated) });
   } catch (err) {

@@ -2,31 +2,77 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "functions": {
-    "api/public.js": { "includeFiles": "*.html" }
+    "api/public.js": {
+      "includeFiles": "*.html"
+    }
   },
   "redirects": [
-    { "source": "/index", "destination": "/", "permanent": true }
+    {
+      "source": "/index",
+      "destination": "/",
+      "permanent": true
+    }
   ],
   "rewrites": [
-    { "source": "/", "destination": "/api/public?render=home" },
-    { "source": "/s/:slug", "destination": "/api/public?render=store&slug=:slug" },
-    { "source": "/i/:id", "destination": "/api/public?render=invoice&id=:id" },
-    { "source": "/p/:id", "destination": "/api/public?photo=:id" }
+    {
+      "source": "/",
+      "destination": "/api/public?render=home"
+    },
+    {
+      "source": "/s/:slug",
+      "destination": "/api/public?render=store&slug=:slug"
+    },
+    {
+      "source": "/i/:id",
+      "destination": "/api/public?render=invoice&id=:id"
+    },
+    {
+      "source": "/p/:id",
+      "destination": "/api/public?photo=:id"
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=()"
+        }
       ]
     },
     {
-      "source": "/(og.png|og-shop.png|apple-touch-icon.png|icon-192.png|icon-512.png|favicon.svg|ui.css|ui.js|fredoka.woff)",
+      "source": "/(og.png|og-shop.png|apple-touch-icon.png|icon-192.png|icon-512.png|badge-96.png|favicon.svg|ui.css|ui.js|fredoka.woff)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
       ]
     }
   ]

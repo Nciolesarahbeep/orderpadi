@@ -12,6 +12,8 @@
 //   GET  /api/public?invoice=<publicId>        -> { invoice, store }   (invoice.review, invoice.canReview)
 //   POST /api/public { action: "paid", invoice } -> customer says they've paid
 //   POST /api/public { action: "review", invoice, rating, body } -> { invoice, store }
+//   POST /api/public { action: "stock-alert", store, productId, name, phone, choiceId? } -> { ok }
+//                    "Tell me when it's back" on a sold-out product (lib/broadcasts.js)
 //   GET  /api/public?directory=1&q=&category=&state=&page= -> { stores, categories, states, hasMore }
 //   GET  /api/public?ref=<code>                -> { referrer: { name } }   (sign-up invite banner)
 //   GET  /api/public?site=contact              -> { contact: { email, whatsapp } }
@@ -35,6 +37,8 @@ const { publicName, canReview, readReview, reviewForPublic, ratingSummary, EDIT_
 const { CATEGORIES, STATES } = require('../lib/directory');
 const { withResale, loadSellable, resaleLine } = require('../lib/resell');
 const { findReferrer } = require('../lib/referrals');
+const { flushPush } = require('../lib/push');
+const { requestStock } = require('../lib/broadcasts');
 
 const MAX_LINES = 50;
 const MAX_QUANTITY = 99;
@@ -324,6 +328,7 @@ async function markPaid(body, res) {
              id
       FROM marked
     `;
+    await flushPush([o.vendor_id]);
   }
   return getInvoice(body.invoice, res);
 }
@@ -357,6 +362,7 @@ async function leaveReview(body, res) {
       INSERT INTO notifications (vendor_id, type, message, order_id)
       VALUES (${o.vendor_id}, 'review', ${name + ' gave order #' + o.order_number + ' ' + stars + quote}, ${o.id})
     `;
+    await flushPush([o.vendor_id]);
   } else {
     await sql`INSERT INTO order_events (order_id, vendor_id, kind, message) VALUES (${o.id}, ${o.vendor_id}, 'review', ${name + ' changed their rating to ' + stars})`;
   }
@@ -495,7 +501,7 @@ module.exports = async function handler(req, res) {
     // Pages with link previews: "/", "/s/<slug>", "/i/<id>" (see lib/pages.js).
     const render = param(req, 'render');
     if (render === 'home') return renderPage(req, res, 'home');
-    if (render === 'store') return renderPage(req, res, 'store', param(req, 'slug'));
+    if (render === 'store') return renderPage(req, res, 'store', param(req, 'slug'), param(req, 'p'));
     if (render === 'invoice') return renderPage(req, res, 'invoice', param(req, 'id'));
     if (param(req, 'site') === 'contact') return contact(res);
     if (param(req, 'ref') !== null) return referrer(req, res);
@@ -519,6 +525,7 @@ module.exports = async function handler(req, res) {
     if (body.action === 'paid') return await markPaid(body, res);
     if (body.action === 'promo') return await checkPromo(body, res);
     if (body.action === 'review') return await leaveReview(body, res);
+    if (body.action === 'stock-alert') return res.status(200).json(await requestStock(body, getClientIp(req)));
     return res.status(400).json({ error: 'Unknown action.' });
   } catch (err) {
     if (err instanceof HttpError) return res.status(err.status).json({ error: err.message, ...err.extra });

@@ -131,6 +131,7 @@ CREATE TABLE products (
   resell_price_kobo  BIGINT CONSTRAINT products_resell_price_check CHECK (resell_price_kobo IS NULL OR resell_price_kobo > 0),
   is_resale    BOOLEAN NOT NULL DEFAULT FALSE,
   source_product_id  BIGINT REFERENCES products(id) ON DELETE SET NULL,
+  cost_kobo    BIGINT CONSTRAINT products_cost_check CHECK (cost_kobo IS NULL OR cost_kobo >= 0),  -- what one costs the seller (for profit)
   is_active    BOOLEAN NOT NULL DEFAULT TRUE, -- archive instead of delete
   sort_order   INTEGER NOT NULL DEFAULT 0,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -177,6 +178,7 @@ CREATE TABLE customers (
   address     TEXT,
   notes       TEXT,                           -- the seller's own notes
   tags        JSONB NOT NULL DEFAULT '[]'::jsonb,  -- labels like "VIP" or "Wholesale"
+  no_broadcast BOOLEAN NOT NULL DEFAULT FALSE,    -- asked not to get messages sent to many customers
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (vendor_id, phone)
 );
@@ -243,7 +245,7 @@ CREATE TABLE order_items (
   line_total_kobo  BIGINT NOT NULL CHECK (line_total_kobo >= 0),
   stock_product_id    BIGINT,         -- whose stock it took: the supplier's product for resold items
   supplier_vendor_id  BIGINT REFERENCES vendors(id) ON DELETE SET NULL,
-  unit_cost_kobo      BIGINT          -- what the reseller owes the supplier per item
+  unit_cost_kobo      BIGINT          -- what one item cost the seller (for resold items, what they owe the supplier)
 );
 CREATE INDEX order_items_order ON order_items (order_id);
 
@@ -346,6 +348,7 @@ CREATE TABLE notifications (
   message     TEXT NOT NULL,
   order_id    BIGINT REFERENCES orders(id) ON DELETE CASCADE,
   read_at     TIMESTAMPTZ,
+  pushed_at   TIMESTAMPTZ,       -- sent to the seller's phones as an alert
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX notifications_unread ON notifications (vendor_id, created_at DESC)
@@ -369,6 +372,78 @@ CREATE TABLE billing_events (
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (event, dedupe_key)
 );
+
+
+-- ---------------------------------------------------------------------
+-- 9b. ALERTS, MESSAGES AND EXPENSES (Round 4)
+-- ---------------------------------------------------------------------
+-- Phone alerts (web push). A row only gets alerts while the login it was
+-- saved with is still live, so logging out stops them.
+CREATE TABLE push_subscriptions (
+  id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  vendor_id     BIGINT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+  session_jti   TEXT,
+  endpoint      TEXT NOT NULL UNIQUE,
+  p256dh        TEXT NOT NULL,
+  auth          TEXT NOT NULL,
+  device        TEXT,
+  failures      INT NOT NULL DEFAULT 0,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_sent_at  TIMESTAMPTZ
+);
+CREATE INDEX push_subscriptions_vendor ON push_subscriptions (vendor_id);
+
+-- Keys the server signs push messages with, made the first time they're needed.
+CREATE TABLE app_keys (
+  name        TEXT PRIMARY KEY,
+  value       JSONB NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- "Tell me when it's back" requests on sold-out products.
+CREATE TABLE stock_alerts (
+  id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  vendor_id    BIGINT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+  product_id   BIGINT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  name         TEXT NOT NULL,
+  phone        TEXT NOT NULL,
+  choice_text  TEXT,
+  created_ip   TEXT,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  notified_at  TIMESTAMPTZ,
+  UNIQUE (product_id, phone)
+);
+CREATE INDEX stock_alerts_waiting ON stock_alerts (vendor_id, product_id) WHERE notified_at IS NULL;
+
+-- One message sent to many customers, one WhatsApp chat at a time.
+CREATE TABLE broadcasts (
+  id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  vendor_id       BIGINT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+  kind            TEXT NOT NULL DEFAULT 'message' CHECK (kind IN ('message', 'restock')),
+  product_id      BIGINT REFERENCES products(id) ON DELETE SET NULL,
+  audience        TEXT NOT NULL,
+  audience_label  TEXT NOT NULL,
+  message         TEXT NOT NULL,
+  recipients      JSONB NOT NULL,   -- [{ customerId?, alertId?, name, phone, owingKobo?, choice?, sent }]
+  total           INT NOT NULL CHECK (total >= 0),
+  sent_count      INT NOT NULL DEFAULT 0 CHECK (sent_count >= 0),
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX broadcasts_vendor ON broadcasts (vendor_id, created_at DESC);
+
+-- Money the seller spends running the business.
+CREATE TABLE expenses (
+  id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  vendor_id    BIGINT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+  amount_kobo  BIGINT NOT NULL CHECK (amount_kobo > 0),
+  category     TEXT NOT NULL,
+  note         TEXT,
+  spent_on     DATE NOT NULL,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX expenses_vendor ON expenses (vendor_id, spent_on DESC, id DESC);
 
 
 -- ---------------------------------------------------------------------

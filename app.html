@@ -229,6 +229,7 @@
     /* status picture */
     .status-frame { margin-top: 14px; display: grid; place-items: center; padding: 14px; background: var(--card); border: var(--bw) solid var(--ink); border-radius: var(--radius); box-shadow: var(--shadow); }
     .status-frame canvas { width: min(62vw, 250px); height: auto; aspect-ratio: 9 / 16; border-radius: 14px; border: var(--bw) solid var(--ink); display: block; }
+    .status-frame canvas.square { width: min(78vw, 320px); aspect-ratio: 1 / 1; }
     .pick-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 12px; padding: 0 4px; }
     .pick { position: relative; aspect-ratio: 1; padding: 0; border-radius: 14px; border: var(--bw) solid var(--ink); overflow: hidden; cursor: pointer; font-size: 20px; }
     .pick[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--card), 0 0 0 6px var(--grape); }
@@ -455,6 +456,99 @@
     .tab.active svg { animation: op-bump .4s ease; }
     .tab { position: relative; }
     .tab-dot { position: absolute; top: 4px; right: calc(50% - 20px); width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--ink); background: var(--coral); }
+
+    /* app and alerts */
+    .alert-head { display: flex; align-items: center; gap: 14px; }
+    .alert-head .big-ico { flex: none; width: 54px; height: 54px; border-radius: 18px; border: var(--bw) solid var(--ink); display: grid; place-items: center; background: var(--sun); color: #1B1530; box-shadow: var(--shadow-sm); }
+    .alert-head .big-ico.sky { background: var(--sky); }
+    .alert-head .big-ico svg { width: 28px; height: 28px; }
+    .alert-head b { display: block; font-size: 17px; }
+    .alert-head small { display: block; color: var(--muted); font-size: 14px; font-weight: 600; margin-top: 2px; }
+    .install-steps { margin: 14px 0 0; padding: 0; list-style: none; counter-reset: s; }
+    .install-steps li { counter-increment: s; display: flex; align-items: center; gap: 10px; padding: 8px 0; font-weight: 700; border-top: 2px solid var(--line); }
+    .install-steps li:first-child { border-top: 0; }
+    .install-steps li::before { content: counter(s); flex: none; width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--ink); background: var(--sky); color: #1B1530; display: grid; place-items: center; font-weight: 800; font-size: 14px; }
+    .install-steps svg { width: 20px; height: 20px; vertical-align: -4px; }
+    .on-badge { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; padding: 6px 12px; border-radius: 999px; border: 2px solid var(--ink); background: var(--brand); color: #1B1530; font-weight: 800; font-size: 14px; }
+    .nudge-card { position: relative; display: flex; gap: 12px; align-items: center; background: var(--sky); color: #1B1530; }
+    .nudge-card .big-ico { flex: none; width: 46px; height: 46px; border-radius: 16px; border: var(--bw) solid var(--ink); display: grid; place-items: center; background: #fff; }
+    .nudge-card .big-ico svg { width: 24px; height: 24px; }
+    .nudge-card b { display: block; }
+    .nudge-card p { margin: 2px 0 8px; font-weight: 600; font-size: 14px; }
+    .nudge-card .x { position: absolute; top: 8px; right: 8px; }
+
+    /* messaging customers */
+    .aud-row { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 14px; background: var(--card); color: var(--text); border: var(--bw) solid var(--ink); border-radius: 18px; font: inherit; cursor: pointer; margin-top: 8px; }
+    .aud-row b { flex: 1; font-size: 16px; }
+    .aud-row .n { min-width: 34px; text-align: center; padding: 2px 8px; border-radius: 999px; border: 2px solid var(--ink); background: var(--card-2); font-weight: 800; font-size: 14px; }
+    .aud-row .dot { flex: none; width: 22px; height: 22px; border-radius: 50%; border: var(--bw) solid var(--ink); background: var(--card); }
+    .aud-row[aria-pressed="true"] { background: var(--sun); color: #1B1530; box-shadow: var(--shadow-sm); }
+    .aud-row[aria-pressed="true"] .dot { background: var(--ink); box-shadow: inset 0 0 0 4px var(--sun); }
+    .aud-row[disabled] { opacity: .5; cursor: default; }
+    .wa-bubble { position: relative; margin-top: 10px; padding: 12px 14px; border-radius: 16px 16px 16px 4px; border: var(--bw) solid var(--ink); background: var(--brand-soft); color: var(--text); font-weight: 600; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; }
+    .bc-row .row-sub b { color: var(--text); }
+    .bc-next { box-shadow: var(--shadow); }
+    .bc-next .person { margin-bottom: 4px; }
+    .bc-next .btn.wa { margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+    .bc-next .btn.wa svg { width: 22px; height: 22px; }
+    .bc-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
+    .bc-actions .btn { width: auto; flex: none; white-space: nowrap; padding-left: 16px; padding-right: 16px; margin: 0; }
+    .bc-actions .link { text-align: right; }
+    .people-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 14px; border: 0; border-top: 2px solid var(--line); background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+    .people-row:first-child { border-top: 0; }
+    .people-row .row-main { flex: 1; min-width: 0; }
+    .people-row .chk { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--ink); display: grid; place-items: center; background: var(--card); font-weight: 800; font-size: 14px; }
+    .people-row.sent .chk { background: var(--brand); color: #1B1530; }
+    .people-row.current { background: var(--card-2); }
+    .people-row.sent .row-name { color: var(--muted); }
+    .done-card { text-align: center; background: var(--brand); color: #1B1530; }
+    .done-card b { font-family: var(--display); font-size: 22px; display: block; }
+
+    /* waiting for restock */
+    .waiting-card { background: var(--lilac); color: #1B1530; }
+    .waiting-card .card-label { color: #1B1530; opacity: .85; }
+    .wait-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 2px solid rgba(27, 21, 48, .2); }
+    .wait-row:first-of-type { border-top: 0; }
+    .wait-row .row-main { flex: 1; min-width: 0; }
+    .wait-row .row-sub { color: #1B1530; opacity: .8; white-space: normal; overflow: visible; text-overflow: clip; }
+    .wait-people { margin: 4px 0 6px; padding: 0; list-style: none; }
+    .wait-people li { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-weight: 700; font-size: 14px; }
+    .wait-people li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    .wait-people .x { width: 28px; height: 28px; }
+
+    /* expenses */
+    .month-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; }
+    .month-nav b { font-family: var(--display); font-size: 20px; }
+    .month-nav button { width: 46px; height: 46px; border-radius: 16px; border: var(--bw) solid var(--ink); background: var(--card); color: var(--text); font: inherit; font-size: 24px; font-weight: 800; cursor: pointer; box-shadow: var(--shadow-sm); }
+    .month-nav button[disabled] { opacity: .35; cursor: default; box-shadow: none; }
+    .exp-card { background: var(--coral); color: #1B1530; }
+    .exp-card .card-label, .exp-card .muted { color: #1B1530; opacity: .85; }
+    .cat-bars { margin-top: 12px; }
+    .cat-bar { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 6px 0; font-weight: 800; font-size: 14px; }
+    .cat-bar i { grid-column: 1 / -1; height: 10px; border-radius: 999px; border: 2px solid var(--ink); background: #fff; overflow: hidden; }
+    .cat-bar i::after { content: ""; display: block; height: 100%; width: var(--w); background: var(--ink); }
+    .exp-day { margin: 18px 0 6px; font-weight: 800; color: var(--muted); font-size: 14px; }
+    .exp-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border: 0; border-top: 2px solid var(--line); background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+    .exp-row:first-child { border-top: 0; }
+    .exp-row .row-main { flex: 1; min-width: 0; }
+    .exp-row .cat-ico { flex: none; width: 38px; height: 38px; border-radius: 13px; border: 2px solid var(--ink); display: grid; place-items: center; background: var(--sun); color: #1B1530; font-family: var(--display); font-weight: 700; }
+    .exp-row .price { font-weight: 800; font-variant-numeric: tabular-nums; }
+    .cat-pick { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .cat-pick button { border: var(--bw) solid var(--ink); background: var(--card); color: var(--text); border-radius: 999px; padding: 7px 12px; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+    .cat-pick button[aria-pressed="true"] { background: var(--sun); color: #1B1530; box-shadow: var(--shadow-sm); }
+
+    /* profit report */
+    .profit-card { background: var(--brand); color: #1B1530; }
+    .profit-card.loss { background: var(--coral); }
+    .profit-card .card-label { color: #1B1530; opacity: .85; }
+    .profit-card .kv { border-color: rgba(27, 21, 48, .2); font-weight: 700; }
+    .profit-card .kv.total { font-weight: 800; font-size: 17px; border-top: 3px solid var(--ink); }
+    .profit-card .note { margin-top: 10px; padding: 10px 12px; border-radius: 14px; border: 2px solid var(--ink); background: #fff; font-weight: 700; font-size: 14px; }
+    .profit-card .note .link { margin-top: 4px; }
+    .cost-hint.good { color: var(--brand-text); font-weight: 800; }
+    .cost-hint.bad { color: var(--bad); font-weight: 800; }
+    .share-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+    .share-row .btn { padding-left: 4px; padding-right: 4px; font-size: 14px; min-height: 48px; }
   </style>
 </head>
 <body>
@@ -637,6 +731,15 @@
         </div>
         <p class="alert" id="home-says-paid" hidden></p>
         <button class="btn secondary" type="button" data-tab="orders" style="margin-top:14px">View orders</button>
+      </div>
+      <div class="card nudge-card" id="alerts-nudge" hidden>
+        <span class="big-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>
+        <div>
+          <b>Never miss an order</b>
+          <p>Get a ping on this phone the moment someone orders.</p>
+          <button class="btn small" type="button" id="alerts-nudge-go">Turn on alerts</button>
+        </div>
+        <button class="x" type="button" id="alerts-nudge-x" aria-label="Hide this">×</button>
       </div>
       <button class="alert alert-btn coral" type="button" id="home-low-stock" hidden><span id="home-low-stock-text"></span><b>›</b></button>
       <div class="card" id="setup-card" hidden>
@@ -891,6 +994,11 @@
         <button class="btn" type="button" id="cust-save-notes">Save notes</button>
       </div>
 
+      <div class="switch-row" style="margin-top:16px">
+        <div><b>Gets group messages</b><small>Turn off if they asked you to stop sending news and sales.</small></div>
+        <label class="switch"><input type="checkbox" id="cust-msg-switch" aria-label="Gets group messages"><span></span></label>
+      </div>
+
       <details class="card" id="cust-details">
         <summary>Edit name and address</summary>
         <label for="cust-edit-name">Name</label>
@@ -908,7 +1016,12 @@
     <!-- Report (Pro) -->
     <section class="view" id="view-report">
       <button class="back" type="button" data-tab="more">‹ Back</button>
-      <h1 style="margin-top:14px">Last 30 days</h1>
+      <h1 style="margin-top:14px">Profit report</h1>
+      <div class="seg" id="report-period" role="group" aria-label="Period">
+        <button type="button" data-period="30d">Last 30 days</button>
+        <button type="button" data-period="month">This month</button>
+        <button type="button" data-period="last">Last month</button>
+      </div>
       <div id="report-body"></div>
     </section>
 
@@ -923,8 +1036,12 @@
     <section class="view" id="view-status">
       <button class="back" type="button" data-tab="home">‹ Back</button>
       <h1 style="margin-top:14px">Status picture</h1>
-      <p class="sub">A picture of your products with your store link on it, sized for WhatsApp status.</p>
-      <div class="status-frame"><canvas id="status-canvas" width="1080" height="1920" aria-label="Preview of your status picture"></canvas></div>
+      <p class="sub">A picture of your products with your store link on it, for WhatsApp status or an Instagram post.</p>
+      <div class="seg" id="status-format" role="group" aria-label="Picture size">
+        <button type="button" data-format="tall">Status (tall)</button>
+        <button type="button" data-format="square">Post (square)</button>
+      </div>
+      <div class="status-frame" style="margin-top:12px"><canvas id="status-canvas" width="1080" height="1920" aria-label="Preview of your status picture"></canvas></div>
       <p class="section-title">Headline</p>
       <div class="chips" id="status-headlines"></div>
       <input id="status-headline" class="status-input" type="text" maxlength="36" aria-label="Headline">
@@ -933,10 +1050,10 @@
       <div class="pick-grid" id="status-products"></div>
       <button class="btn wa" type="button" id="status-share">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4M12 2v13"/></svg>
-        Share to WhatsApp
+        <span id="status-share-text">Share to WhatsApp</span>
       </button>
       <button class="btn secondary" type="button" id="status-download">Save picture</button>
-      <p class="hint" style="text-align:center;margin-top:12px">Tap Share, pick WhatsApp, then choose My status.</p>
+      <p class="hint" id="status-tip" style="text-align:center;margin-top:12px">Tap Share, pick WhatsApp, then choose My status.</p>
     </section>
 
     <!-- Products -->
@@ -955,6 +1072,19 @@
       <button class="back" type="button" data-tab="products">‹ Products</button>
       <h1 id="product-title" style="margin-top:14px">Add product</h1>
       <div class="card resale-banner" id="resale-banner" hidden></div>
+      <div class="card waiting-card" id="waiting-banner" hidden>
+        <p class="card-label" id="waiting-banner-text"></p>
+        <button class="btn" type="button" id="waiting-banner-go">Tell them it's back</button>
+      </div>
+      <div class="card" id="share-card" hidden>
+        <p class="card-label">Share this product</p>
+        <div class="share-row">
+          <button class="btn grape" type="button" id="share-status">Status picture</button>
+          <a class="btn wa" id="share-wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+          <button class="btn secondary" type="button" id="share-copy">Copy link</button>
+        </div>
+        <p class="hint">The link opens this product in your store, and shows its photo in WhatsApp.</p>
+      </div>
       <div class="card" id="photo-card">
         <div class="photos-head">Photos <span class="muted" id="photo-note">(up to 3)</span></div>
         <div class="slots" id="photo-slots"></div>
@@ -967,6 +1097,11 @@
         <input id="product-name" type="text" maxlength="80" placeholder="e.g. Bone straight wig">
         <label for="product-price">Price</label>
         <div class="prefix"><span>₦</span><input id="product-price" type="text" inputmode="decimal" autocomplete="off" placeholder="45000"></div>
+        <div data-own>
+          <label for="product-cost">What one costs you <span class="muted">(optional)</span></label>
+          <div class="prefix"><span>₦</span><input id="product-cost" type="text" inputmode="decimal" autocomplete="off" placeholder="e.g. 30000"></div>
+          <p class="hint cost-hint" id="product-cost-hint">Only you see this. It shows your real profit in the report.</p>
+        </div>
         <div data-own>
           <label for="product-stock">How many you have <span class="muted">(optional)</span></label>
           <input id="product-stock" type="text" inputmode="numeric" autocomplete="off" placeholder="Leave empty if you don't count">
@@ -1051,9 +1186,21 @@
           <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6L12 16.7l-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/></svg></span><span class="mcount" id="more-reviews-n"></span>
           <b>Reviews</b><span id="more-reviews-sub">What customers say</span>
         </button>
+        <button class="menu-tile t-sky" type="button" id="more-broadcasts" data-open="broadcasts">
+          <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11v2a2 2 0 0 0 2 2h2l6 4V5L7 9H5a2 2 0 0 0-2 2z"/><path d="M17 8.5a5 5 0 0 1 0 7M19.5 6a8.5 8.5 0 0 1 0 12"/></svg></span><span class="mcount" id="more-broadcasts-n"></span>
+          <b>Message customers</b><span id="more-broadcasts-sub">News and sales to many at once</span>
+        </button>
+      </div>
+
+      <p class="section-title">Money</p>
+      <div class="menu-grid">
+        <button class="menu-tile t-coral" type="button" id="more-expenses" data-open="expenses">
+          <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M7 15h4"/><path d="M7 6V4.5h10V6"/></svg></span>
+          <b>Expenses</b><span id="more-expenses-sub">What you spend</span>
+        </button>
         <button class="menu-tile t-brand" type="button" id="more-report" data-open="report">
           <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
-          <b>Sales report</b><span>Last 30 days and best sellers</span>
+          <b>Profit report</b><span>Sales, costs and profit</span>
         </button>
       </div>
 
@@ -1071,6 +1218,11 @@
 
       <p class="section-title">Your store</p>
       <div class="list menu-list">
+        <button class="row-btn" type="button" id="more-alerts" data-open="alerts">
+          <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>
+          <div class="row-main"><div class="row-name">App and alerts</div><div class="row-sub" id="more-alerts-sub">Get a ping for every new order</div></div>
+          <span class="chev">›</span>
+        </button>
         <button class="row-btn" type="button" id="more-away" data-open="away">
           <span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></span>
           <div class="row-main"><div class="row-name">Away mode</div><div class="row-sub" id="more-away-sub">Off</div></div>
@@ -1118,6 +1270,7 @@
       <button class="back" type="button" data-tab="more">‹ More</button>
       <h1 style="margin-top:14px">Stock</h1>
       <p class="sub">Counts go down with every order and come back if you cancel one.</p>
+      <div id="waiting-box"></div>
       <div class="chips" id="stock-filters">
         <button class="chip active" type="button" data-sf="all">All</button>
         <button class="chip" type="button" data-sf="low">Running low<span id="stock-low-n"></span></button>
@@ -1381,7 +1534,9 @@
           <li>Unlimited orders every month</li>
           <li>3 photos per product</li>
           <li>No "Made with OrderPadi" on your store and invoices</li>
-          <li>30-day sales report and order export (CSV)</li>
+          <li>Profit report after costs and expenses</li>
+          <li>Unlimited messages to many customers</li>
+          <li>Order and expense downloads (CSV)</li>
         </ul>
         <button class="btn grape" type="button" data-upgrade id="ps-upgrade">Upgrade to Pro · ₦2,500/month</button>
         <button class="btn secondary" type="button" id="ps-manage" hidden>Change card or cancel</button>
@@ -1396,6 +1551,138 @@
       <a class="btn secondary" id="admin-link" href="/admin" hidden>Open admin panel</a>
       <button class="btn secondary" type="button" id="logout">Log out</button>
       <p class="center" style="font-size:14px"><a href="/terms" style="color:var(--muted)">Terms</a> · <a href="/privacy" style="color:var(--muted)">Privacy</a></p>
+    </section>
+
+
+    <!-- App and alerts: install on the home screen, alerts on this phone -->
+    <section class="view" id="view-alerts">
+      <button class="back" type="button" data-tab="more">‹ More</button>
+      <h1 style="margin-top:14px">App and alerts</h1>
+      <p class="sub">Put OrderPadi on your home screen, and get a ping on this phone for every new order.</p>
+      <div class="card" id="install-card">
+        <div class="alert-head">
+          <span class="big-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M12 7v7M9 11l3 3 3-3M10 18h4"/></svg></span>
+          <div><b>OrderPadi on your home screen</b><small id="install-sub">Opens like an app, full screen.</small></div>
+        </div>
+        <div id="install-done" class="on-badge" hidden>✓ You're using the app</div>
+        <button class="btn" type="button" id="install-btn" style="margin-top:14px" hidden>Install OrderPadi</button>
+        <ol class="install-steps" id="install-ios" hidden>
+          <li><span>Tap the Share button <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M6 11H5v10h14V11h-1"/></svg> at the bottom of Safari</span></li>
+          <li><span>Scroll down and tap <b>Add to Home Screen</b></span></li>
+          <li><span>Open OrderPadi from your home screen, then come back here to turn on alerts</span></li>
+        </ol>
+        <p class="hint" id="install-other" hidden>Open your browser's menu (⋮) and tap <b>Install app</b> or <b>Add to Home screen</b>.</p>
+      </div>
+      <div class="card" id="push-card">
+        <div class="alert-head">
+          <span class="big-ico sky"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>
+          <div><b>Order alerts on this phone</b><small id="push-sub">Even when OrderPadi is closed.</small></div>
+        </div>
+        <div class="switch-row" id="push-row">
+          <div><b>Alerts</b><small id="push-state">Off</small></div>
+          <label class="switch"><input type="checkbox" id="push-switch" aria-label="Order alerts on this phone"><span></span></label>
+        </div>
+        <p class="hint" id="push-hint" hidden></p>
+        <button class="btn secondary" type="button" id="push-test" style="margin-top:14px" hidden>Send a test alert</button>
+        <p class="error" id="push-error"></p>
+      </div>
+      <p class="section-title">You get an alert for</p>
+      <div class="card">
+        <ul class="perks" style="margin:0">
+          <li>New orders from your store link</li>
+          <li>Customers who tap "I've paid"</li>
+          <li>New reviews</li>
+          <li>Resale orders and updates</li>
+          <li>Customers waiting for something to come back</li>
+        </ul>
+      </div>
+      <p class="hint center" id="push-devices"></p>
+    </section>
+
+    <!-- Message customers: list -->
+    <section class="view" id="view-broadcasts">
+      <button class="back" type="button" data-tab="more">‹ More</button>
+      <div class="head-row" style="margin-top:14px">
+        <h1>Message customers</h1>
+        <button class="btn small sun" type="button" id="bc-new">+ New</button>
+      </div>
+      <p class="sub">Send news, sales and reminders to many customers. WhatsApp opens one chat at a time with your message ready.</p>
+      <p class="hint" id="bc-usage" hidden></p>
+      <div id="bc-list"></div>
+    </section>
+
+    <!-- Message customers: write a new one -->
+    <section class="view" id="view-compose">
+      <button class="back" type="button" data-tab="broadcasts">‹ Messages</button>
+      <h1 style="margin-top:14px">New message</h1>
+      <p class="section-title">Who gets it</p>
+      <div id="aud-list"></div>
+      <div class="cat-chips" id="aud-tags" style="margin-top:10px"></div>
+      <p class="hint" id="aud-hint"></p>
+      <p class="section-title">Message</p>
+      <div class="cat-chips" id="bc-templates"></div>
+      <textarea id="compose-message" maxlength="700" style="margin-top:10px;min-height:120px" placeholder="Hi {name}, …" aria-label="Message"></textarea>
+      <div class="ph-chips" id="bc-ph"></div>
+      <p class="hint">{name} becomes each customer's first name. {link} is your store link.</p>
+      <p class="section-title">Preview</p>
+      <div class="wa-bubble" id="bc-preview"></div>
+      <p class="error" id="compose-error"></p>
+      <button class="btn wa" type="button" id="bc-start" style="margin-top:16px">Start sending</button>
+    </section>
+
+    <!-- Message customers: send one chat at a time -->
+    <section class="view" id="view-broadcast">
+      <button class="back" type="button" data-tab="broadcasts">‹ Messages</button>
+      <h1 style="margin-top:14px" id="bs-title">Sending</h1>
+      <p class="sub" id="bs-sub"></p>
+      <div class="progress"><div id="bs-bar" style="width: 0%"></div></div>
+      <div class="card bc-next" id="bs-next">
+        <p class="card-label" id="bs-label">Next</p>
+        <div class="person">
+          <span class="avatar" id="bs-avatar">?</span>
+          <div class="row-main"><b id="bs-name"></b><div class="muted" id="bs-phone" style="font-weight:700"></div></div>
+        </div>
+        <div class="wa-bubble" id="bs-text"></div>
+        <a class="btn wa" id="bs-send" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 20.5l1.3-4.2A8.5 8.5 0 1 1 8 19.5z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1.2-1.6-2-1-1 .8a3.5 3.5 0 0 1-1.9-1.9l.8-1-1-2z"/></svg><span>Send on WhatsApp</span></a>
+        <div class="bc-actions">
+          <button class="btn secondary small" type="button" id="bs-skip">Skip for now</button>
+          <button class="link" type="button" id="bs-stop">Don't message them again</button>
+        </div>
+      </div>
+      <div class="card done-card" id="bs-done" hidden><b>Everyone has it</b><span id="bs-done-text"></span></div>
+      <details class="card" id="bs-edit">
+        <summary>Change the message</summary>
+        <textarea id="bs-message" maxlength="700" style="margin-top:10px;min-height:110px" aria-label="Message"></textarea>
+        <p class="error" id="bs-error"></p>
+        <button class="btn secondary" type="button" id="bs-save">Save message</button>
+      </details>
+      <p class="section-title">Everyone <span class="muted" id="bs-count" style="font-family:var(--body);font-size:15px"></span></p>
+      <div class="list" id="bs-people"></div>
+      <button class="btn danger" type="button" id="bs-delete" style="margin-top:18px">Delete this message</button>
+    </section>
+
+    <!-- Expenses -->
+    <section class="view" id="view-expenses">
+      <button class="back" type="button" data-tab="more">‹ More</button>
+      <div class="head-row" style="margin-top:14px">
+        <h1>Expenses</h1>
+        <button class="btn small sun" type="button" id="exp-add">+ Add</button>
+      </div>
+      <p class="sub">What you spend to run your business. Your profit report takes it off your sales.</p>
+      <div class="month-nav">
+        <button type="button" id="exp-prev" aria-label="Previous month">‹</button>
+        <b id="exp-month">This month</b>
+        <button type="button" id="exp-next" aria-label="Next month">›</button>
+      </div>
+      <div class="card exp-card">
+        <p class="card-label">Spent</p>
+        <p class="big-figure"><b id="exp-total">₦0</b><span id="exp-count">Nothing yet</span></p>
+        <p class="muted" id="exp-compare" style="margin:4px 0 0;font-weight:700"></p>
+        <div class="cat-bars" id="exp-cats"></div>
+      </div>
+      <div id="exp-list"></div>
+      <button class="btn secondary" type="button" id="exp-profit" style="margin-top:16px">See your profit</button>
+      <button class="btn secondary" type="button" id="exp-download">Download all expenses (CSV)</button>
     </section>
 
     <footer><a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/setup">Setup check</a></footer>
@@ -1436,7 +1723,10 @@
       q: '', customer: null, custQuery: { q: '', tag: '', sort: 'owing' }, custTags: [], custCount: null,
       stockFilter: 'all', zoneDraft: [], replyDraft: [], prefill: null,
       promos: null, promoLimit: 2, promoEditing: null, promoKind: 'percent', toolsSummary: null, reviews: null,
-      rtab: 'find', market: [], marketPage: 0, marketQ: '', supplyIn: null, supplyOut: null, invite: null, ref: ''
+      rtab: 'find', market: [], marketPage: 0, marketQ: '', supplyIn: null, supplyOut: null, invite: null, ref: '',
+      push: null, pushOn: false, pushChecked: false, compose: null, audData: null, bcast: null, bcastList: null,
+      bcastCurrent: null, bcastSkips: new Set(), waiting: null, expMonth: null, expData: null,
+      reportPeriod: '30d', statusFormat: 'tall'
     };
     // Logged-in screens, and which tab each one belongs to.
     const APP_VIEWS = {
@@ -1444,7 +1734,8 @@
       products: 'products', product: 'products', notifications: '',
       more: 'more', settings: 'more', customers: 'more', customer: 'more', delivery: 'more',
       stock: 'more', replies: 'more', report: 'more', status: 'more',
-      promos: 'more', promo: 'more', reviews: 'more', profile: 'more', resell: 'more', invite: 'more'
+      promos: 'more', promo: 'more', reviews: 'more', profile: 'more', resell: 'more', invite: 'more',
+      alerts: 'more', broadcasts: 'more', compose: 'more', broadcast: 'more', expenses: 'more'
     };
     const THEMES = [
       { id: 'green', name: 'Green', hex: '#12B76A', ink: '#1B1530' },
@@ -1507,6 +1798,10 @@
       if (name === 'promo') return state.promoEditing ? 'promo/' + state.promoEditing.id : 'promo/new';
       if (name === 'resell') return state.rtab && state.rtab !== 'find' ? 'resell/' + state.rtab : 'resell';
       if (name === 'orders') return state.filter && state.filter !== 'all' ? 'orders/' + state.filter : 'orders';
+      if (name === 'compose') return 'broadcast/new';
+      if (name === 'report') return state.reportPeriod && state.reportPeriod !== '30d' ? 'report/' + state.reportPeriod : 'report';
+      if (name === 'broadcast') return state.bcast ? 'broadcast/' + state.bcast.id : 'broadcasts';
+      if (name === 'expenses') return state.expMonth && state.expMonth !== lagosMonth() ? 'expenses/' + state.expMonth : 'expenses';
       return name;
     }
     function syncUrl(name, y) {
@@ -1614,7 +1909,15 @@
         case 'invite':
           return openInvite();
         case 'report':
-          return loadReport();
+          return loadReport(['month', 'last'].includes(a) ? a : '30d');
+        case 'alerts':
+          return openAlerts();
+        case 'broadcasts':
+          return openBroadcasts();
+        case 'broadcast':
+          return a === 'new' ? openCompose() : openBroadcast(Number(a), { fallback: true });
+        case 'expenses':
+          return openExpenses(/^\d{4}-\d{2}$/.test(a || '') ? a : lagosMonth());
         case 'notifications':
           return openNotifications();
         case 'status':
@@ -1962,8 +2265,9 @@
       startPolling();
       if (!setup) {
         const { ok, data } = await api('/api/me');
-        if (ok) { state.vendor = data.vendor; state.setup = data.setup; renderHome(); renderMore(); }
+        if (ok) { state.vendor = data.vendor; state.setup = data.setup; state.push = data.push || null; renderHome(); renderMore(); }
       }
+      pushSync = syncPush();
       loadOrders(true, { quiet: true });
       loadStats();
       // Came from the admin panel's "Log in" button.
@@ -2021,6 +2325,9 @@
         OP.countUp($('sales-month'), st.month.salesKobo, naira);
         $('sales-received').textContent = 'Received this month: ' + formatNaira(st.month.receivedKobo);
       }
+
+      // Turn on order alerts (once the store is ready)
+      $('alerts-nudge').hidden = !(state.pushChecked && alertsNudgeWanted());
 
       // Stock running low (3 or fewer, or sold out)
       const low = st ? st.lowStock || 0 : 0;
@@ -2218,6 +2525,7 @@
       $('product-title').textContent = p ? 'Edit product' : 'Add product';
       $('product-name').value = p ? p.name : '';
       $('product-price').value = p ? koboToInput(p.priceKobo) : '';
+      $('product-cost').value = p && !p.resale && p.costKobo !== null && p.costKobo !== undefined ? koboToInput(p.costKobo) : '';
       $('product-description').value = p ? p.description : '';
       $('product-category').value = p ? (p.category || '') : '';
       $('product-stock').value = p && p.stock !== null && p.stock !== undefined ? String(p.stock) : '';
@@ -2238,6 +2546,8 @@
       $('product-name').disabled = resold;
       $('resale-banner').hidden = !resold;
       if (resold) renderResaleBanner(p);
+      renderCostHint();
+      renderProductExtras(p);
       state.pendingPhotos = [];
       switchView('product');
       renderSlots();
@@ -2585,6 +2895,8 @@
       if (!editingResale && stock && !/^\d+$/.test(stock)) return showError('product', 'Enter how many you have, like 12, or leave it empty.', 'stock');
       const opts = editingResale ? { options: [] } : optionsForSave();
       if (opts.error) return showError('product', opts.error);
+      const cost = $('product-cost').value.trim();
+      if (!editingResale && cost && !looksLikeNaira(cost)) return showError('product', 'Enter what one costs you in naira, like 30000, or leave it empty.', 'cost');
       const resellOn = $('product-resell-on').checked;
       const resell = $('product-resell').value.trim();
       if (!editingResale && resellOn && (!looksLikeNaira(resell) || Number(resell.replace(/[₦,\s]/g, '')) <= 0)) {
@@ -2592,7 +2904,7 @@
       }
       const body = editingResale
         ? { price, category: $('product-category').value.trim(), isActive: $('product-active').checked }
-        : { name, price, description, category: $('product-category').value.trim(), options: opts.options, stock, resellPrice: resellOn ? resell : '', isActive: $('product-active').checked };
+        : { name, price, cost, description, category: $('product-category').value.trim(), options: opts.options, stock, resellPrice: resellOn ? resell : '', isActive: $('product-active').checked };
       const editing = state.editing;
       if (editing) body.id = editing.id;
 
@@ -2676,6 +2988,54 @@
     $('product-price').addEventListener('blur', () => {
       const el = $('product-price');
       el.value = el.value.replace(/[₦,\s]/g, '');
+    });
+
+    // What one costs the seller: shows what they make on each.
+    function renderCostHint() {
+      const hint = $('product-cost-hint');
+      const base = basePriceKobo();
+      const raw = $('product-cost').value.trim();
+      const cost = raw && looksLikeNaira(raw) ? Math.round(Number(raw.replace(/[₦,\s]/g, '')) * 100) : null;
+      hint.classList.remove('good', 'bad');
+      if (base && cost !== null) {
+        const diff = base - cost;
+        if (diff >= 0) {
+          hint.textContent = 'You make ' + formatNaira(diff) + ' on each (' + Math.round((diff / base) * 100) + '%). Only you see this.';
+          hint.classList.add('good');
+        } else {
+          hint.textContent = 'You lose ' + formatNaira(-diff) + ' on each at this price.';
+          hint.classList.add('bad');
+        }
+      } else {
+        hint.textContent = 'Only you see this. It shows your real profit in the report.';
+      }
+    }
+    $('product-cost').addEventListener('input', renderCostHint);
+    $('product-price').addEventListener('input', renderCostHint);
+    $('product-cost').addEventListener('blur', () => { $('product-cost').value = $('product-cost').value.replace(/[₦,\s]/g, ''); });
+
+    // A saved product: who's waiting for it, and ways to share it.
+    function productLink(p) { return storeUrl(state.vendor.slug) + '?p=' + p.id; }
+    function productShareText(p) { return p.name + ' · ' + priceLabel(p) + '\nOrder here: ' + productLink(p); }
+    function renderProductExtras(p) {
+      const waiting = p ? p.waiting || 0 : 0;
+      $('waiting-banner').hidden = !waiting;
+      if (waiting) {
+        $('waiting-banner-text').textContent = waiting === 1
+          ? '1 customer asked to be told when this is back.'
+          : waiting + ' customers asked to be told when this is back.';
+      }
+      $('share-card').hidden = !p || !p.isActive;
+      if (p) $('share-wa').href = 'https://wa.me/?text=' + encodeURIComponent(productShareText(p));
+    }
+    $('waiting-banner-go').addEventListener('click', () => { if (state.editing) tellWaiting(state.editing.id); });
+    $('share-status').addEventListener('click', () => { if (state.editing) openStatus({ only: state.editing.id }); });
+    $('share-copy').addEventListener('click', async () => {
+      const p = state.editing;
+      if (!p) return;
+      const btn = $('share-copy');
+      try { await navigator.clipboard.writeText(productLink(p)); btn.textContent = 'Copied!'; } catch (e) { prompt('Copy this link:', productLink(p)); }
+      setTimeout(() => { btn.textContent = 'Copy link'; }, 2500);
     });
 
     // ---------- logged in: Settings ----------
@@ -3384,6 +3744,11 @@
       if (state.unread > before) { OP.replay($('bell'), 'wiggle'); OP.replay($('bell-count'), 'bump'); }
       $('bell-count').textContent = state.unread > 9 ? '9+' : String(state.unread);
       $('bell-count').hidden = !state.unread;
+      // The number on the home screen icon, where the phone supports it.
+      try {
+        if (state.unread && navigator.setAppBadge) navigator.setAppBadge(state.unread).catch(() => {});
+        else if (!state.unread && navigator.clearAppBadge) navigator.clearAppBadge().catch(() => {});
+      } catch (e) { /* not supported */ }
     }
 
     $('bell').addEventListener('click', () => {
@@ -3410,6 +3775,7 @@
         if (n.orderId) btn.addEventListener('click', () => openOrder(n.orderId));
         else if (n.type === 'supply_order') btn.addEventListener('click', () => openResell('send'));
         else if (n.type === 'referral') btn.addEventListener('click', openInvite);
+        else if (n.type === 'stock_request') btn.addEventListener('click', () => openStock());
         else if (/^(cap_|plan_)/.test(n.type || '')) btn.addEventListener('click', () => goTab('settings', 'plan-settings'));
         row.appendChild(btn);
         list.appendChild(row);
@@ -3514,7 +3880,8 @@
 
     $('open-status').addEventListener('click', openStatus);
 
-    async function openStatus() {
+    async function openStatus(opts) {
+      if (opts && opts.only) state.statusPick = [opts.only];
       switchView('status');
       if (!state.products) {
         const { ok, status, data } = await api('/api/products');
@@ -3528,10 +3895,23 @@
       }
       state.statusPick = state.statusPick.filter((id) => live.some((p) => p.id === id));
       if (!$('status-headline').value) $('status-headline').value = HEADLINES[0];
+      renderStatusFormat();
       renderHeadlineChips();
       renderStatusPicks();
       drawStatus();
     }
+
+    function renderStatusFormat() {
+      const sq = state.statusFormat === 'square';
+      document.querySelectorAll('#status-format button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.format === state.statusFormat)));
+      $('status-share-text').textContent = sq ? 'Share picture' : 'Share to WhatsApp';
+      $('status-tip').textContent = sq ? 'Tap Share, then pick Instagram or WhatsApp.' : 'Tap Share, pick WhatsApp, then choose My status.';
+    }
+    document.querySelectorAll('#status-format button').forEach((b) => b.addEventListener('click', () => {
+      state.statusFormat = b.dataset.format;
+      renderStatusFormat();
+      drawStatus();
+    }));
 
     function renderHeadlineChips() {
       const box = $('status-headlines');
@@ -3639,9 +4019,12 @@
       const v = state.vendor;
       if (!v) return;
       const canvas = $('status-canvas');
-      const ctx = canvas.getContext('2d');
+      const sq = state.statusFormat === 'square';
       const W = 1080;
-      const H = 1920;
+      const H = sq ? 1080 : 1920;
+      if (canvas.height !== H) canvas.height = H;
+      canvas.classList.toggle('square', sq);
+      const ctx = canvas.getContext('2d');
       const INK = '#1B1530';
       const theme = themeOf(v.storeTheme);
       const picks = (state.statusPick || []).map((id) => (state.products || []).find((p) => p.id === id)).filter(Boolean);
@@ -3658,9 +4041,9 @@
       ctx.strokeStyle = INK;
       ctx.lineWidth = 8;
       // decorations
-      ctx.beginPath(); ctx.arc(W - 60, 70, 290, 0, Math.PI * 2); ctx.fillStyle = '#FFD23F'; ctx.fill(); ctx.stroke();
-      ctx.save(); ctx.translate(30, 1340); ctx.rotate(18 * Math.PI / 180); rr(ctx, -150, -150, 300, 300, 90); ctx.fillStyle = '#6CCFF6'; ctx.fill(); ctx.stroke(); ctx.restore();
-      ctx.save(); ctx.translate(W - 120, 560); ctx.beginPath();
+      ctx.beginPath(); ctx.arc(W - 60, 70, sq ? 220 : 290, 0, Math.PI * 2); ctx.fillStyle = '#FFD23F'; ctx.fill(); ctx.stroke();
+      ctx.save(); ctx.translate(30, sq ? 820 : 1340); ctx.rotate(18 * Math.PI / 180); rr(ctx, -150, -150, 300, 300, 90); ctx.fillStyle = '#6CCFF6'; ctx.fill(); ctx.stroke(); ctx.restore();
+      ctx.save(); ctx.translate(W - 110, sq ? 770 : 560); ctx.beginPath();
       [[0, -64], [17, -17], [64, 0], [17, 17], [0, 64], [-17, 17], [-64, 0], [-17, -17]].forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
       ctx.closePath(); ctx.fillStyle = '#FFFFFF'; ctx.fill(); ctx.lineWidth = 6; ctx.stroke(); ctx.restore();
       ctx.lineWidth = 8;
@@ -3675,21 +4058,23 @@
       ctx.fillText(fit(ctx, v.businessName, 560), 240, 168);
 
       // headline
-      ctx.font = F(124);
+      const headSize = sq ? 96 : 124;
+      ctx.font = F(headSize);
       ctx.textBaseline = 'alphabetic';
-      const lines = wrapLines(ctx, $('status-headline').value.trim() || HEADLINES[0], 860, 2);
-      let y = 420;
-      lines.forEach((line) => { ctx.fillText(line, 70, y); y += 124; });
+      const lines = wrapLines(ctx, $('status-headline').value.trim() || HEADLINES[0], 860, sq ? 1 : 2);
+      let y = sq ? 360 : 420;
+      lines.forEach((line) => { ctx.fillText(line, 70, y); y += headSize; });
 
-      // product tiles
+      // product tiles: a grid on the tall picture, one row on the square one
       const top = y - 20;
-      const bottom = H - 340;
+      const bottom = H - (sq ? 250 : 340);
       const n = picks.length;
-      const cols = n === 1 ? 1 : 2;
-      const rows = n > 2 ? 2 : 1;
-      const gap = 44;
-      const infoH = 150;
-      let tileW = n === 1 ? 700 : (W - 140 - gap) / 2;
+      const single = n === 1;
+      const cols = single ? 1 : sq ? n : 2;
+      const rows = !sq && n > 2 ? 2 : 1;
+      const gap = sq ? 30 : 44;
+      const infoH = sq && n > 2 ? 112 : 150;
+      let tileW = single ? (sq ? 560 : 700) : (W - 140 - gap * (cols - 1)) / cols;
       const maxTileH = (bottom - top - (rows - 1) * gap) / rows;
       tileW = Math.min(tileW, (maxTileH - infoH) / 0.92);
       const photoH = tileW * 0.92;
@@ -3700,11 +4085,64 @@
       const y0 = top + (bottom - top - gridH) / 2;
       const tilts = [-2, 1.5, 1, -1.5];
       const tints = { t0: '#FFD23F', t1: '#6CCFF6', t2: '#FF8A7A', t3: '#CDB8FF', t4: '#12B76A' };
-      picks.forEach((p, i) => {
+      // The product photo, filling w × h (or a coloured letter without one).
+      const paintPhoto = (img, p, w, h) => {
+        if (img) {
+          const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+          const dw = img.naturalWidth * scale;
+          const dh = img.naturalHeight * scale;
+          ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+        } else {
+          ctx.fillStyle = tints[tintFor(p.name)];
+          ctx.fillRect(0, 0, w, h);
+          ctx.fillStyle = INK; ctx.font = F(Math.round(h * 0.45)); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(initials(p.name).slice(0, 1), w / 2, h / 2 + 6);
+          ctx.textAlign = 'left';
+        }
+      };
+      // One product on a square post: the photo on the left, name and price beside it.
+      if (sq && single) {
+        const p = picks[0];
+        const S = Math.min(bottom - top - 10, 470);
+        const px = 70;
+        const py = top + (bottom - top - S) / 2;
+        ctx.save();
+        ctx.translate(px + S / 2, py + S / 2);
+        ctx.rotate(-2 * Math.PI / 180);
+        ctx.translate(-S / 2, -S / 2);
+        rr(ctx, 0, 14, S, S, 50); ctx.fillStyle = INK; ctx.fill();
+        rr(ctx, 0, 0, S, S, 50); ctx.fillStyle = '#FFFFFF'; ctx.fill();
+        ctx.save();
+        rr(ctx, 0, 0, S, S, 50); ctx.clip();
+        paintPhoto(images[0], p, S, S);
+        ctx.restore();
+        rr(ctx, 0, 0, S, S, 50); ctx.stroke();
+        ctx.restore();
+        const tx = px + S + 48;
+        const tw = W - 70 - tx;
+        ctx.fillStyle = theme.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.font = B(52);
+        const nameLines = wrapLines(ctx, p.name, tw, 3);
+        let ny = py + 80;
+        nameLines.forEach((line) => { ctx.fillText(line, tx, ny); ny += 62; });
+        const price = priceLabel(p);
+        ctx.font = F(62);
+        const pw = Math.min(tw, ctx.measureText(price).width + 70);
+        ctx.save();
+        ctx.translate(tx + pw / 2, ny + 50);
+        ctx.rotate(-4 * Math.PI / 180);
+        rr(ctx, -pw / 2, -56 + 10, pw, 112, 56); ctx.fillStyle = INK; ctx.fill();
+        rr(ctx, -pw / 2, -56, pw, 112, 56); ctx.fillStyle = '#FFD23F'; ctx.fill(); ctx.stroke();
+        ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(fit(ctx, price, pw - 44), 0, 4);
+        ctx.restore();
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+      }
+      if (!(sq && single)) picks.forEach((p, i) => {
         let col = i % cols;
         const row = Math.floor(i / cols);
         let x = x0 + col * (tileW + gap);
-        if (n === 3 && i === 2) x = (W - tileW) / 2;
+        if (!sq && n === 3 && i === 2) x = (W - tileW) / 2;
         const ty = y0 + row * (tileH + gap);
         ctx.save();
         ctx.translate(x + tileW / 2, ty + tileH / 2);
@@ -3715,42 +4153,52 @@
         ctx.save();
         rr(ctx, 0, 0, tileW, tileH, 50); ctx.clip();
         ctx.beginPath(); ctx.rect(0, 0, tileW, photoH); ctx.clip();
-        const img = images[i];
-        if (img) {
-          const scale = Math.max(tileW / img.naturalWidth, photoH / img.naturalHeight);
-          const dw = img.naturalWidth * scale;
-          const dh = img.naturalHeight * scale;
-          ctx.drawImage(img, (tileW - dw) / 2, (photoH - dh) / 2, dw, dh);
-        } else {
-          ctx.fillStyle = tints[tintFor(p.name)];
-          ctx.fillRect(0, 0, tileW, photoH);
-          ctx.fillStyle = INK; ctx.font = F(Math.round(photoH * 0.45)); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          ctx.fillText(initials(p.name).slice(0, 1), tileW / 2, photoH / 2 + 6);
-          ctx.textAlign = 'left';
-        }
+        paintPhoto(images[i], p, tileW, photoH);
         ctx.restore();
         ctx.beginPath(); ctx.moveTo(0, photoH); ctx.lineTo(tileW, photoH); ctx.stroke();
         rr(ctx, 0, 0, tileW, tileH, 50); ctx.stroke();
         ctx.fillStyle = INK; ctx.textBaseline = 'alphabetic';
-        ctx.font = B(Math.round(Math.min(40, tileW * 0.085)));
-        ctx.fillText(fit(ctx, p.name, tileW - 56), 28, photoH + 62);
-        ctx.font = F(Math.round(Math.min(56, tileW * 0.12)));
-        ctx.fillText(fit(ctx, priceLabel(p), tileW - 56), 28, photoH + 126);
+        if (single) {
+          // one product: its name big, and the price on a sticker
+          ctx.font = B(46);
+          const nameLines = wrapLines(ctx, p.name, tileW - 56, 2);
+          nameLines.forEach((line, li) => ctx.fillText(line, 28, photoH + (nameLines.length === 1 ? 92 : 62 + li * 52)));
+          ctx.restore();
+          const price = priceLabel(p);
+          ctx.save();
+          ctx.translate(x + tileW - 30, ty + 40);
+          ctx.rotate(12 * Math.PI / 180);
+          ctx.font = F(58);
+          const pw = Math.min(520, ctx.measureText(price).width + 80);
+          rr(ctx, -pw / 2, -58 + 10, pw, 116, 58); ctx.fillStyle = INK; ctx.fill();
+          rr(ctx, -pw / 2, -58, pw, 116, 58); ctx.fillStyle = '#FFD23F'; ctx.fill(); ctx.stroke();
+          ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(fit(ctx, price, pw - 50), 0, 4);
+          ctx.restore();
+          ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+          return;
+        }
+        const small = infoH < 150;
+        ctx.font = B(Math.round(Math.min(small ? 30 : 40, tileW * 0.085)));
+        ctx.fillText(fit(ctx, p.name, tileW - 40), small ? 20 : 28, photoH + (small ? 46 : 62));
+        ctx.font = F(Math.round(Math.min(small ? 42 : 56, tileW * 0.12)));
+        ctx.fillText(fit(ctx, priceLabel(p), tileW - 40), small ? 20 : 28, photoH + (small ? 94 : 126));
         ctx.restore();
       });
 
       // store link card
-      const cardY = H - 296;
-      rr(ctx, 70, cardY + 14, W - 140, 210, 50); ctx.fillStyle = INK; ctx.fill();
-      rr(ctx, 70, cardY, W - 140, 210, 50); ctx.fillStyle = '#FFFFFF'; ctx.fill(); ctx.stroke();
+      const cardH = sq ? 176 : 210;
+      const cardY = H - cardH - (sq ? 50 : 86);
+      rr(ctx, 70, cardY + 14, W - 140, cardH, 50); ctx.fillStyle = INK; ctx.fill();
+      rr(ctx, 70, cardY, W - 140, cardH, 50); ctx.fillStyle = '#FFFFFF'; ctx.fill(); ctx.stroke();
       ctx.fillStyle = INK; ctx.textAlign = 'center';
-      ctx.font = B(40);
-      ctx.fillText('Order in one minute on my store', W / 2, cardY + 82);
+      ctx.font = B(sq ? 36 : 40);
+      ctx.fillText('Order in one minute on my store', W / 2, cardY + (sq ? 70 : 82));
       const link = (location.host + '/s/' + v.slug);
       let size = 54;
       ctx.font = F(size);
       while (ctx.measureText(link).width > W - 220 && size > 30) { size -= 2; ctx.font = F(size); }
-      ctx.fillText(fit(ctx, link, W - 220), W / 2, cardY + 156);
+      ctx.fillText(fit(ctx, link, W - 220), W / 2, cardY + (sq ? 134 : 156));
       ctx.textAlign = 'left';
     }
 
@@ -3767,9 +4215,12 @@
       await drawStatus();
       const blob = await statusBlob();
       if (!blob) return toast('Could not make the picture. Try again.');
-      const file = new File([blob], state.vendor.slug + '-status.jpg', { type: 'image/jpeg' });
+      const file = new File([blob], state.vendor.slug + (state.statusFormat === 'square' ? '-post.jpg' : '-status.jpg'), { type: 'image/jpeg' });
+      // One product: the caption links straight to it.
+      const one = (state.statusPick || []).length === 1 ? (state.products || []).find((p) => p.id === state.statusPick[0]) : null;
+      const text = one ? productShareText(one) : 'Order from ' + state.vendor.businessName + ': ' + storeUrl(state.vendor.slug);
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file] }); } catch (e) { if (!e || e.name !== 'AbortError') { saveBlob(blob, file.name); toast('Picture saved'); } }
+        try { await navigator.share({ files: [file], text }); } catch (e) { if (!e || e.name !== 'AbortError') { saveBlob(blob, file.name); toast('Picture saved'); } }
       } else {
         saveBlob(blob, file.name);
         toast('Picture saved. Post it from WhatsApp, Status.', 'good');
@@ -3962,6 +4413,7 @@
       });
       $('cust-tag-input').value = '';
 
+      $('cust-msg-switch').checked = !c.noMessages;
       $('cust-notes').value = c.notes;
       $('cust-edit-name').value = c.name;
       $('cust-edit-address').value = c.address;
@@ -4021,6 +4473,11 @@
       busy(btn, false);
       if (saved) $('cust-details').open = false;
     });
+    $('cust-msg-switch').addEventListener('change', async () => {
+      const on = $('cust-msg-switch').checked;
+      const ok = await saveCustomer({ noMessages: !on }, on ? 'They get group messages again' : "They won't get group messages", 'cust');
+      if (!ok) $('cust-msg-switch').checked = !on;
+    });
     $('cust-new-order').addEventListener('click', () => {
       const c = state.customer.customer;
       state.prefill = { name: c.name, phone: formatPhone(c.phone), address: c.address };
@@ -4032,8 +4489,12 @@
       const v = state.vendor;
       if (!v) return;
       const low = state.stats ? state.stats.lowStock || 0 : 0;
-      $('more-stock-n').textContent = low ? String(low) : '';
-      $('more-stock-sub').textContent = low ? low + ' low or sold out' : "Count what's left";
+      const tw = state.toolsSummary && state.toolsSummary.waiting ? state.toolsSummary.waiting.people : 0;
+      $('more-stock-n').textContent = low ? String(low) : tw ? String(tw) : '';
+      $('more-stock-sub').textContent = low && tw ? low + ' low · ' + tw + ' waiting for restock'
+        : low ? low + ' low or sold out'
+        : tw ? tw + (tw === 1 ? ' person waiting' : ' people waiting') + ' for restock' : "Count what's left";
+      $('more-alerts-sub').textContent = state.pushOn ? 'Alerts are on for this phone' : 'Get a ping for every new order';
       const zones = v.deliveryZones || [];
       $('more-delivery-sub').textContent = zones.length
         ? zones.length + (zones.length === 1 ? ' area' : ' areas') + ' with their own fees'
@@ -4056,6 +4517,11 @@
           ? formatNaira(t.resale.earnedThisMonthKobo) + ' profit this month'
           : "Sell other sellers' products for profit";
       $('more-invite-n').textContent = t && t.invited ? String(t.invited) : '';
+      $('more-broadcasts-n').textContent = t && t.unfinishedMessages ? String(t.unfinishedMessages) : '';
+      $('more-broadcasts-sub').textContent = t && t.unfinishedMessages
+        ? t.unfinishedMessages + (t.unfinishedMessages === 1 ? ' message' : ' messages') + ' still sending'
+        : 'News and sales to many at once';
+      $('more-expenses-sub').textContent = t && t.expensesThisMonthKobo ? formatNaira(t.expensesThisMonthKobo) + ' this month' : 'What you spend';
       $('more-profile-sub').textContent = v.inDirectory
         ? 'Listed in the directory · ' + [v.storeCategory, v.state].filter(Boolean).join(', ')
         : 'Get found in the OrderPadi directory';
@@ -4079,6 +4545,9 @@
       if (name === 'resell') return openResell('find');
       if (name === 'invite') return openInvite();
       if (name === 'settings') return goTab('settings');
+      if (name === 'alerts') return openAlerts();
+      if (name === 'broadcasts') return openBroadcasts();
+      if (name === 'expenses') return openExpenses(lagosMonth());
     }));
     $('home-low-stock').addEventListener('click', () => { state.stockFilter = 'all'; openStock(); });
 
@@ -4238,10 +4707,73 @@
       switchView('stock');
       if (!state.products) $('stock-list').innerHTML = '<p class="empty">Loading…</p>';
       const edits = productEdits;
-      const { ok, status, data } = await api('/api/products');
+      const [{ ok, status, data }, waiting] = await Promise.all([api('/api/products'), api('/api/tools?view=waiting')]);
       if (status === 401) return sessionLost();
       if (ok && (edits === productEdits || !state.products)) { state.products = data.products; state.photoLimit = data.photoLimit || 1; }
+      if (waiting.ok) state.waiting = waiting.data;
       renderStock();
+      renderWaiting();
+    }
+
+    // Customers who asked to be told when something is back.
+    function renderWaiting() {
+      const box = $('waiting-box');
+      box.textContent = '';
+      const w = state.waiting;
+      if (!w || !w.products.length) return;
+      const card = el('div', 'card waiting-card');
+      card.appendChild(el('p', 'card-label', 'Waiting for restock · ' + w.total + (w.total === 1 ? ' person' : ' people')));
+      w.products.forEach((wp) => {
+        const prod = (state.products || []).find((x) => x.id === wp.productId);
+        const row = el('div', 'wait-row');
+        if (prod) row.appendChild(photoBox(prod, 'sthumb ph'));
+        const main = el('div', 'row-main');
+        main.appendChild(el('div', 'row-name', wp.name));
+        const out = prod ? stockSoldOut(prod) : true;
+        main.appendChild(el('div', 'row-sub', wp.waiting + (wp.waiting === 1 ? ' person waiting' : ' people waiting') + (out ? ' · still sold out' : ' · back in stock')));
+        const go = el('button', 'btn small' + (out ? ' secondary' : ''), 'Tell them');
+        go.type = 'button';
+        go.addEventListener('click', () => tellWaiting(wp.productId));
+        row.append(main, go);
+        card.appendChild(row);
+        const who = document.createElement('details');
+        who.appendChild(el('summary', null, 'See who'));
+        const ul = el('ul', 'wait-people');
+        wp.people.forEach((person) => {
+          const li = el('li');
+          li.appendChild(el('span', null, person.name + ' · ' + formatPhone(person.phone) + (person.choice ? ' · ' + person.choice : '')));
+          const x = el('button', 'x', '×');
+          x.type = 'button';
+          x.setAttribute('aria-label', 'Remove ' + person.name);
+          x.addEventListener('click', async () => {
+            const r = await api('/api/tools', { action: 'waiting-remove', id: person.id });
+            if (r.status === 401) return sessionLost();
+            if (!r.ok) return toast(r.data.error || 'Could not remove them.');
+            state.waiting = r.data;
+            renderWaiting();
+            toast('Removed from the waiting list');
+          });
+          li.appendChild(x);
+          ul.appendChild(li);
+        });
+        who.appendChild(ul);
+        card.appendChild(who);
+      });
+      box.appendChild(card);
+    }
+    function stockSoldOut(p) {
+      if (p.stock !== null && p.stock !== undefined && p.stock <= 0) return true;
+      return (p.options || []).some((g) => g.choices.length && g.choices.every((c) => c.soldOut || (c.stock !== null && c.stock !== undefined && c.stock <= 0)));
+    }
+    async function tellWaiting(productId) {
+      const { ok, status, data } = await api('/api/tools', { action: 'restock-message', productId });
+      if (status === 401) return sessionLost();
+      if (!ok) return toast(data.error || 'Could not start the message.');
+      state.bcast = data.broadcast;
+      state.bcastCurrent = null;
+      state.bcastSkips = new Set();
+      renderBroadcast();
+      switchView('broadcast');
     }
     function stockRows() {
       const rows = [];
@@ -5225,19 +5757,24 @@
     // ---------- report (Pro) ----------
     $('open-report').addEventListener('click', loadReport);
 
-    async function loadReport() {
+    async function loadReport(period) {
+      if (typeof period === 'string') state.reportPeriod = period;
       switchView('report');
+      document.querySelectorAll('#report-period button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.period === state.reportPeriod)));
       const box = $('report-body');
       box.innerHTML = '<p class="empty">Loading…</p>';
-      const { ok, status, data } = await api('/api/orders?view=report');
+      const asked = state.reportPeriod;
+      const { ok, status, data } = await api('/api/orders?view=report&period=' + asked);
       if (status === 401) return sessionLost();
+      if (asked !== state.reportPeriod) return; // switched period while loading
       box.textContent = '';
+      $('report-period').hidden = status === 402;
       if (status === 402) {
         const card = el('div', 'card plan-card');
         card.appendChild(el('p', 'card-label', 'Reports are part of Pro'));
-        card.appendChild(el('p', null, 'See your sales day by day, your best-selling products, and download every order as a spreadsheet.'));
+        card.appendChild(el('p', null, 'See your real profit after costs and expenses, your sales day by day, your best sellers, and download everything as a spreadsheet.'));
         const ul = el('ul', 'perks');
-        ['Unlimited orders every month', 'No "Made with OrderPadi" branding', '30-day report and CSV export'].forEach((x) => ul.appendChild(el('li', null, x)));
+        ['Unlimited orders every month', 'Profit after costs and expenses', 'Sales report and CSV downloads', 'Unlimited messages to customers'].forEach((x) => ul.appendChild(el('li', null, x)));
         card.appendChild(ul);
         const up = el('button', 'btn grape', 'Upgrade to Pro · ₦2,500/month');
         up.type = 'button';
@@ -5247,64 +5784,116 @@
       }
       if (!ok) return box.appendChild(el('p', 'empty', data.error || 'Could not load the report.'));
 
-      const fmt = (s) => new Date(s + 'T12:00:00').toLocaleDateString('en-NG', { day: 'numeric', month: 'short' });
+      const fmt = (d) => new Date(d + 'T12:00:00').toLocaleDateString('en-NG', { day: 'numeric', month: 'short' });
+      const pr = data.profit;
+
+      // profit: sales − cost of items − expenses
+      const loss = pr.profitKobo < 0;
+      const pc = el('div', 'card profit-card' + (loss ? ' loss' : ''));
+      pc.id = 'profit-card';
+      pc.appendChild(el('p', 'card-label', (loss ? 'Loss' : 'Profit') + ' · ' + fmt(data.from) + ' to ' + fmt(data.to)));
+      const big = el('p', 'big-figure');
+      big.append(el('b', null, (loss ? '−' : '') + formatNaira(Math.abs(pr.profitKobo))), el('span', null, pr.salesKobo ? Math.round((pr.profitKobo / pr.salesKobo) * 100) + '% of sales' : 'No sales yet'));
+      pc.appendChild(big);
+      const line = (label, value, cls) => { const r = el('div', 'kv' + (cls ? ' ' + cls : '')); r.append(el('span', null, label), el('span', null, value)); pc.appendChild(r); };
+      line('Sales', formatNaira(pr.salesKobo));
+      line('What the items cost you', '− ' + formatNaira(pr.costKobo));
+      line('Expenses', '− ' + formatNaira(pr.expensesKobo));
+      line(loss ? 'Loss' : 'Profit', (loss ? '−' : '') + formatNaira(Math.abs(pr.profitKobo)), 'total');
+      if (pr.noCostItems) {
+        const note = el('div', 'note');
+        note.appendChild(document.createTextNode(pr.noCostItems + (pr.noCostItems === 1 ? ' item' : ' items') + ' sold (' + formatNaira(pr.noCostSalesKobo) + ') had no cost price, so what they cost you isn\'t taken off. Add what each product costs you to see your real profit.'));
+        const go = el('button', 'link', 'Add cost prices ›');
+        go.type = 'button';
+        go.style.display = 'block';
+        go.addEventListener('click', () => goTab('products'));
+        note.appendChild(go);
+        pc.appendChild(note);
+      }
+      box.appendChild(pc);
+
+      // sales by day
       const totals = el('div', 'card');
       totals.appendChild(el('p', 'card-label', 'Sales'));
       totals.style.background = 'var(--sun)';
       totals.style.color = '#1B1530';
-      const big = el('p', 'big-figure');
-      big.append(el('b', null, formatNaira(data.totals.salesKobo)), el('span', null, data.totals.orders + (data.totals.orders === 1 ? ' order' : ' orders')));
-      totals.appendChild(big);
+      const sb = el('p', 'big-figure');
+      sb.append(el('b', null, formatNaira(data.totals.salesKobo)), el('span', null, data.totals.orders + (data.totals.orders === 1 ? ' order' : ' orders')));
+      totals.appendChild(sb);
       const best = data.days.reduce((a, d) => (d.salesKobo > a.salesKobo ? d : a), data.days[0]);
       const stats = el('div', 'stats');
       [[formatNaira(data.totals.orders ? Math.round(data.totals.salesKobo / data.totals.orders) : 0), 'Average order'],
-       [best.salesKobo ? formatNaira(best.salesKobo) : '—', best.salesKobo ? 'Best day · ' + fmt(best.day) : 'Best day']].forEach(([v, l]) => {
-        const d = el('div'); d.append(el('b', null, v), el('span', null, l)); stats.appendChild(d);
+       [formatNaira(pr.receivedKobo), 'Money received']].forEach(([v, l]) => {
+        const d = el('div', 'tile plain');
+        d.style.cssText = 'background:var(--card);color:var(--text)';
+        d.append(el('b', null, v), el('span', null, l));
+        stats.appendChild(d);
       });
       totals.appendChild(stats);
-
       const max = Math.max(1, ...data.days.map((d) => d.salesKobo));
       const bars = el('div', 'bars');
-      data.days.forEach((d) => {
+      data.days.forEach((d, i) => {
         const bar = el('div', d.salesKobo ? '' : 'zero');
         bar.style.height = Math.max(2, Math.round((d.salesKobo / max) * 100)) + '%';
-        bar.style.animationDelay = (data.days.indexOf(d) * 0.015) + 's';
+        bar.style.animationDelay = (i * 0.015) + 's';
         bar.title = d.day + ': ' + formatNaira(d.salesKobo) + ' · ' + d.orders + ' orders';
         bars.appendChild(bar);
       });
       totals.appendChild(bars);
       const axis = el('div', 'bar-axis');
-      axis.append(el('span', null, fmt(data.days[0].day)), el('span', null, fmt(data.days[data.days.length - 1].day)));
+      axis.append(el('span', null, fmt(data.days[0].day)), el('span', null, best.salesKobo ? 'Best day: ' + fmt(best.day) : ''), el('span', null, fmt(data.days[data.days.length - 1].day)));
       totals.appendChild(axis);
       box.appendChild(totals);
 
+      // expenses by what for
+      const ex = el('div', 'card');
+      ex.appendChild(el('p', 'card-label', 'Expenses'));
+      if (!data.expenses.length) ex.appendChild(el('p', 'muted', 'No expenses in this period.'));
+      data.expenses.forEach((e) => { const r = el('div', 'kv'); r.append(el('span', null, e.category), el('span', null, formatNaira(e.totalKobo))); ex.appendChild(r); });
+      const addEx = el('button', 'btn secondary small', data.expenses.length ? 'See expenses' : 'Add an expense');
+      addEx.type = 'button';
+      addEx.style.marginTop = '10px';
+      addEx.addEventListener('click', () => openExpenses(lagosMonth()));
+      ex.appendChild(addEx);
+      box.appendChild(ex);
+
       const top = el('div', 'card');
       top.appendChild(el('p', 'card-label', 'Best sellers'));
-      if (!data.topProducts.length) top.appendChild(el('p', 'muted', 'No sales in the last 30 days.'));
-      data.topProducts.forEach((p) => {
+      if (!data.topProducts.length) top.appendChild(el('p', 'muted', 'No sales in this period.'));
+      data.topProducts.forEach((t) => {
         const row = el('div', 'kv');
-        row.append(el('span', null, p.name + ' · ' + p.quantity + ' sold'), el('span', null, formatNaira(p.salesKobo)));
+        const left = el('span');
+        left.appendChild(el('b', null, t.name));
+        left.appendChild(el('small', 'muted', t.quantity + ' sold' + (t.profitKobo !== null ? ' · ' + formatNaira(t.profitKobo) + ' profit' : '')));
+        left.lastChild.style.cssText = 'display:block;font-weight:700';
+        row.append(left, el('span', null, formatNaira(t.salesKobo)));
         top.appendChild(row);
       });
       box.appendChild(top);
 
       const dl = el('button', 'btn secondary', 'Download all orders (CSV)');
       dl.type = 'button';
-      dl.addEventListener('click', downloadCsv);
-      box.appendChild(dl);
+      dl.addEventListener('click', (e) => downloadFile(e.currentTarget, '/api/orders?view=export', 'orderpadi-orders.csv'));
+      const dle = el('button', 'btn secondary', 'Download all expenses (CSV)');
+      dle.type = 'button';
+      dle.addEventListener('click', (e) => downloadFile(e.currentTarget, '/api/tools?view=expenses-export', 'orderpadi-expenses.csv'));
+      box.append(dl, dle);
     }
+    document.querySelectorAll('#report-period button').forEach((b) => b.addEventListener('click', () => {
+      if (b.dataset.period !== state.reportPeriod) { navMode = 'replace'; loadReport(b.dataset.period); }
+    }));
 
-    async function downloadCsv(e) {
-      const btn = e.currentTarget;
+    async function downloadFile(btn, url, fallbackName) {
       busy(btn, true, 'Preparing…');
       try {
-        const res = await fetch('/api/orders?view=export', { credentials: 'same-origin', cache: 'no-store' });
+        const res = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
+        if (res.status === 402) { busy(btn, false); return toast('Downloads are part of Pro. Upgrade in Settings.'); }
         if (!res.ok) throw new Error('failed');
         const blob = await res.blob();
         const match = /filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') || '');
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = match ? match[1] : 'orderpadi-orders.csv';
+        a.download = match ? match[1] : fallbackName;
         document.body.appendChild(a);
         a.click();
         setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
@@ -5318,6 +5907,7 @@
     $('logout').addEventListener('click', async () => {
       const btn = $('logout');
       busy(btn, true, 'Logging out…');
+      await pushOffHere();
       await api('/api/auth', { action: 'logout' });
       busy(btn, false);
       stopPolling();
@@ -5334,11 +5924,773 @@
       state.promos = null;
       state.reviews = null;
       state.toolsSummary = null;
+      state.bcast = null; state.bcastList = null; state.waiting = null; state.expData = null; state.expMonth = null;
+      state.pushOn = false; state.pushChecked = false; state.push = null;
       $('orders-search').value = '';
       setUnread(0);
       $('login-email').value = remembered();
       switchView('login');
     });
+
+    // Lagos is UTC+1 all year: "2026-10" for this month there.
+    function lagosMonth() { return new Date(Date.now() + 3600000).toISOString().slice(0, 7); }
+    function lagosToday() { return new Date(Date.now() + 3600000).toISOString().slice(0, 10); }
+
+    // ---------- app and alerts ----------
+    // The service worker shows alerts on this phone; the server sends one for
+    // everything that lands in the bell (lib/push.js).
+    const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+    const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+    let installPrompt = null;
+    let swRegistering = null;
+    let pushSync = null; // the start-up syncPush(), so logging out can wait for it
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      installPrompt = e;
+      if (document.querySelector('#view-alerts.active')) renderAlerts();
+      renderHome();
+    });
+    window.addEventListener('appinstalled', () => {
+      installPrompt = null;
+      toast('OrderPadi is on your home screen', 'good');
+      if (document.querySelector('#view-alerts.active')) renderAlerts();
+    });
+
+    function registerSw() {
+      if (!('serviceWorker' in navigator)) return Promise.resolve(null);
+      if (!swRegistering) swRegistering = navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => null);
+      return swRegistering;
+    }
+    // The ready service worker, or null if it doesn't come up in time.
+    async function swReady() {
+      if (!('serviceWorker' in navigator)) return null;
+      await registerSw();
+      return Promise.race([navigator.serviceWorker.ready, new Promise((r) => setTimeout(() => r(null), 5000))]);
+    }
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (e) => {
+        const d = e.data || {};
+        if (d.type === 'op-push' && state.vendor) {
+          poll();
+          if (document.querySelector('#view-orders.active')) loadOrders(true, { quiet: true });
+        }
+        if (d.type === 'op-open' && d.url && state.vendor) {
+          // An alert was tapped while the app was open: go to that screen.
+          const u = new URL(d.url, location.origin);
+          const cur = history.state && history.state.op ? history.state : { op: true, depth: 0 };
+          history.pushState({ op: true, depth: (cur.depth || 0) + 1, from: cur.view }, '', location.pathname + u.hash);
+          navMode = 'none';
+          openRoute(currentRoute()).then(() => { navMode = 'auto'; });
+        }
+      });
+    }
+
+    function keyBytes(b64url) {
+      const b64 = b64url.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((b64url.length + 3) % 4);
+      return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    }
+    // Made with the server's current key? (If the key ever changes, subscribe again.)
+    function sameKey(sub, key) {
+      const have = sub && sub.options && sub.options.applicationServerKey;
+      if (!have) return true;
+      const a = new Uint8Array(have);
+      const b = keyBytes(key);
+      return a.length === b.length && a.every((x, i) => x === b[i]);
+    }
+
+    // On every app start: tie this phone's alerts to this login.
+    async function syncPush() {
+      try {
+        if (!pushSupported() || Notification.permission !== 'granted' || !state.push) { state.pushOn = false; return; }
+        const reg = await swReady();
+        if (!reg) { state.pushOn = false; return; }
+        let sub = await reg.pushManager.getSubscription();
+        if (sub && !sameKey(sub, state.push.key)) {
+          try { await sub.unsubscribe(); } catch (e) { /* already gone */ }
+          sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(state.push.key) });
+        }
+        if (!sub) { state.pushOn = false; return; }
+        const { ok, data } = await api('/api/me', { action: 'push-on', subscription: sub.toJSON() });
+        state.pushOn = ok;
+        if (ok) state.push = data.push;
+      } catch (e) {
+        state.pushOn = false;
+      } finally {
+        state.pushChecked = true;
+        if (state.vendor) { renderHome(); renderMore(); }
+        if (document.querySelector('#view-alerts.active')) renderAlerts();
+      }
+    }
+
+    async function turnOnPush() {
+      $('push-error').classList.remove('show');
+      if (!pushSupported()) return renderAlerts();
+      if (!state.push) {
+        const me = await api('/api/me');
+        if (me.ok) state.push = me.data.push || null;
+      }
+      if (!state.push) { renderAlerts(); return showError('push', "Couldn't reach OrderPadi. Check your internet and try again."); }
+      let perm = Notification.permission;
+      if (perm === 'default') {
+        try { perm = await Notification.requestPermission(); } catch (e) { perm = Notification.permission; }
+      }
+      if (perm !== 'granted') {
+        renderAlerts();
+        return showError('push', perm === 'denied'
+          ? 'Alerts are blocked for OrderPadi. Allow notifications for this site in your phone settings, then try again.'
+          : 'Tap Allow when your phone asks, so OrderPadi can send you alerts.');
+      }
+      const reg = await swReady();
+      if (!reg) { renderAlerts(); return showError('push', "This browser can't show alerts. Try Chrome, or the home screen app on iPhone."); }
+      try {
+        let sub = await reg.pushManager.getSubscription();
+        if (sub && !sameKey(sub, state.push.key)) { await sub.unsubscribe(); sub = null; }
+        if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(state.push.key) });
+        const { ok, status, data } = await api('/api/me', { action: 'push-on', subscription: sub.toJSON() });
+        if (status === 401) return sessionLost();
+        if (!ok) { renderAlerts(); return showError('push', data.error || 'Could not turn on alerts.'); }
+        state.push = data.push;
+        state.pushOn = true;
+        state.pushChecked = true;
+        toast('Alerts are on for this phone', 'good');
+      } catch (e) {
+        showError('push', "Couldn't turn on alerts on this phone. Check your internet and try again.");
+      }
+      renderAlerts();
+      renderHome();
+      renderMore();
+    }
+
+    // Turns alerts off on this phone (also when logging out).
+    async function pushOffHere() {
+      try {
+        if (pushSync) await pushSync.catch(() => {});
+        if (!pushSupported()) return;
+        const reg = await Promise.race([navigator.serviceWorker.getRegistration('/'), new Promise((r) => setTimeout(() => r(null), 2000))]);
+        const sub = reg && await reg.pushManager.getSubscription();
+        if (sub) {
+          const r = await api('/api/me', { action: 'push-off', endpoint: sub.endpoint });
+          if (r.ok) state.push = r.data.push;
+          await sub.unsubscribe();
+        }
+      } catch (e) { /* nothing to turn off */ }
+      state.pushOn = false;
+    }
+
+    async function openAlerts() {
+      switchView('alerts');
+      renderAlerts();
+      const { ok, data } = await api('/api/me');
+      if (ok && state.vendor) { state.push = data.push || state.push; renderAlerts(); }
+    }
+
+    function renderAlerts() {
+      const standalone = isStandalone();
+      const ios = isIOS();
+      $('install-done').hidden = !standalone;
+      $('install-btn').hidden = standalone || !installPrompt;
+      $('install-ios').hidden = standalone || !ios;
+      $('install-other').hidden = standalone || ios || !!installPrompt;
+      $('install-sub').textContent = standalone ? 'Opens full screen, like your other apps.'
+        : ios ? 'Add it from Safari in three taps.'
+        : installPrompt ? 'One tap and it sits with your other apps.' : 'Opens full screen, like your other apps.';
+      const supported = pushSupported();
+      const perm = supported ? Notification.permission : 'unsupported';
+      $('push-row').hidden = !supported;
+      let hint = '';
+      if (!supported) {
+        hint = ios && !standalone
+          ? 'On iPhone, alerts work once OrderPadi is on your home screen. Add it above, open it from your home screen, then turn alerts on there.'
+          : "This browser can't show alerts. Try Chrome.";
+      } else if (perm === 'denied') {
+        hint = "Alerts are blocked for OrderPadi. Allow notifications for this site in your phone's settings, then turn this on.";
+      }
+      $('push-hint').hidden = !hint;
+      $('push-hint').textContent = hint;
+      $('push-switch').checked = !!state.pushOn;
+      $('push-state').textContent = state.pushOn ? 'On for this phone' : 'Off';
+      $('push-test').hidden = !state.pushOn;
+      const n = state.push ? state.push.devices : 0;
+      $('push-devices').textContent = n ? 'Alerts go to ' + n + (n === 1 ? ' phone or computer.' : ' phones and computers.') : '';
+    }
+
+    $('push-switch').addEventListener('change', async () => {
+      const sw = $('push-switch');
+      sw.disabled = true;
+      if (sw.checked) await turnOnPush();
+      else { await pushOffHere(); toast('Alerts are off for this phone'); renderAlerts(); renderHome(); renderMore(); }
+      sw.disabled = false;
+      sw.checked = !!state.pushOn;
+    });
+    $('push-test').addEventListener('click', async () => {
+      const btn = $('push-test');
+      busy(btn, true, 'Sending…');
+      try {
+        const reg = await swReady();
+        const sub = reg && await reg.pushManager.getSubscription();
+        if (!sub) { state.pushOn = false; renderAlerts(); return; }
+        let r = await api('/api/me', { action: 'push-test', endpoint: sub.endpoint });
+        if (!r.ok && r.data.resubscribe) {
+          // This phone's alert details went stale: make new ones and try again.
+          try { await sub.unsubscribe(); } catch (e) { /* gone already */ }
+          await turnOnPush();
+          const again = state.pushOn && reg && await reg.pushManager.getSubscription();
+          if (again) r = await api('/api/me', { action: 'push-test', endpoint: again.endpoint });
+        }
+        if (r.ok) toast('Test alert sent. It should pop up in a few seconds.', 'good');
+        else showError('push', r.data.error || 'Could not send the test alert.');
+      } finally {
+        busy(btn, false);
+      }
+    });
+    $('install-btn').addEventListener('click', async () => {
+      if (!installPrompt) return;
+      installPrompt.prompt();
+      try { await installPrompt.userChoice; } catch (e) { /* closed */ }
+      installPrompt = null;
+      renderAlerts();
+    });
+
+    // Home: a nudge to turn alerts on, once the store is ready.
+    function alertsNudgeWanted() {
+      try { if (localStorage.getItem('op_nudge_alerts') === '1') return false; } catch (e) { /* private mode */ }
+      const c = state.counts;
+      const s = state.setup;
+      const ready = (c && c.total) || (s && s.whatsapp && s.bank && s.products > 0);
+      if (!ready || state.pushOn) return false;
+      if (pushSupported()) return Notification.permission !== 'denied';
+      return isIOS() && !isStandalone();
+    }
+    $('alerts-nudge-go').addEventListener('click', openAlerts);
+    $('alerts-nudge-x').addEventListener('click', () => {
+      try { localStorage.setItem('op_nudge_alerts', '1'); } catch (e) { /* private mode */ }
+      $('alerts-nudge').hidden = true;
+    });
+
+    // ---------- message customers ----------
+    const BC_TEMPLATES = [
+      ['New stock', 'Hi {name}! New stock just landed at {store}. Have a look and order here: {link}'],
+      ['Sale', "Hi {name}, there's a sale on at {store} this week! Prices are down on lots of items. Shop here: {link}"],
+      ['We miss you', "Hi {name}, it's been a while! There are new things at {store} you might like. See them here: {link}"],
+      ['Payment reminder', 'Hi {name}, a gentle reminder that {owed} is still outstanding on your order with {store}. Thank you!'],
+      ['Thank you', 'Hi {name}, thank you for shopping with {store}! We really appreciate you.']
+    ];
+    const BC_TOKENS = ['{name}', '{store}', '{link}', '{owed}'];
+
+    function fillBroadcast(text, b, r) {
+      const link = b && b.kind === 'restock' && b.productId ? storeUrl(state.vendor.slug) + '?p=' + b.productId : storeUrl(state.vendor.slug);
+      const values = {
+        name: String((r && r.name) || 'there').split(' ')[0],
+        store: state.vendor.businessName,
+        link,
+        owed: formatNaira((r && r.owingKobo) || 0),
+        product: (b && b.productName) || 'it'
+      };
+      return String(text || '').replace(/\{(name|store|link|owed|product)\}/g, (m, k) => values[k]);
+    }
+
+    async function openBroadcasts() {
+      switchView('broadcasts');
+      if (!state.bcastList) $('bc-list').innerHTML = '<p class="empty">Loading…</p>';
+      const { ok, status, data } = await api('/api/tools?view=broadcasts');
+      if (status === 401) return sessionLost();
+      if (!ok) { $('bc-list').textContent = ''; return $('bc-list').appendChild(el('p', 'empty', data.error || 'Could not load your messages.')); }
+      state.bcastList = data;
+      renderBroadcasts();
+    }
+    function renderBroadcasts() {
+      const d = state.bcastList;
+      const u = d.usage;
+      $('bc-usage').hidden = u.pro;
+      $('bc-usage').textContent = u.pro ? '' : 'Free plan: ' + u.used + ' of ' + u.limit + ' group messages used this month. Pro has no limit. "It\'s back" messages are always free.';
+      const box = $('bc-list');
+      box.textContent = '';
+      if (!d.broadcasts.length) {
+        const empty = emptyBox('No messages yet. Tell customers about new stock or a sale, or remind people who owe you.');
+        const go = el('button', 'btn', 'Write your first message');
+        go.type = 'button';
+        go.addEventListener('click', openCompose);
+        empty.appendChild(go);
+        return box.appendChild(empty);
+      }
+      const list = el('div', 'list stagger');
+      d.broadcasts.forEach((b) => {
+        const row = el('button', 'row-btn bc-row');
+        row.type = 'button';
+        const main = el('div', 'row-main');
+        main.appendChild(el('div', 'row-name', b.kind === 'restock' ? "It's back: " + (b.productName || 'a product') : b.audienceLabel));
+        main.appendChild(el('div', 'row-sub', fillBroadcast(b.message, b, null).split('\n')[0].slice(0, 80)));
+        const side = el('div', 'row-side');
+        const done = b.sentCount >= b.total;
+        side.append(el('div', 'price', done ? '✓ Sent' : b.sentCount + '/' + b.total), el('div', 'row-time', when(b.createdAt)));
+        row.append(main, side);
+        row.addEventListener('click', () => openBroadcast(b.id));
+        list.appendChild(row);
+      });
+      box.appendChild(list);
+    }
+    $('bc-new').addEventListener('click', openCompose);
+
+    async function openCompose() {
+      if (!state.compose) state.compose = { audience: 'all', message: BC_TEMPLATES[0][1] };
+      switchView('compose');
+      $('compose-message').value = state.compose.message;
+      if (!state.audData) $('aud-list').innerHTML = '<p class="empty">Loading…</p>';
+      renderComposeText();
+      const { ok, status, data } = await api('/api/tools?view=audiences');
+      if (status === 401) return sessionLost();
+      if (!ok) return showError('compose', data.error || 'Could not load your customers.');
+      state.audData = data;
+      renderCompose();
+    }
+    function audienceCount() {
+      const d = state.audData;
+      if (!d) return 0;
+      const a = d.audiences.concat(d.tags).find((x) => x.key === state.compose.audience);
+      return a ? a.count : 0;
+    }
+    function renderCompose() {
+      const d = state.audData;
+      if (!d) return;
+      const box = $('aud-list');
+      box.textContent = '';
+      d.audiences.forEach((a) => {
+        const b = el('button', 'aud-row');
+        b.type = 'button';
+        b.setAttribute('aria-pressed', String(state.compose.audience === a.key));
+        b.disabled = !a.count;
+        b.append(el('span', 'dot'), el('b', null, a.label), el('span', 'n', String(a.count)));
+        b.addEventListener('click', () => {
+          state.compose.audience = a.key;
+          // Reminding people who owe: start from the reminder.
+          if (a.key === 'owing' && !/\{owed\}/.test($('compose-message').value)) {
+            $('compose-message').value = BC_TEMPLATES[3][1];
+            state.compose.message = BC_TEMPLATES[3][1];
+          }
+          renderCompose();
+        });
+        box.appendChild(b);
+      });
+      const tags = $('aud-tags');
+      tags.textContent = '';
+      if (d.tags.length) tags.appendChild(el('span', 'muted', 'Or a label:'));
+      d.tags.forEach((t) => {
+        const b = el('button', state.compose.audience === t.key ? 'on' : '', t.label + ' · ' + t.count);
+        b.type = 'button';
+        b.addEventListener('click', () => { state.compose.audience = t.key; renderCompose(); });
+        tags.appendChild(b);
+      });
+      const total = d.audiences[0].count;
+      $('aud-hint').textContent = !total && !d.optedOut
+        ? "You don't have customers yet. Everyone who orders is added to Customers."
+        : (d.optedOut ? d.optedOut + (d.optedOut === 1 ? ' customer asked' : ' customers asked') + ' not to get group messages, so they\'re left out. ' : '')
+          + 'Up to ' + d.maxRecipients + ' people per message.';
+      renderComposeText();
+    }
+    function renderComposeText() {
+      const tbox = $('bc-templates');
+      if (!tbox.childNodes.length) {
+        BC_TEMPLATES.forEach(([label, text]) => {
+          const b = el('button', null, label);
+          b.type = 'button';
+          b.addEventListener('click', () => { $('compose-message').value = text; state.compose.message = text; renderComposeText(); });
+          tbox.appendChild(b);
+        });
+        const ph = $('bc-ph');
+        BC_TOKENS.forEach((token) => {
+          const b = el('button', null, token);
+          b.type = 'button';
+          b.addEventListener('mousedown', (e) => e.preventDefault());
+          b.addEventListener('click', () => {
+            const box = $('compose-message');
+            const start = box.selectionStart == null ? box.value.length : box.selectionStart;
+            const end = box.selectionEnd == null ? start : box.selectionEnd;
+            box.value = box.value.slice(0, start) + token + box.value.slice(end);
+            state.compose.message = box.value;
+            box.focus();
+            box.setSelectionRange(start + token.length, start + token.length);
+            renderComposeText();
+          });
+          ph.appendChild(b);
+        });
+      }
+      const sample = { name: 'Tola Ade', owingKobo: 1250000 };
+      $('bc-preview').textContent = fillBroadcast($('compose-message').value || ' ', null, sample);
+      const n = audienceCount();
+      $('bc-start').disabled = !n;
+      $('bc-start').textContent = n ? 'Start sending to ' + n + (n === 1 ? ' customer' : ' customers') : 'Pick who gets it';
+    }
+    $('compose-message').addEventListener('input', () => { state.compose.message = $('compose-message').value; renderComposeText(); });
+    $('bc-start').addEventListener('click', async () => {
+      const message = $('compose-message').value.trim();
+      if (message.length < 2) return showError('compose', 'Write your message first.', 'message');
+      const btn = $('bc-start');
+      busy(btn, true, 'Getting ready…');
+      const { ok, status, data } = await api('/api/tools', { action: 'broadcast', audience: state.compose.audience, message });
+      busy(btn, false);
+      if (status === 401) return sessionLost();
+      if (!ok) { renderComposeText(); return showError('compose', data.error || 'Could not start the message.', data.field === 'message' ? 'message' : null); }
+      state.compose = null;
+      state.bcastList = null;
+      state.bcast = data.broadcast;
+      state.bcastCurrent = null;
+      state.bcastSkips = new Set();
+      renderBroadcast();
+      navMode = 'replace';
+      switchView('broadcast');
+    });
+
+    async function openBroadcast(id, opts = {}) {
+      const { ok, status, data } = await api('/api/tools?view=broadcast&id=' + id);
+      if (status === 401) return sessionLost();
+      if (!ok) {
+        toast(data.error || 'Could not open that message.');
+        if (opts.fallback) { navMode = 'replace'; return openBroadcasts(); }
+        return;
+      }
+      if (!state.bcast || state.bcast.id !== data.broadcast.id) { state.bcastSkips = new Set(); state.bcastCurrent = null; }
+      state.bcast = data.broadcast;
+      renderBroadcast();
+      switchView('broadcast');
+    }
+    // Who's next: the one picked from the list, else the first not sent or skipped.
+    function nextRecipient() {
+      const rs = state.bcast.recipients;
+      const cur = state.bcastCurrent;
+      if (cur !== null && rs[cur] && !rs[cur].sent) return cur;
+      let i = rs.findIndex((r, k) => !r.sent && !state.bcastSkips.has(k));
+      if (i === -1) i = rs.findIndex((r) => !r.sent);
+      return i;
+    }
+    function renderBroadcast() {
+      const b = state.bcast;
+      if (!b) return;
+      $('bs-title').textContent = b.kind === 'restock' ? "It's back: " + (b.productName || 'your product') : b.audienceLabel;
+      $('bs-sub').textContent = b.sentCount + ' of ' + b.total + ' sent';
+      $('bs-bar').style.width = Math.round((b.sentCount / Math.max(1, b.total)) * 100) + '%';
+      const i = nextRecipient();
+      $('bs-next').hidden = i === -1;
+      $('bs-done').hidden = i !== -1;
+      $('bs-done-text').textContent = 'All ' + b.total + (b.total === 1 ? ' person has' : ' people have') + ' your message.';
+      if (i !== -1) {
+        const r = b.recipients[i];
+        $('bs-label').textContent = (state.bcastSkips.has(i) ? 'Skipped earlier · ' : 'Next · ') + (i + 1) + ' of ' + b.total;
+        const av = custAvatar(r.name);
+        av.id = 'bs-avatar';
+        $('bs-avatar').replaceWith(av);
+        $('bs-name').textContent = r.name;
+        $('bs-phone').textContent = formatPhone(r.phone) + (r.choice ? ' · wants ' + r.choice : '');
+        const text = fillBroadcast(b.message, b, r);
+        $('bs-text').textContent = text;
+        $('bs-send').href = 'https://wa.me/' + r.phone + '?text=' + encodeURIComponent(text);
+        $('bs-send').dataset.index = String(i);
+        $('bs-stop').hidden = !r.customerId && !r.alertId;
+        $('bs-stop').textContent = r.alertId ? 'Remove from waiting list' : "Don't message them again";
+      }
+      if (document.activeElement !== $('bs-message')) $('bs-message').value = b.message;
+      $('bs-count').textContent = '· ' + b.total;
+      const box = $('bs-people');
+      box.textContent = '';
+      b.recipients.forEach((r, k) => {
+        const row = el('button', 'people-row' + (r.sent ? ' sent' : '') + (k === i ? ' current' : ''));
+        row.type = 'button';
+        row.appendChild(el('span', 'chk', r.sent ? '✓' : String(k + 1)));
+        const main = el('div', 'row-main');
+        main.appendChild(el('div', 'row-name', r.name));
+        main.appendChild(el('div', 'row-sub', formatPhone(r.phone) + (r.choice ? ' · ' + r.choice : '') + (r.sent ? ' · sent' : state.bcastSkips.has(k) ? ' · skipped' : '')));
+        row.appendChild(main);
+        row.addEventListener('click', async () => {
+          if (r.sent) {
+            // Sent by mistake? Put them back on the list.
+            if (!confirm('Mark ' + r.name + ' as not sent yet?')) return;
+            return markRecipient(k, false);
+          }
+          state.bcastCurrent = k;
+          renderBroadcast();
+          $('bs-next').scrollIntoView({ block: 'center', behavior: 'smooth' });
+        });
+        box.appendChild(row);
+      });
+    }
+    async function markRecipient(index, sent) {
+      const b = state.bcast;
+      const r = b.recipients[index];
+      if (r.sent !== sent) { r.sent = sent; b.sentCount += sent ? 1 : -1; }
+      const { ok, status, data } = await api('/api/tools', { action: 'broadcast-sent', id: b.id, index, sent });
+      if (status === 401) return sessionLost();
+      if (ok && state.bcast && state.bcast.id === data.broadcast.id) {
+        state.bcast = data.broadcast;
+        state.bcastList = null;
+      } else if (!ok) {
+        toast(data.error || 'Could not save that. Check your internet.');
+      }
+      renderBroadcast();
+    }
+    // The WhatsApp link opens the chat; here we tick them off and move on.
+    $('bs-send').addEventListener('click', () => {
+      const index = Number($('bs-send').dataset.index);
+      if (!state.bcast || !state.bcast.recipients[index]) return;
+      state.bcastCurrent = null;
+      state.bcastSkips.delete(index);
+      setTimeout(() => markRecipient(index, true), 250);
+    });
+    $('bs-skip').addEventListener('click', () => {
+      const index = nextRecipient();
+      if (index === -1) return;
+      state.bcastSkips.add(index);
+      state.bcastCurrent = null;
+      renderBroadcast();
+    });
+    $('bs-stop').addEventListener('click', async () => {
+      const index = nextRecipient();
+      const r = index === -1 ? null : state.bcast.recipients[index];
+      if (!r) return;
+      if (r.alertId) {
+        const res = await api('/api/tools', { action: 'waiting-remove', id: r.alertId });
+        if (res.status === 401) return sessionLost();
+        if (!res.ok) return toast(res.data.error || 'Could not remove them.');
+        state.waiting = res.data;
+        toast(r.name + ' is off the waiting list');
+      } else {
+        if (!confirm(r.name + " won't get any more group messages. You can turn this back on from their customer page.")) return;
+        const res = await api('/api/orders', { action: 'customer', id: r.customerId, noMessages: true });
+        if (res.status === 401) return sessionLost();
+        if (!res.ok) return toast(res.data.error || 'Could not save that.');
+        toast(r.name + " won't get group messages");
+      }
+      state.bcastSkips.add(index);
+      state.bcastCurrent = null;
+      renderBroadcast();
+    });
+    $('bs-save').addEventListener('click', async () => {
+      const message = $('bs-message').value.trim();
+      if (message.length < 2) return showError('bs', 'Write your message first.', 'message');
+      const btn = $('bs-save');
+      busy(btn, true, 'Saving…');
+      const { ok, status, data } = await api('/api/tools', { action: 'broadcast-edit', id: state.bcast.id, message });
+      busy(btn, false);
+      if (status === 401) return sessionLost();
+      if (!ok) return showError('bs', data.error || 'Could not save the message.');
+      state.bcast = data.broadcast;
+      $('bs-edit').open = false;
+      renderBroadcast();
+      toast('Message saved', 'good');
+    });
+    $('bs-delete').addEventListener('click', async () => {
+      if (!state.bcast || !confirm('Delete this message? Who you sent it to is forgotten too.')) return;
+      const { ok, status, data } = await api('/api/tools', { action: 'broadcast-delete', id: state.bcast.id });
+      if (status === 401) return sessionLost();
+      if (!ok) return toast(data.error || 'Could not delete it.');
+      state.bcast = null;
+      state.bcastList = data;
+      toast('Message deleted');
+      goUp('broadcasts');
+    });
+
+    // ---------- expenses ----------
+    function monthWords(month) {
+      return new Date(month + '-15T12:00:00').toLocaleDateString('en-NG', { month: 'long', year: 'numeric' });
+    }
+    function shiftMonth(month, by) {
+      const [y, m] = month.split('-').map(Number);
+      const d = new Date(Date.UTC(y, m - 1 + by, 15));
+      return d.toISOString().slice(0, 7);
+    }
+    async function openExpenses(month) {
+      state.expMonth = typeof month === 'string' && /^\d{4}-\d{2}$/.test(month) ? month : (state.expMonth || lagosMonth());
+      switchView('expenses');
+      renderExpenseHead();
+      if (!state.expData || state.expData.month !== state.expMonth) {
+        $('exp-list').innerHTML = '<p class="empty">Loading…</p>';
+        $('exp-total').textContent = '…';
+      }
+      const asked = state.expMonth;
+      const { ok, status, data } = await api('/api/tools?view=expenses&month=' + asked);
+      if (status === 401) return sessionLost();
+      if (asked !== state.expMonth) return;
+      if (!ok) { $('exp-list').textContent = ''; return $('exp-list').appendChild(el('p', 'empty', data.error || 'Could not load your expenses.')); }
+      state.expData = data;
+      if (data.month !== state.expMonth) { state.expMonth = data.month; navMode = 'replace'; syncUrl('expenses'); }
+      renderExpenses();
+    }
+    function renderExpenseHead() {
+      $('exp-month').textContent = state.expMonth === lagosMonth() ? 'This month' : monthWords(state.expMonth);
+      $('exp-next').disabled = state.expMonth >= lagosMonth();
+      $('exp-prev').disabled = state.expMonth <= '2020-01';
+    }
+    function dayWords(day) {
+      if (day === lagosToday()) return 'Today';
+      const y = new Date(Date.now() + 3600000 - 86400000).toISOString().slice(0, 10);
+      if (day === y) return 'Yesterday';
+      return new Date(day + 'T12:00:00').toLocaleDateString('en-NG', { weekday: 'short', day: 'numeric', month: 'short' });
+    }
+    function renderExpenses() {
+      const d = state.expData;
+      renderExpenseHead();
+      OP.countUp($('exp-total'), d.totalKobo, (v) => formatNaira(Math.round(v)), 700);
+      $('exp-count').textContent = d.expenses.length ? d.expenses.length + (d.expenses.length === 1 ? ' expense' : ' expenses') : 'Nothing yet';
+      $('exp-compare').textContent = d.month === d.thisMonth && d.lastMonthKobo ? 'Last month: ' + formatNaira(d.lastMonthKobo) : '';
+      const cats = $('exp-cats');
+      cats.textContent = '';
+      const max = Math.max(1, ...d.byCategory.map((c) => c.totalKobo));
+      d.byCategory.forEach((c) => {
+        const row = el('div', 'cat-bar');
+        row.append(el('span', null, c.category), el('span', null, formatNaira(c.totalKobo)));
+        const bar = el('i');
+        bar.style.setProperty('--w', Math.max(3, Math.round((c.totalKobo / max) * 100)) + '%');
+        row.appendChild(bar);
+        cats.appendChild(row);
+      });
+      const box = $('exp-list');
+      box.textContent = '';
+      if (!d.expenses.length) {
+        const empty = emptyBox(d.month === d.thisMonth
+          ? 'Nothing spent this month yet. Add what you spend on stock, delivery, packaging or data to see your real profit.'
+          : 'No expenses in ' + monthWords(d.month) + '.');
+        const go = el('button', 'btn', 'Add an expense');
+        go.type = 'button';
+        go.addEventListener('click', () => openExpenseSheet(null));
+        empty.appendChild(go);
+        return box.appendChild(empty);
+      }
+      let day = '';
+      let list = null;
+      d.expenses.forEach((e) => {
+        if (e.date !== day) {
+          day = e.date;
+          box.appendChild(el('p', 'exp-day', dayWords(day)));
+          list = el('div', 'list');
+          box.appendChild(list);
+        }
+        const row = el('button', 'exp-row');
+        row.type = 'button';
+        row.appendChild(el('span', 'cat-ico', e.category.slice(0, 1)));
+        const main = el('div', 'row-main');
+        main.appendChild(el('div', 'row-name', e.note || e.category));
+        if (e.note) main.appendChild(el('div', 'row-sub', e.category));
+        row.append(main, el('span', 'price', formatNaira(e.amountKobo)));
+        row.addEventListener('click', () => openExpenseSheet(e));
+        list.appendChild(row);
+      });
+    }
+    $('exp-prev').addEventListener('click', () => { navMode = 'replace'; openExpenses(shiftMonth(state.expMonth, -1)); });
+    $('exp-next').addEventListener('click', () => { if (state.expMonth < lagosMonth()) { navMode = 'replace'; openExpenses(shiftMonth(state.expMonth, 1)); } });
+    $('exp-add').addEventListener('click', () => openExpenseSheet(null));
+    $('exp-profit').addEventListener('click', () => loadReport(state.expMonth === lagosMonth() ? 'month' : state.expMonth === shiftMonth(lagosMonth(), -1) ? 'last' : '30d'));
+    $('exp-download').addEventListener('click', (e) => downloadFile(e.currentTarget, '/api/tools?view=expenses-export', 'orderpadi-expenses.csv'));
+
+    function openExpenseSheet(e) {
+      closeSheet();
+      const cats = (state.expData && state.expData.categories) || ['Stock', 'Delivery', 'Packaging', 'Data and airtime', 'Adverts', 'Rent and bills', 'Staff', 'Other'];
+      let picked = e ? e.category : '';
+      const back = el('div', 'sheet-backdrop');
+      const sheet = el('div', 'sheet');
+      sheet.id = 'expense-sheet';
+      sheet.setAttribute('role', 'dialog');
+      sheet.setAttribute('aria-label', e ? 'Change expense' : 'Add an expense');
+      sheet.appendChild(el('div', 'sheet-handle'));
+      const h = el('h2', null, e ? 'Change expense' : 'Add an expense');
+      h.style.margin = '6px 0 0';
+      sheet.appendChild(h);
+      const label = (text, forId) => { const l = el('label', null, text); if (forId) l.htmlFor = forId; return l; };
+      sheet.appendChild(label('How much', 'exp-sheet-amount'));
+      const pre = el('div', 'prefix');
+      const amount = document.createElement('input');
+      amount.id = 'exp-sheet-amount';
+      amount.type = 'text';
+      amount.inputMode = 'decimal';
+      amount.autocomplete = 'off';
+      amount.placeholder = 'e.g. 3500';
+      amount.value = e ? koboToInput(e.amountKobo) : '';
+      pre.append(el('span', null, '₦'), amount);
+      sheet.appendChild(pre);
+      sheet.appendChild(label('What for'));
+      const pick = el('div', 'cat-pick');
+      pick.id = 'exp-sheet-category';
+      pick.tabIndex = -1;
+      cats.forEach((c) => {
+        const b = el('button', null, c);
+        b.type = 'button';
+        b.setAttribute('aria-pressed', String(c === picked));
+        b.addEventListener('click', () => {
+          picked = c;
+          pick.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x.textContent === c)));
+          $('exp-sheet-error').classList.remove('show');
+        });
+        pick.appendChild(b);
+      });
+      sheet.appendChild(pick);
+      const noteLabel = label('Note ', 'exp-sheet-note');
+      noteLabel.appendChild(el('span', 'muted', '(optional)'));
+      sheet.appendChild(noteLabel);
+      const note = document.createElement('input');
+      note.id = 'exp-sheet-note';
+      note.type = 'text';
+      note.maxLength = 120;
+      note.autocomplete = 'off';
+      note.placeholder = 'e.g. Rider to Lekki';
+      note.value = e ? e.note : '';
+      sheet.appendChild(note);
+      sheet.appendChild(label('Day', 'exp-sheet-date'));
+      const date = document.createElement('input');
+      date.id = 'exp-sheet-date';
+      date.type = 'date';
+      date.max = lagosToday();
+      date.value = e ? e.date : (state.expMonth && state.expMonth !== lagosMonth() ? state.expMonth + '-01' : lagosToday());
+      sheet.appendChild(date);
+      sheet.appendChild(el('p', 'error', '')).id = 'exp-sheet-error';
+      [amount, note, date].forEach((input) => input.addEventListener('input', () => {
+        $('exp-sheet-error').classList.remove('show');
+        input.classList.remove('invalid');
+      }));
+      const save = el('button', 'btn', e ? 'Save changes' : 'Add expense');
+      save.type = 'button';
+      save.id = 'exp-sheet-save';
+      save.style.marginTop = '16px';
+      save.addEventListener('click', async () => {
+        const v = amount.value.trim();
+        if (!looksLikeNaira(v) || Number(v.replace(/[₦,\s]/g, '')) <= 0) return showError('exp-sheet', 'Enter how much you spent, like 3500.', 'amount');
+        if (!picked) return showError('exp-sheet', 'Pick what the money was for.', 'category');
+        busy(save, true, 'Saving…');
+        const { ok, status, data } = await api('/api/tools', { action: 'expense', id: e ? e.id : undefined, amount: v, category: picked, note: note.value, date: date.value });
+        busy(save, false);
+        if (status === 401) return sessionLost();
+        if (!ok) return showError('exp-sheet', data.error || 'Could not save the expense.', data.field);
+        closeSheet();
+        state.expData = data;
+        if (data.month !== state.expMonth) { state.expMonth = data.month; navMode = 'replace'; syncUrl('expenses'); }
+        state.toolsSummary = null;
+        renderExpenses();
+        toast(e ? 'Expense saved' : 'Expense added', 'good');
+      });
+      sheet.appendChild(save);
+      if (e) {
+        const del = el('button', 'btn danger', 'Delete expense');
+        del.type = 'button';
+        del.addEventListener('click', async () => {
+          if (!confirm('Delete this expense?')) return;
+          const { ok, status, data } = await api('/api/tools', { action: 'expense-delete', id: e.id });
+          if (status === 401) return sessionLost();
+          if (!ok) return showError('exp-sheet', data.error || 'Could not delete it.');
+          closeSheet();
+          state.expData = data;
+          renderExpenses();
+          toast('Expense deleted');
+        });
+        sheet.appendChild(del);
+      }
+      const close = el('button', 'link', 'Close');
+      close.type = 'button';
+      close.style.cssText = 'display:block;margin:12px auto 0';
+      close.addEventListener('click', closeSheet);
+      sheet.appendChild(close);
+      back.addEventListener('click', closeSheet);
+      document.body.append(back, sheet);
+      state.sheet = [back, sheet];
+      if (!e) setTimeout(() => amount.focus(), 350);
+    }
 
     // ---------- start ----------
     (async function start() {
@@ -5346,8 +6698,10 @@
       const reference = params0.get('reference') || params0.get('trxref');
       const route = currentRoute();
       const savedY = history.state && history.state.op ? history.state.y : 0;
+      registerSw();
       const { ok, status, data } = await api('/api/me');
       if (ok && data.vendor) {
+        state.push = data.push || null;
         const logged = ['login', 'signup', 'forgot', 'verify', 'reset'].includes(route.split('/')[0]);
         await enterApp(data.vendor, data.setup, reference || logged ? '' : route);
         // Coming back to a list after a full reload: same scroll position.
