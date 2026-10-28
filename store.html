@@ -25,6 +25,14 @@
     .store-top > :not(.blob):not(.sparkle) { position: relative; z-index: 1; }
     .store-head { display: flex; align-items: center; gap: 14px; }
     .mono { flex: none; width: 62px; height: 62px; border-radius: 19px; background: var(--sun); color: #1B1530; border: var(--bw) solid var(--ink); box-shadow: var(--shadow); display: grid; place-items: center; font-family: var(--display); font-size: 24px; font-weight: 700; }
+    button.mono { padding: 0; font: inherit; font-family: var(--display); font-size: 24px; font-weight: 700; cursor: zoom-in; }
+    button.mono:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+    button.mono:disabled { cursor: default; }
+    /* the seller's profile picture, full size */
+    .pic-view { position: fixed; inset: 0; z-index: 55; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px; background: rgba(21, 16, 42, .86); animation: op-fade .2s both; cursor: zoom-out; }
+    .pic-view img { width: min(82vw, 440px); height: auto; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 42px; border: var(--bw) solid var(--ink); box-shadow: 0 6px 0 var(--ink); background: #fff; animation: op-pop .4s cubic-bezier(.2, .9, .3, 1.4) both; }
+    .pic-view p { margin: 0; color: #fff; font-family: var(--display); font-size: 24px; font-weight: 700; text-align: center; overflow-wrap: anywhere; text-shadow: 0 2px 0 rgba(0, 0, 0, .35); }
+    .pic-view .viewer-close { position: absolute; top: calc(16px + env(safe-area-inset-top)); right: 16px; }
     .store-top h1 { margin: 0; font-size: 30px; overflow-wrap: anywhere; }
     .store-top p { margin: 3px 0 0; font-size: 15px; font-weight: 700; opacity: .9; }
     .chat { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; padding: 9px 16px; border: var(--bw) solid var(--ink); border-radius: 999px; background: #fff; color: #1B1530; text-decoration: none; font-size: 15px; font-weight: 800; box-shadow: var(--shadow-sm); }
@@ -187,7 +195,7 @@
         <span class="blob sky" style="width:70px;height:70px;right:30px;bottom:-34px;transform:rotate(18deg)"></span>
         <svg class="sparkle" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z" fill="#fff" stroke="#1B1530" stroke-width="1.6" stroke-linejoin="round"/></svg>
         <div class="store-head">
-          <div class="mono" id="store-initials"></div>
+          <button class="mono" type="button" id="store-initials" disabled></button>
           <div>
             <h1 id="store-name"></h1>
             <p id="store-delivery"></p>
@@ -291,6 +299,12 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <div class="pic-view" id="pic-view" hidden role="dialog" aria-modal="true" aria-labelledby="pic-view-name">
+    <button class="viewer-close" type="button" id="pic-view-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <img id="pic-view-img" alt="">
+    <p id="pic-view-name"></p>
+  </div>
+
   <div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-labelledby="viewer-name">
     <div class="viewer-card">
       <button class="viewer-close" type="button" id="viewer-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -320,6 +334,20 @@
     const TINTS = ['t0', 't1', 't2', 't3', 't4'];
     const tintFor = (text) => TINTS[[...String(text || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % TINTS.length];
     const initials = (name) => (String(name || '').replace(/['’]/g, '').match(/[A-Za-z0-9]+/g) || ['?']).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+    // The seller's profile picture ("/p/<id>") in a tile, or their initials when there isn't one.
+    const isPicture = (url) => typeof url === 'string' && /^\/p\/[0-9a-f]{16}$/.test(url);
+    function paintPicture(node, url, name) {
+      node.textContent = '';
+      node.classList.toggle('has-pic', isPicture(url));
+      if (!isPicture(url)) { node.textContent = initials(name); return false; }
+      const img = document.createElement('img');
+      img.alt = '';
+      img.decoding = 'async';
+      img.onerror = () => { node.classList.remove('has-pic'); node.textContent = initials(name); };
+      img.src = url;
+      node.appendChild(img);
+      return true;
+    }
     const PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 
     // ---------- helpers ----------
@@ -365,6 +393,12 @@
     function applyRoute() {
       const route = storeRoute();
       const viewing = !$('viewer').hidden;
+      if (route === 'picture') {
+        if (!$('view-shop').classList.contains('active')) { renderProducts(); switchView('shop'); }
+        if (viewing) closeViewer(true);
+        return openPicture(true);
+      }
+      if (!$('pic-view').hidden) closePicture(true);
       if (route.startsWith('product-')) {
         if (!$('view-shop').classList.contains('active')) { renderProducts(); switchView('shop'); }
         return openViewer(Number(route.slice(8)), true);
@@ -612,7 +646,10 @@
       document.title = s.businessName + ' · Order online';
       applyTheme(s.theme);
       $('store-name').textContent = s.businessName;
-      $('store-initials').textContent = initials(s.businessName);
+      const hasPic = paintPicture($('store-initials'), s.picture, s.businessName);
+      $('store-initials').disabled = !hasPic;
+      if (hasPic) $('store-initials').setAttribute('aria-label', 'See the profile picture of ' + s.businessName);
+      else $('store-initials').removeAttribute('aria-label');
       const delivery = [];
       const zs = s.deliveryZones || [];
       if (zs.length) {
@@ -954,6 +991,27 @@
     $('viewer-close').addEventListener('click', () => closeViewer());
     $('viewer').addEventListener('click', (e) => { if (e.target === $('viewer')) closeViewer(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('viewer').hidden) closeViewer(); });
+
+    // ---------- the seller's profile picture, full size (#picture) ----------
+    function openPicture(fromRoute) {
+      const s = state.store;
+      if (!s || !isPicture(s.picture)) { if (fromRoute) setRoute('', false); return; }
+      $('pic-view-img').src = s.picture;
+      $('pic-view-img').alt = 'Profile picture of ' + s.businessName;
+      $('pic-view-name').textContent = s.businessName;
+      $('pic-view').hidden = false;
+      $('pic-view-close').focus();
+      if (!fromRoute) setRoute('picture', true);
+    }
+    function closePicture(fromRoute) {
+      if ($('pic-view').hidden) return;
+      $('pic-view').hidden = true;
+      if (!fromRoute) leaveRoute();
+      $('store-initials').focus({ preventScroll: true });
+    }
+    $('store-initials').addEventListener('click', () => openPicture(false));
+    $('pic-view').addEventListener('click', () => closePicture(false));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('pic-view').hidden) closePicture(false); });
     $('viewer-slides').addEventListener('scroll', () => {
       const s = $('viewer-slides');
       const i = Math.round(s.scrollLeft / Math.max(1, s.clientWidth));

@@ -91,6 +91,8 @@
           migrations.step7 ? '' : 'Run db/migrations/007_referrals_resell.sql in the Neon SQL Editor.');
         addRow('Alerts, messages and expenses update applied', d.db === true && !!migrations.step8,
           migrations.step8 ? '' : 'Run db/migrations/008_alerts_messages_expenses.sql in the Neon SQL Editor.');
+        addRow('Profile pictures update applied', d.db === true && !!migrations.step9,
+          migrations.step9 ? '' : 'Run db/migrations/009_profile_picture.sql in the Neon SQL Editor.');
         addRow('JWT_SECRET set', !!env.JWT_SECRET, env.JWT_SECRET ? '' : 'Add a long random string, then redeploy.');
         addRow('RESEND_API_KEY set', !!env.RESEND_API_KEY, env.RESEND_API_KEY ? '' : 'Add your Resend key, then redeploy.');
         addRow('Paystack keys set (for Pro)', !!(env.PAYSTACK_SECRET_KEY && env.PAYSTACK_PLAN_CODE),

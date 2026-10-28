@@ -248,6 +248,12 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .toast.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
 .toast.good { background: var(--brand); color: #1B1530; }
 
+/* ---------- profile pictures ----------
+   A seller's picture inside any initials tile (.mono, .avatar, .me-pic):
+   the tile keeps its size, border and corners, and the picture fills it. */
+.has-pic { overflow: hidden; padding: 0 !important; background: #fff !important; }
+.has-pic > img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 0; }
+
 /* ---------- bottom sheet ---------- */
 .sheet-backdrop { position: fixed; inset: 0; background: var(--overlay); z-index: 40; animation: op-fade .25s both; }
 .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-height: 92vh; overflow-y: auto; background: var(--card); border-top: var(--bw) solid var(--ink); border-radius: 30px 30px 0 0; padding: 12px 20px calc(24px + env(safe-area-inset-bottom)); animation: op-sheet .5s cubic-bezier(.2, .9, .3, 1.15) both; }

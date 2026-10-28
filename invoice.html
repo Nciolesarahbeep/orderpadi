@@ -180,6 +180,19 @@
     const TINTS = ['t0', 't1', 't2', 't3', 't4'];
     const tintFor = (text) => TINTS[[...String(text || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % TINTS.length];
     const initials = (name) => (String(name || '').replace(/['’]/g, '').match(/[A-Za-z0-9]+/g) || ['?']).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+    // The seller's profile picture ("/p/<id>") in a tile, or their initials when there isn't one.
+    const isPicture = (url) => typeof url === 'string' && /^\/p\/[0-9a-f]{16}$/.test(url);
+    function paintPicture(node, url, name) {
+      node.textContent = '';
+      node.classList.toggle('has-pic', isPicture(url));
+      if (!isPicture(url)) { node.textContent = initials(name); return; }
+      const img = document.createElement('img');
+      img.alt = '';
+      img.decoding = 'async';
+      img.onerror = () => { node.classList.remove('has-pic'); node.textContent = initials(name); };
+      img.src = url;
+      node.appendChild(img);
+    }
 
     function formatNaira(kobo) {
       const decimals = kobo % 100 === 0 ? 0 : 2;
@@ -227,7 +240,7 @@
       const theme = THEME_HEX[store.theme] ? store.theme : 'green';
       document.documentElement.setAttribute('data-store', theme);
       document.querySelector('meta[name="theme-color"]').setAttribute('content', THEME_HEX[theme]);
-      $('inv-mono').textContent = initials(store.businessName);
+      paintPicture($('inv-mono'), store.picture, store.businessName);
 
       $('inv-store').textContent = store.businessName;
       $('inv-doc').textContent = docName + ' #' + inv.number;

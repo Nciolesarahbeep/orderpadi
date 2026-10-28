@@ -29,7 +29,7 @@ CREATE TABLE vendors (
   business_name               TEXT NOT NULL,
   slug                        TEXT NOT NULL UNIQUE CHECK (slug ~ '^[a-z0-9-]{3,40}$'),  -- store link: /s/<slug>
   whatsapp_phone              TEXT,          -- 234XXXXXXXXXX (no +), used for wa.me links
-  logo_url                    TEXT,          -- Pro only
+  logo_url                    TEXT,          -- profile picture: "/p/<profile_pictures.public_id>", or NULL
   bank_name                   TEXT,          -- shown on invoices so buyers can transfer
   bank_account_name           TEXT,
   bank_account_number         TEXT,
@@ -165,6 +165,17 @@ CREATE TABLE product_photos (
 );
 CREATE INDEX product_photos_product ON product_photos (product_id, position, id);
 CREATE INDEX product_photos_vendor ON product_photos (vendor_id);
+
+-- The seller's profile picture, cropped to a square on their phone (640 x 640).
+-- Also served at /p/<public_id>; vendors.logo_url holds that address.
+CREATE TABLE profile_pictures (
+  vendor_id   BIGINT PRIMARY KEY REFERENCES vendors(id) ON DELETE CASCADE,
+  public_id   TEXT NOT NULL UNIQUE DEFAULT encode(gen_random_bytes(8), 'hex'),
+  mime        TEXT NOT NULL CHECK (mime IN ('image/jpeg', 'image/webp')),
+  size_bytes  INTEGER NOT NULL CHECK (size_bytes BETWEEN 1 AND 400000),
+  data        BYTEA NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 
 
 -- ---------------------------------------------------------------------

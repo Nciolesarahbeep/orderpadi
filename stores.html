@@ -94,6 +94,20 @@
     const TINTS = ['t0', 't1', 't2', 't3', 't4'];
     const tintFor = (text) => TINTS[[...String(text || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % TINTS.length];
     const initials = (name) => (String(name || '').replace(/['’]/g, '').match(/[A-Za-z0-9]+/g) || ['?']).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+    // The seller's profile picture ("/p/<id>") in a tile, or their initials when there isn't one.
+    const isPicture = (url) => typeof url === 'string' && /^\/p\/[0-9a-f]{16}$/.test(url);
+    function paintPicture(node, url, name) {
+      node.textContent = '';
+      node.classList.toggle('has-pic', isPicture(url));
+      if (!isPicture(url)) { node.textContent = initials(name); return; }
+      const img = document.createElement('img');
+      img.alt = '';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.onerror = () => { node.classList.remove('has-pic'); node.textContent = initials(name); };
+      img.src = url;
+      node.appendChild(img);
+    }
     const params = new URLSearchParams(location.search);
     const state = { q: params.get('q') || '', category: params.get('category') || '', state: params.get('state') || '', page: 0, stores: [], ticket: 0, ready: false };
 
@@ -171,8 +185,9 @@
       const a = el('a', 'store');
       a.href = '/s/' + encodeURIComponent(s.slug);
       const head = el('div', 's-head');
-      const mono = el('span', 'mono', initials(s.name));
+      const mono = el('span', 'mono');
       mono.dataset.store = s.theme || 'green';
+      paintPicture(mono, s.picture, s.name);
       const info = el('div');
       info.style.minWidth = '0';
       info.appendChild(el('span', 's-name', s.name));

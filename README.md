@@ -10,6 +10,7 @@ Orders, invoices and payment tracking for WhatsApp and Instagram sellers in Nige
 - **Earn more:** invite other sellers with your link (both get a free Pro month after the new seller's first store order), and resell other sellers' products at your own price: the supplier sends the item to your customer and you keep the difference.
 - **App and alerts:** sellers add OrderPadi to their home screen and get a phone alert for every new order, "I've paid", review, resale order and back-in-stock request, even with the app closed (web push, `lib/push.js`, `sw.js`). On iPhone this works once it's on the home screen (iOS 16.4 or later).
 - **Message customers:** one message to a group (everyone, recent buyers, people who haven't ordered in 2 months, people who owe, or a label). WhatsApp opens one chat at a time with the message filled in; the app remembers who has had it. Customers who ask to stop are left out.
+- **Profile picture:** sellers add their logo or a photo of themselves under More › Store profile (free on every plan): choose one from the gallery, take one with the camera, or drag or paste one on a computer. A built-in editor crops it to a square with drag, pinch, scroll or slider zoom, double-tap to fit, turn, mirror, five looks, brightness, contrast and colour, and a background colour for see-through logos, with a live preview. It shows in the app's top bar, on the store (tap it to see it big), invoices, the directory, status pictures and link previews. Admins can take down one that breaks the rules.
 - **Back in stock:** on a sold-out product (or a sold-out choice), customers leave their name and WhatsApp number. The seller sees who's waiting under Stock and messages them all when it's back.
 - **Money:** a cost price on each product, an expenses log, and a profit report (sales − what the items cost − expenses) for the last 30 days, this month or last month.
 - **Sharing:** every product has its own link (`/s/<slug>?p=<id>`) that previews with its photo, name and price in WhatsApp, and the status picture also makes square posts for Instagram, with a special layout for one product.
@@ -28,7 +29,7 @@ Orders, invoices and payment tracking for WhatsApp and Instagram sellers in Nige
 | `/i/<id>` | An invoice or receipt for one order |
 | `/admin` | Admin panel (only for admins) |
 | `/terms`, `/privacy` | Terms of service and privacy policy |
-| `/p/<id>` | A product photo (cached for a year; a new photo gets a new address) |
+| `/p/<id>` | A product photo or a seller's profile picture (cached for a year; a new picture gets a new address) |
 | `/setup` | Setup check. Delete `setup.html` after launch |
 | `/sw.js`, `/offline.html` | The service worker (phone alerts, offline page) and the page it shows with no internet |
 
@@ -74,6 +75,7 @@ Redeploy after changing any of them (Deploys → Trigger deploy).
 - `006_reviews_promos_directory.sql`: reviews and ratings, promo codes, and the store profile for the directory.
 - `007_referrals_resell.sql`: invite links and rewards, and reselling (products offered for resale, resold copies and supply orders).
 - `008_alerts_messages_expenses.sql`: phone alerts, messages to many customers, back-in-stock requests, cost prices and expenses.
+- `009_profile_picture.sql`: sellers' profile pictures.
 
 Phone alerts: everything that lands in a seller's bell is also sent to their phones by `flushPush()` in `lib/push.js`, right after the statement that added it. Each message is encrypted for the phone (RFC 8291) and signed with the server's key (VAPID) using Node's crypto, so there are still no npm packages. Alerts only go to phones whose login is still live, so logging out stops them, and phones the push service says are gone are removed.
 
@@ -83,7 +85,7 @@ Reselling: a resold copy takes its stock, photos and availability from the suppl
 
 Stock is taken inside the same SQL statement that saves an order. The database refuses any count below zero, so two customers can't both buy the last one: the second order is turned down and nothing of it is saved.
 
-Product photos are shrunk on the seller's phone (about 1000px, under 240 KB) and stored in the `product_photos` table. The admin panel shows how much space they use; Neon's free plan has 512 MB.
+Product photos are shrunk on the seller's phone (about 1000px, under 240 KB) and stored in the `product_photos` table. Profile pictures are cropped on the phone to a 640 x 640 JPEG and stored in `profile_pictures` (`lib/profilePicture.js`); `vendors.logo_url` holds the picture's `/p/<id>` address. Until `009_profile_picture.sql` has been run, everything else works and saving a picture says the database update is needed. The admin panel shows how much space they use; Neon's free plan has 512 MB.
 
 ## How requests are served
 

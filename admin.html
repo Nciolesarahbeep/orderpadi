@@ -75,6 +75,10 @@
     .badge.warn { background: var(--sun); color: #1B1530; }
     .badge:first-child { margin-left: 0; }
     .kv { font-size: 15px; }
+    .pic-row { display: flex; align-items: center; gap: 14px; margin-top: 6px; }
+    .pic-row img, .pic-row .pic-none { flex: none; width: 88px; height: 88px; border-radius: 26px; border: var(--bw) solid var(--ink); object-fit: cover; background: var(--card-2); }
+    .pic-row .pic-none { display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: 28px; color: var(--muted); }
+    .pic-row .btn { margin-top: 0; }
     .kv:first-of-type { border-top: 0; }
     .kv span:last-child { text-align: right; overflow-wrap: anywhere; font-weight: 700; }
     .kv span:first-child { color: var(--muted); font-weight: 600; }
@@ -182,6 +186,17 @@
       <div class="card">
         <div id="s-info"></div>
         <a class="btn secondary" id="s-store" target="_blank" rel="noopener">Open their store</a>
+      </div>
+      <div class="card">
+        <p class="card-label">Profile picture</p>
+        <div class="pic-row">
+          <span class="pic-none" id="s-pic-none">?</span>
+          <img id="s-pic" alt="Their profile picture" hidden>
+          <div>
+            <p class="sub" id="s-pic-text" style="font-size:14px;margin:0"></p>
+            <button class="btn small danger" type="button" id="s-pic-remove" style="margin-top:10px" hidden>Remove picture</button>
+          </div>
+        </div>
       </div>
       <div class="card">
         <p class="card-label">Activity</p>
@@ -366,7 +381,7 @@
       const rows = [
         ['Database connected', h.db, true],
         ['All tables in place', h.db && (h.missing || []).length === 0, true],
-        ['Database updates applied', h.db && h.migrations && h.migrations.step2 && h.migrations.step3 && h.migrations.step4 && h.migrations.step5 && h.migrations.step6 && h.migrations.step7 && h.migrations.step8, true],
+        ['Database updates applied', h.db && h.migrations && h.migrations.step2 && h.migrations.step3 && h.migrations.step4 && h.migrations.step5 && h.migrations.step6 && h.migrations.step7 && h.migrations.step8 && h.migrations.step9, true],
         ['Login secret (JWT_SECRET)', env.JWT_SECRET, true],
         ['Email sending (RESEND_API_KEY)', env.RESEND_API_KEY, true],
         ['Own email domain (EMAIL_FROM)', env.EMAIL_FROM, false],
@@ -479,6 +494,7 @@
       'admin.sign-out': () => 'Logged out everywhere by an admin',
       'admin.hide-review': () => 'A review was hidden by an admin',
       'admin.show-review': () => 'A hidden review was shown again by an admin',
+      'admin.remove-picture': () => 'Profile picture removed by an admin',
       'referral.reward': () => 'Free Pro month from a referral'
     };
     const eventName = (e) => (EVENT_NAMES[e.event] ? EVENT_NAMES[e.event](e) : e.event);
@@ -506,6 +522,17 @@
       ].forEach(([k, v]) => { const r = el('div', 'kv'); r.append(el('span', null, k), el('span', null, v)); info.appendChild(r); });
       $('s-store').href = '/s/' + s.slug;
       $('s-store').hidden = s.suspended || !s.verified;
+
+      // Profile picture: shown on their store, invoices and the directory.
+      const pic = s.picture && /^\/p\/[0-9a-f]{16}$/.test(s.picture) ? s.picture : null;
+      $('s-pic').hidden = !pic;
+      if (pic) $('s-pic').src = pic; else $('s-pic').removeAttribute('src');
+      $('s-pic-none').hidden = !!pic;
+      $('s-pic-none').textContent = (String(s.businessName || '?').match(/[A-Za-z0-9]+/g) || ['?']).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+      $('s-pic-text').textContent = pic
+        ? 'Customers see this on their store, invoices and in the directory. Remove it if it is offensive or pretends to be another business. They get told why.'
+        : 'No picture. Their store shows their initials.';
+      $('s-pic-remove').hidden = !pic;
 
       const stats = $('s-stats');
       stats.textContent = '';
@@ -581,6 +608,10 @@
     $('s-end-pro').addEventListener('click', (e) => {
       if (!confirm('End Pro for ' + state.seller.businessName + ' now? Their Paystack subscription is cancelled too, so they won\'t be charged again.')) return;
       act({ action: 'end-pro' }, e.currentTarget, 'Pro ended');
+    });
+    $('s-pic-remove').addEventListener('click', (e) => {
+      if (!confirm('Remove ' + state.seller.businessName + "'s profile picture? Their store goes back to their initials, and they get a message saying it broke the rules.")) return;
+      act({ action: 'remove-picture' }, e.currentTarget, 'Profile picture removed');
     });
     $('s-signout').addEventListener('click', (e) => {
       if (!confirm('Log ' + state.seller.businessName + ' out on every device?')) return;

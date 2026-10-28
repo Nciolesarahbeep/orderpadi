@@ -14,6 +14,9 @@
 //   POST  /api/me { action: "push-on", subscription }  -> { push }   this phone gets alerts
 //   POST  /api/me { action: "push-off", endpoint }     -> { push }
 //   POST  /api/me { action: "push-test", endpoint }    -> { sent: true }   409 { resubscribe } if it must turn on again
+// Profile picture (lib/profilePicture.js), cropped to a square on the phone first:
+//   POST  /api/me { action: "picture-set", image: "data:image/jpeg;base64,..." } -> { vendor, setup }
+//   POST  /api/me { action: "picture-remove" }                                   -> { vendor, setup }
 const { sql } = require('../lib/db');
 const { HttpError, getSessionVendor, vendorForClient, sessionJti } = require('../lib/auth');
 const { cleanSlug, slugProblem, cleanText, nairaToKobo, normalizeNgPhone } = require('../lib/format');
@@ -21,6 +24,7 @@ const { STORE_THEMES } = require('../lib/photos');
 const { readZones, readQuickReplies, readAwayMessage } = require('../lib/storeSettings');
 const { readProfile } = require('../lib/directory');
 const { saveSubscription, removeSubscription, sendTest, pushInfo } = require('../lib/push');
+const { setPicture, removePicture } = require('../lib/profilePicture');
 
 async function setupStatus(vendor) {
   const [row] = await sql`SELECT count(*)::int AS n FROM products WHERE vendor_id = ${vendor.id} AND is_active = TRUE`;
@@ -196,6 +200,12 @@ module.exports = async function handler(req, res) {
         return res.status(200).json({ push: await pushInfo(vendor.id) });
       }
       if (body.action === 'push-test') return res.status(200).json(await sendTest(vendor.id, body.endpoint));
+      if (body.action === 'picture-set' || body.action === 'picture-remove') {
+        const updated = body.action === 'picture-set'
+          ? await setPicture(vendor, body.image)
+          : await removePicture(vendor.id);
+        return res.status(200).json({ vendor: vendorForClient(updated || vendor), setup: await setupStatus(updated || vendor) });
+      }
       return res.status(400).json({ error: 'Unknown action.' });
     }
     const updated = await updateSettings(vendor, body);

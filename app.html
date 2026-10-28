@@ -549,6 +549,72 @@
     .cost-hint.bad { color: var(--bad); font-weight: 800; }
     .share-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
     .share-row .btn { padding-left: 4px; padding-right: 4px; font-size: 14px; min-height: 48px; }
+
+    /* ---------- profile picture ---------- */
+    /* top bar: your picture, opens Store profile */
+    .topbar .logo { margin-right: auto; }
+    .me-pic { display: none; flex: none; width: 46px; height: 46px; border: var(--bw) solid var(--ink); border-radius: 15px; background: var(--sun); color: #1B1530; box-shadow: var(--shadow-sm); font: inherit; font-family: var(--display); font-weight: 700; font-size: 17px; cursor: pointer; place-items: center; padding: 0; }
+    .me-pic:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+    body.in-app .me-pic { display: grid; }
+    /* the card on Store profile */
+    .pic-card.drag { outline: 3px dashed var(--grape); outline-offset: 4px; background: var(--lilac-soft); }
+    .pic-main { display: flex; align-items: center; gap: 16px; }
+    .pic-big { position: relative; flex: none; width: 96px; height: 96px; border-radius: 30px; border: var(--bw) solid var(--ink); background: var(--theme); color: var(--theme-ink); box-shadow: var(--shadow); display: grid; place-items: center; font: inherit; font-family: var(--display); font-weight: 700; font-size: 34px; cursor: pointer; padding: 0; overflow: visible; }
+    .pic-big:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+    .pic-big .pic-face { position: absolute; inset: 0; border-radius: 27px; overflow: hidden; display: grid; place-items: center; }
+    .pic-big .pic-face.has-pic { background: #fff; }
+    .pic-big .pic-badge { position: absolute; right: -8px; bottom: -8px; width: 34px; height: 34px; border-radius: 12px; border: var(--bw) solid var(--ink); background: var(--sun); color: #1B1530; display: grid; place-items: center; box-shadow: 0 2px 0 var(--ink); }
+    .pic-big .pic-badge svg { width: 18px; height: 18px; }
+    .pic-big.busy .pic-face::before { content: ''; position: absolute; inset: 0; background: rgba(27, 21, 48, .45); }
+    .pic-big.busy .pic-face::after { content: ''; position: absolute; left: calc(50% - 17px); top: calc(50% - 17px); width: 34px; height: 34px; background: center / 34px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3a9 9 0 1 0 9 9' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"); animation: op-spin .8s linear infinite; }
+    @keyframes op-spin { to { transform: rotate(360deg); } }
+    .pic-main b { display: block; font-size: 17px; font-weight: 800; }
+    .pic-main small { display: block; color: var(--muted); font-size: 14px; font-weight: 500; margin-top: 2px; }
+    .pic-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 16px; }
+    .pic-actions .btn { width: 100%; justify-content: center; padding: 10px 8px; gap: 6px; white-space: nowrap; }
+    .pic-actions .btn svg { width: 18px; height: 18px; }
+    /* the editor sheet */
+    .pe-sheet h2 { margin: 6px 0 2px; }
+    .pe-stage { position: relative; width: 100%; max-width: 380px; aspect-ratio: 1 / 1; margin: 12px auto 0; border-radius: 24px; border: var(--bw) solid var(--ink); overflow: hidden; background: #15102A; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; }
+    .pe-stage.dragging { cursor: grabbing; }
+    .pe-stage:focus-visible { outline: 3px solid var(--grape); outline-offset: 3px; }
+    .pe-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    .pe-stage .pe-loading { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-weight: 800; }
+    .pe-zoom { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+    .pe-zoom .btn.icon { width: 42px; height: 42px; border-radius: 14px; font-size: 22px; font-weight: 800; }
+    .pe-range { flex: 1; min-width: 0; height: 34px; padding: 0; margin: 0; border: 0; background: transparent; box-shadow: none !important; -webkit-appearance: none; appearance: none; cursor: pointer; }
+    .pe-range::-webkit-slider-runnable-track { height: 12px; border-radius: 999px; background: var(--card-2); border: var(--bw) solid var(--ink); }
+    .pe-range::-moz-range-track { height: 8px; border-radius: 999px; background: var(--card-2); border: var(--bw) solid var(--ink); }
+    .pe-range::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; margin-top: -10px; border-radius: 10px; background: var(--sun); border: var(--bw) solid var(--ink); box-shadow: 0 2px 0 var(--ink); }
+    .pe-range::-moz-range-thumb { width: 24px; height: 24px; border-radius: 10px; background: var(--sun); border: var(--bw) solid var(--ink); box-shadow: 0 2px 0 var(--ink); }
+    .pe-range:focus-visible { outline: 3px solid var(--grape); outline-offset: 2px; border-radius: 999px; }
+    .pe-tools { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+    .pe-tool { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 2px 7px; border: var(--bw) solid var(--ink); border-radius: 16px; background: var(--card); color: var(--text); box-shadow: var(--shadow-sm); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
+    .pe-tool:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+    .pe-tool[aria-pressed="true"] { background: var(--sun); color: #1B1530; }
+    .pe-tool svg { width: 22px; height: 22px; }
+    .pe-label { font-size: 14px; font-weight: 800; color: var(--muted); margin: 16px 0 6px; }
+    .pe-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 2px 0 6px; }
+    .pe-chips .chip { display: inline-flex; align-items: center; gap: 7px; }
+    .pe-chips .chip[aria-pressed="true"] { background: var(--ink); color: #fff; }
+    :root[data-theme="dark"] .pe-chips .chip[aria-pressed="true"] { background: var(--sun); color: #1B1530; }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pe-chips .chip[aria-pressed="true"] { background: var(--sun); color: #1B1530; } }
+    .pe-chips .dot { width: 16px; height: 16px; border-radius: 6px; border: 2px solid var(--ink); flex: none; }
+    .pe-fine { margin-top: 12px; border: var(--bw) solid var(--ink); border-radius: 18px; background: var(--card-2); padding: 0 14px; }
+    .pe-fine summary { cursor: pointer; padding: 12px 0; font-weight: 800; list-style: none; display: flex; align-items: center; justify-content: space-between; }
+    .pe-fine summary::-webkit-details-marker { display: none; }
+    .pe-fine summary::after { content: '›'; font-size: 22px; line-height: 1; transition: transform .2s; }
+    .pe-fine[open] summary::after { transform: rotate(90deg); }
+    .pe-slider { padding-bottom: 10px; }
+    .pe-slider label { display: flex; justify-content: space-between; margin: 0 0 2px; font-size: 14px; }
+    .pe-slider label span { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .pe-preview { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 14px; border: var(--bw) solid var(--ink); border-radius: 20px; background: var(--theme); color: var(--theme-ink); }
+    .pe-preview canvas { flex: none; width: 56px; height: 56px; border-radius: 18px; border: var(--bw) solid var(--ink); background: #fff; box-shadow: 0 3px 0 var(--ink); }
+    .pe-preview b { display: block; font-family: var(--display); font-size: 19px; line-height: 1.15; overflow-wrap: anywhere; }
+    .pe-preview small { display: block; font-size: 13px; font-weight: 700; opacity: .85; }
+    .pe-actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 10px; margin-top: 18px; }
+    .pe-actions .btn { margin-top: 0; }
+    @media (prefers-reduced-motion: reduce) { .pic-big.busy .pic-face::after { animation: none; } }
   </style>
 </head>
 <body>
@@ -563,6 +629,7 @@
   <main>
     <div class="topbar">
       <a class="logo" href="/"><span class="logo-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" fill="#fff" stroke="#1B1530" stroke-width="2" stroke-linejoin="round"/><path d="M9 8h6M9 12h4" stroke="#1B1530" stroke-width="2" stroke-linecap="round"/></svg></span><span>Order<b>Padi</b></span></a>
+      <button class="me-pic" type="button" id="me-pic" aria-label="Your profile picture and store profile">?</button>
       <button class="bell" type="button" id="bell" aria-label="Notifications">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
         <span class="bell-count" id="bell-count" hidden></span>
@@ -1420,6 +1487,28 @@
       <button class="back" type="button" data-tab="more">‹ More</button>
       <h1 style="margin-top:14px">Store profile</h1>
       <p class="sub">Shown on your store, and in the OrderPadi directory where customers look for sellers near them.</p>
+      <div class="card pic-card" id="pic-card">
+        <div class="pic-main">
+          <button class="pic-big" type="button" id="pic-big" aria-label="Add a profile picture">
+            <span class="pic-face" id="pic-face">?</span>
+            <span class="pic-badge" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
+          </button>
+          <div style="min-width:0">
+            <b>Profile picture</b>
+            <small id="pic-sub">Your logo or a photo of you. Customers see it on your store, invoices, the directory and your status pictures.</small>
+          </div>
+        </div>
+        <div class="pic-actions">
+          <button class="btn small" type="button" id="pic-choose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>Choose photo</button>
+          <button class="btn small sun" type="button" id="pic-camera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Take photo</button>
+          <button class="btn small secondary" type="button" id="pic-edit" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>Crop and edit</button>
+          <button class="btn small danger" type="button" id="pic-remove" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Remove</button>
+        </div>
+        <p class="hint" id="pic-hint">JPG, PNG or a screenshot. You can crop, zoom, turn and brighten it before saving.</p>
+        <p class="error" id="pic-error"></p>
+        <input type="file" id="pic-input" accept="image/*" hidden>
+        <input type="file" id="pic-camera-input" accept="image/*" capture="user" hidden>
+      </div>
       <div class="card">
         <div class="away-head">
           <div><b>List my store in the directory</b><small>At <a href="/stores" target="_blank" rel="noopener">orderpadi.netlify.app/stores</a></small></div>
@@ -1750,6 +1839,8 @@
     const TINTS = ['t0', 't1', 't2', 't3', 't4'];
     const tintFor = (text) => TINTS[[...String(text || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % TINTS.length];
     const initials = (name) => (String(name || '').replace(/['’]/g, '').match(/[A-Za-z0-9]+/g) || ['?']).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+    // A seller's profile picture address from the server: "/p/<16 hex>".
+    const isPicture = (url) => typeof url === 'string' && /^\/p\/[0-9a-f]{16}$/.test(url);
     const EMPTY_ART = '<svg class="empty-art" viewBox="0 0 92 92" aria-hidden="true"><path d="M18 34h56l-5 44a4 4 0 0 1-4 3.5H27A4 4 0 0 1 23 78z" fill="#FFD23F" stroke="#1B1530" stroke-width="3" stroke-linejoin="round"/><path d="M33 34v-6a13 13 0 0 1 26 0v6" fill="none" stroke="#1B1530" stroke-width="3" stroke-linecap="round"/><circle cx="38" cy="54" r="3" fill="#1B1530"/><circle cx="54" cy="54" r="3" fill="#1B1530"/><path d="M39 64c4 4 10 4 14 0" fill="none" stroke="#1B1530" stroke-width="3" stroke-linecap="round"/><circle cx="76" cy="18" r="8" fill="#FF8A7A" stroke="#1B1530" stroke-width="3"/><path d="M12 16l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" fill="#6CCFF6" stroke="#1B1530" stroke-width="2" stroke-linejoin="round"/></svg>';
     function emptyBox(text) {
       const box = document.createElement('div');
@@ -2285,6 +2376,7 @@
       const v = state.vendor;
       if (!v) return; // logged out while a request was still on its way
       $('home-title').textContent = 'Hi, ' + v.businessName;
+      renderPicture();
       const url = storeUrl(v.slug);
       $('home-link').href = url;
       $('home-link').textContent = url.replace(/^https?:\/\//, '');
@@ -3085,7 +3177,7 @@
       box.querySelectorAll('.swatch').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.theme === current)));
       $('store-preview').dataset.store = current;
       $('preview-name').textContent = v.businessName;
-      $('preview-mono').textContent = initials(v.businessName);
+      paintPicture($('preview-mono'), v.picture, v.businessName);
     }
 
     async function pickTheme(id) {
@@ -4029,7 +4121,10 @@
       const theme = themeOf(v.storeTheme);
       const picks = (state.statusPick || []).map((id) => (state.products || []).find((p) => p.id === id)).filter(Boolean);
       try { await Promise.all([document.fonts.load('700 100px Fredoka'), document.fonts.load('600 40px Fredoka')]); } catch (e) {}
-      const images = await Promise.all(picks.map((p) => loadImage(p.photos && p.photos[0] && p.photos[0].url)));
+      const [images, avatar] = await Promise.all([
+        Promise.all(picks.map((p) => loadImage(p.photos && p.photos[0] && p.photos[0].url))),
+        loadImage(isPicture(v.picture) ? v.picture : null)
+      ]);
       if (ticket !== drawTicket) return;
       const F = (size) => '700 ' + size + 'px Fredoka, ui-rounded, system-ui, sans-serif';
       const B = (size, weight) => (weight || 800) + ' ' + size + 'px -apple-system, BlinkMacSystemFont, system-ui, sans-serif';
@@ -4048,11 +4143,21 @@
       ctx.closePath(); ctx.fillStyle = '#FFFFFF'; ctx.fill(); ctx.lineWidth = 6; ctx.stroke(); ctx.restore();
       ctx.lineWidth = 8;
 
-      // header: initials tile + business name
-      rr(ctx, 70, 96, 140, 140, 42); ctx.fillStyle = '#FFFFFF'; ctx.fill(); ctx.stroke();
-      ctx.fillStyle = INK; ctx.font = F(54); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(initials(v.businessName), 140, 170);
+      // header: profile picture (or initials) tile + business name
+      rr(ctx, 70, 96, 140, 140, 42); ctx.fillStyle = '#FFFFFF'; ctx.fill();
+      if (avatar) {
+        ctx.save();
+        rr(ctx, 70, 96, 140, 140, 42); ctx.clip();
+        ctx.drawImage(avatar, 70, 96, 140, 140);
+        ctx.restore();
+        rr(ctx, 70, 96, 140, 140, 42); ctx.stroke();
+      } else {
+        ctx.stroke();
+        ctx.fillStyle = INK; ctx.font = F(54); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(initials(v.businessName), 140, 170);
+      }
       ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
       ctx.fillStyle = theme.ink;
       ctx.font = F(62);
       ctx.fillText(fit(ctx, v.businessName, 560), 240, 168);
@@ -4524,7 +4629,8 @@
       $('more-expenses-sub').textContent = t && t.expensesThisMonthKobo ? formatNaira(t.expensesThisMonthKobo) + ' this month' : 'What you spend';
       $('more-profile-sub').textContent = v.inDirectory
         ? 'Listed in the directory · ' + [v.storeCategory, v.state].filter(Boolean).join(', ')
-        : 'Get found in the OrderPadi directory';
+        : isPicture(v.picture) ? 'Get found in the OrderPadi directory' : 'Profile picture and directory listing';
+      renderPicture();
     }
     async function loadToolsSummary() {
       const { ok, data } = await api('/api/tools?view=summary');
@@ -5023,6 +5129,8 @@
       if (!state.sheet) return;
       state.sheet.forEach((n) => n.remove());
       state.sheet = null;
+      // A sheet that needs tidying up when it closes (the picture editor) leaves this.
+      if (state.sheetClosed) { const done = state.sheetClosed; state.sheetClosed = null; done(); }
     }
     function openQuickReplies() {
       const o = state.order;
@@ -5396,6 +5504,7 @@
       fillSelect($('profile-state'), DIR_STATES, 'Choose', v.state);
       $('profile-city').value = v.city || '';
       $('profile-bio').value = v.bio || '';
+      renderPicture();
       renderProfilePreview();
       switchView('profile');
     }
@@ -5406,7 +5515,9 @@
       box.textContent = '';
       const card = el('div', 'dir-card');
       card.dataset.store = v.storeTheme || 'green';
-      card.appendChild(el('span', 'mono', initials(v.businessName)));
+      const mono = el('span', 'mono');
+      paintPicture(mono, v.picture, v.businessName);
+      card.appendChild(mono);
       const main = el('div');
       main.style.minWidth = '0';
       main.appendChild(el('b', null, v.businessName));
@@ -5447,6 +5558,686 @@
       renderMore();
       renderProfilePreview();
       toast(listed ? 'Saved. Your store is in the directory.' : 'Profile saved', 'good');
+    });
+
+    // ---------- profile picture ----------
+    // A photo from the gallery, the camera, a drag-and-drop or a paste opens the
+    // editor: drag to move, pinch / scroll / slide to zoom, double-tap to fit,
+    // turn, mirror, a look, brightness, contrast and colour, and a background
+    // for see-through logos. It saves a 640 x 640 JPEG
+    // (POST /api/me { action: "picture-set" }), shown in the top bar, on the
+    // store, invoices, the directory, link previews and status pictures.
+    // Free on every plan.
+    const PIC_OUT = 640;                    // saved size in pixels (square)
+    const PIC_SOURCE_MAX = 2048;            // longest side kept while editing
+    const PIC_MAX_FILE = 40 * 1024 * 1024;  // bigger files are refused before opening
+    const PIC_MAX_ZOOM = 5;                 // times "fills the frame"
+    const PIC_LOOKS = [
+      { id: 'original', name: 'Original', b: 100, c: 100, s: 100 },
+      { id: 'bright', name: 'Bright', b: 116, c: 104, s: 108 },
+      { id: 'vivid', name: 'Vivid', b: 104, c: 114, s: 145 },
+      { id: 'soft', name: 'Soft', b: 108, c: 86, s: 88 },
+      { id: 'mono', name: 'Black & white', b: 104, c: 112, s: 0 }
+    ];
+    const PIC_BGS = [
+      { id: 'white', name: 'White', hex: () => '#FFFFFF' },
+      { id: 'store', name: 'Store colour', hex: () => themeOf(state.vendor && state.vendor.storeTheme).hex },
+      { id: 'black', name: 'Black', hex: () => '#1B1530' }
+    ];
+    const PE_ICONS = {
+      left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4v6h6"/><path d="M3.5 10A9 9 0 1 1 6 17.5"/></svg>',
+      right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 4v6h-6"/><path d="M20.5 10A9 9 0 1 0 18 17.5"/></svg>',
+      flip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"/><path d="M8 7L3 17h5zM16 7l5 10h-5z"/></svg>',
+      fit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><rect x="8" y="8" width="8" height="8" rx="2"/></svg>'
+    };
+    // Phones and tablets get "Take photo"; computers get drag-and-drop and paste.
+    function touchDevice() { return ('ontouchstart' in window) || navigator.maxTouchPoints > 0 || !matchMedia('(pointer: fine)').matches; }
+    let pe = null; // the open editor
+
+    // A picture (or initials) inside any tile. Repaints only when something changed.
+    function paintPicture(node, url, name) {
+      const ok = isPicture(url);
+      const key = (ok ? url : '') + '|' + (name || '');
+      if (node.dataset.pk === key) return ok;
+      node.dataset.pk = key;
+      node.textContent = '';
+      node.classList.toggle('has-pic', ok);
+      if (!ok) { node.textContent = initials(name); return false; }
+      const img = document.createElement('img');
+      img.alt = '';
+      img.decoding = 'async';
+      img.draggable = false;
+      img.onerror = () => { node.classList.remove('has-pic'); node.textContent = initials(name); };
+      img.src = url;
+      node.appendChild(img);
+      return true;
+    }
+
+    function picError(text) { const b = $('pic-error'); b.textContent = text; b.classList.add('show'); }
+    function clearPicError() { const b = $('pic-error'); b.textContent = ''; b.classList.remove('show'); }
+    function setPicBusy(on) {
+      $('pic-big').classList.toggle('busy', on);
+      ['pic-big', 'pic-choose', 'pic-camera', 'pic-edit', 'pic-remove'].forEach((id) => { $(id).disabled = on; });
+    }
+
+    // Everywhere the seller's own picture shows inside the app.
+    function renderPicture() {
+      const v = state.vendor;
+      if (!v) return;
+      const has = paintPicture($('me-pic'), v.picture, v.businessName);
+      $('me-pic').setAttribute('aria-label', has ? 'Your profile picture: open your store profile' : 'Add a profile picture');
+      $('pic-big').dataset.store = v.storeTheme || 'green';
+      paintPicture($('pic-face'), v.picture, v.businessName);
+      $('pic-big').setAttribute('aria-label', has ? 'Crop and edit your profile picture' : 'Add a profile picture');
+      $('pic-edit').hidden = !has;
+      $('pic-remove').hidden = !has;
+      $('pic-camera').hidden = !touchDevice();
+      $('pic-choose').lastChild.textContent = has ? 'New photo' : 'Choose photo';
+      $('pic-sub').textContent = has
+        ? 'Customers see this on your store, invoices, the directory and your status pictures.'
+        : 'Your logo or a photo of you. Customers see it on your store, invoices, the directory and your status pictures.';
+      $('pic-hint').textContent = touchDevice()
+        ? 'JPG, PNG or a screenshot. You can crop, zoom, turn and brighten it before saving.'
+        : 'JPG, PNG or a screenshot. You can also drag a photo onto this card, or paste one. Crop, zoom, turn and brighten it before saving.';
+      // the Store profile row on the More tab shows the picture too
+      const mi = $('more-profile').querySelector('.mi');
+      if (!mi.dataset.icon) mi.dataset.icon = mi.innerHTML;
+      if (has) paintPicture(mi, v.picture, v.businessName);
+      else if (mi.dataset.pk) { delete mi.dataset.pk; mi.classList.remove('has-pic'); mi.innerHTML = mi.dataset.icon; }
+    }
+
+    function pickPictureFile(file) {
+      clearPicError();
+      if (!file) return;
+      if (file.type && !/^image\//.test(file.type)) return picError('That file is not a photo. Pick a JPG, PNG or screenshot.');
+      if (file.size > PIC_MAX_FILE) return picError('That photo is too big to open (over 40 MB). Pick a smaller one or a screenshot of it.');
+      openPictureEditor(file);
+    }
+
+    // Draws a photo into a canvas no bigger than max on its longest side,
+    // halving step by step so it stays sharp on every phone.
+    function shrinkToCanvas(img, max) {
+      let w = img.naturalWidth || img.width;
+      let h = img.naturalHeight || img.height;
+      if (!w || !h) throw new Error('empty');
+      const ratio = Math.min(1, max / Math.max(w, h));
+      const tw = Math.max(1, Math.round(w * ratio));
+      const th = Math.max(1, Math.round(h * ratio));
+      let src = img;
+      while (w > tw * 2) {
+        w = Math.ceil(w / 2);
+        h = Math.ceil(h / 2);
+        const step = document.createElement('canvas');
+        step.width = w;
+        step.height = h;
+        const sctx = step.getContext('2d');
+        sctx.imageSmoothingEnabled = true;
+        sctx.imageSmoothingQuality = 'high';
+        sctx.drawImage(src, 0, 0, w, h);
+        if (src !== img) src.width = src.height = 0;
+        src = step;
+      }
+      const out = document.createElement('canvas');
+      out.width = tw;
+      out.height = th;
+      const ctx = out.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(src, 0, 0, tw, th);
+      if (src !== img) src.width = src.height = 0;
+      return { canvas: out, scale: Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height) / Math.max(tw, th) };
+    }
+    function loadPictureSource(source) {
+      return new Promise((resolve, reject) => {
+        const own = typeof source !== 'string';
+        const url = own ? URL.createObjectURL(source) : source;
+        const img = new Image();
+        img.decoding = 'async';
+        img.onload = () => {
+          try { resolve(shrinkToCanvas(img, PIC_SOURCE_MAX)); } catch (e) { reject(e); } finally { if (own) URL.revokeObjectURL(url); }
+        };
+        img.onerror = () => { if (own) URL.revokeObjectURL(url); reject(new Error('unreadable')); };
+        img.src = url;
+      });
+    }
+
+    // ----- editor geometry. Everything is measured in "frames": the square
+    // that is saved is 1 × 1, and pe.x / pe.y say where the photo's middle
+    // sits from the frame's middle. -----
+    const peDims = () => (pe.rot % 180 ? [pe.h, pe.w] : [pe.w, pe.h]);
+    function peCover() { const [ew, eh] = peDims(); return Math.max(1 / ew, 1 / eh); }
+    function peMinZoom() { const [ew, eh] = peDims(); return Math.min(1 / ew, 1 / eh) / peCover(); }
+    function peClamp() {
+      pe.zoom = Math.min(PIC_MAX_ZOOM, Math.max(peMinZoom(), pe.zoom));
+      const [ew, eh] = peDims();
+      const k = peCover() * pe.zoom;
+      // A photo bigger than the frame can't leave a gap; a smaller one stays inside it.
+      const lx = Math.abs(ew * k - 1) / 2;
+      const ly = Math.abs(eh * k - 1) / 2;
+      pe.x = Math.min(lx, Math.max(-lx, pe.x));
+      pe.y = Math.min(ly, Math.max(-ly, pe.y));
+    }
+    // Zooms so the spot under `from` ends up under `to` (both in frames from the middle).
+    function peZoomAt(zoom, from, to) {
+      const z1 = Math.min(PIC_MAX_ZOOM, Math.max(peMinZoom(), zoom));
+      const r = z1 / pe.zoom;
+      pe.x = to.x + (pe.x - from.x) * r;
+      pe.y = to.y + (pe.y - from.y) * r;
+      pe.zoom = z1;
+    }
+    const MID = { x: 0, y: 0 };
+    // The photo, turned and mirrored, into a frame of side D whose corner is at (fx, fy).
+    function peDraw(ctx, fx, fy, D) {
+      const k = peCover() * pe.zoom * D;
+      ctx.save();
+      ctx.translate(fx + D / 2 + pe.x * D, fy + D / 2 + pe.y * D);
+      if (pe.flip) ctx.scale(-1, 1);
+      ctx.rotate(pe.rot * Math.PI / 180);
+      ctx.drawImage(pe.src, -pe.w * k / 2, -pe.h * k / 2, pe.w * k, pe.h * k);
+      ctx.restore();
+    }
+    const peBgHex = () => (PIC_BGS.find((b) => b.id === pe.bg) || PIC_BGS[0]).hex();
+    const peFilter = () => (pe.b === 100 && pe.c === 100 && pe.s === 100 ? 'none'
+      : 'brightness(' + pe.b / 100 + ') contrast(' + pe.c / 100 + ') saturate(' + pe.s / 100 + ')');
+    function peRoundRect(ctx, x, y, w, h, r) {
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function peLayout() {
+      if (!pe) return;
+      const stage = $('pe-stage');
+      const S = stage.clientWidth || 320;
+      const dpr = Math.min(3, window.devicePixelRatio || 1);
+      pe.S = S;
+      pe.dpr = dpr;
+      pe.m = Math.round(S * 0.07);
+      pe.D = S - 2 * pe.m;
+      stage.style.height = S + 'px'; // phones without CSS aspect-ratio
+      ['pe-img', 'pe-over'].forEach((id) => { const c = $(id); c.width = Math.round(S * dpr); c.height = Math.round(S * dpr); });
+      peRender();
+    }
+    function peRender() {
+      if (!pe || pe.raf) return;
+      pe.raf = requestAnimationFrame(() => { if (!pe) return; pe.raf = 0; if (pe.src && pe.S) paintStage(); });
+    }
+    function paintStage() {
+      const { S, dpr, m, D } = pe;
+      const filter = peFilter();
+      // the photo layer (brightness etc. shown live with a CSS filter)
+      const c = $('pe-img');
+      const ctx = c.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, S, S);
+      ctx.fillStyle = peBgHex();
+      ctx.fillRect(m, m, D, D);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      peDraw(ctx, m, m, D);
+      c.style.filter = filter;
+      // the frame on top: dark outside, lighter in the corners that tiles round off
+      const o = $('pe-over').getContext('2d');
+      o.setTransform(dpr, 0, 0, dpr, 0, 0);
+      o.clearRect(0, 0, S, S);
+      const r = D * 0.3;
+      o.fillStyle = 'rgba(21, 16, 42, .66)';
+      o.beginPath(); o.rect(0, 0, S, S); o.rect(m, m, D, D); o.fill('evenodd');
+      o.fillStyle = 'rgba(21, 16, 42, .28)';
+      o.beginPath(); o.rect(m, m, D, D); peRoundRect(o, m, m, D, D, r); o.fill('evenodd');
+      if (pe.dragging) {
+        o.save();
+        o.beginPath(); peRoundRect(o, m, m, D, D, r); o.clip();
+        o.strokeStyle = 'rgba(255, 255, 255, .55)';
+        o.lineWidth = 1;
+        o.beginPath();
+        [1, 2].forEach((i) => { o.moveTo(m + D * i / 3, m); o.lineTo(m + D * i / 3, m + D); o.moveTo(m, m + D * i / 3); o.lineTo(m + D, m + D * i / 3); });
+        o.stroke();
+        o.restore();
+      }
+      o.strokeStyle = 'rgba(255, 255, 255, .35)';
+      o.lineWidth = 1;
+      o.strokeRect(m + .5, m + .5, D - 1, D - 1);
+      o.strokeStyle = '#FFFFFF';
+      o.lineWidth = 2.5;
+      o.beginPath(); peRoundRect(o, m, m, D, D, r); o.stroke();
+      // the little store preview under the controls
+      const mini = $('pe-mini');
+      const n = mini.width;
+      const mctx = mini.getContext('2d');
+      mctx.setTransform(1, 0, 0, 1, 0, 0);
+      mctx.fillStyle = peBgHex();
+      mctx.fillRect(0, 0, n, n);
+      mctx.imageSmoothingEnabled = true;
+      mctx.imageSmoothingQuality = 'high';
+      peDraw(mctx, 0, 0, n);
+      mini.style.filter = filter;
+    }
+
+    // Brightness, contrast and colour on the saved picture, the same sums the
+    // CSS filter uses for the live view (so what you see is what is saved).
+    function peApplyLook(ctx, n) {
+      const b = pe.b / 100;
+      const c = pe.c / 100;
+      const s = pe.s / 100;
+      if (b === 1 && c === 1 && s === 1) return;
+      const img = ctx.getImageData(0, 0, n, n);
+      const d = img.data;
+      const lut = new Uint8ClampedArray(256);
+      for (let i = 0; i < 256; i++) {
+        let v = Math.min(1, (i / 255) * b);
+        v = Math.min(1, Math.max(0, (v - 0.5) * c + 0.5));
+        lut[i] = Math.round(v * 255);
+      }
+      const m = [
+        0.213 + 0.787 * s, 0.715 - 0.715 * s, 0.072 - 0.072 * s,
+        0.213 - 0.213 * s, 0.715 + 0.285 * s, 0.072 - 0.072 * s,
+        0.213 - 0.213 * s, 0.715 - 0.715 * s, 0.072 + 0.928 * s
+      ];
+      for (let i = 0; i < d.length; i += 4) {
+        const r = lut[d[i]];
+        const g = lut[d[i + 1]];
+        const bl = lut[d[i + 2]];
+        if (s === 1) { d[i] = r; d[i + 1] = g; d[i + 2] = bl; continue; }
+        d[i] = m[0] * r + m[1] * g + m[2] * bl;
+        d[i + 1] = m[3] * r + m[4] * g + m[5] * bl;
+        d[i + 2] = m[6] * r + m[7] * g + m[8] * bl;
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+    // The saved file: drawn at twice the size and halved, so it is smooth on
+    // every phone, then the look is applied and it's kept under 240 KB.
+    function peExport() {
+      const big = document.createElement('canvas');
+      big.width = big.height = PIC_OUT * 2;
+      const bctx = big.getContext('2d');
+      bctx.fillStyle = peBgHex();
+      bctx.fillRect(0, 0, PIC_OUT * 2, PIC_OUT * 2);
+      bctx.imageSmoothingEnabled = true;
+      bctx.imageSmoothingQuality = 'high';
+      peDraw(bctx, 0, 0, PIC_OUT * 2);
+      const out = document.createElement('canvas');
+      out.width = out.height = PIC_OUT;
+      const ctx = out.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(big, 0, 0, PIC_OUT, PIC_OUT);
+      big.width = big.height = 0;
+      peApplyLook(ctx, PIC_OUT);
+      let quality = 0.9;
+      let data = out.toDataURL('image/jpeg', quality);
+      while (data.length * 0.75 > 240000 && quality > 0.5) {
+        quality -= 0.08;
+        data = out.toDataURL('image/jpeg', quality);
+      }
+      out.width = out.height = 0;
+      if (!/^data:image\/jpeg;base64,/.test(data)) throw new Error('encode');
+      return data;
+    }
+
+    // ----- editor controls -----
+    function peSliderToZoom(v) {
+      const lo = Math.log(peMinZoom());
+      const hi = Math.log(PIC_MAX_ZOOM);
+      return Math.exp(lo + (hi - lo) * v / 1000);
+    }
+    function peZoomToSlider(z) {
+      const lo = Math.log(peMinZoom());
+      const hi = Math.log(PIC_MAX_ZOOM);
+      return hi - lo < 1e-6 ? 0 : Math.round(((Math.log(z) - lo) / (hi - lo)) * 1000);
+    }
+    function peSync() {
+      if (!pe || !pe.src) return;
+      $('pe-zoom').value = String(peZoomToSlider(pe.zoom));
+      const canFit = peMinZoom() < 0.999;
+      const fit = $('pe-fit');
+      fit.disabled = !canFit;
+      const filled = pe.zoom >= 0.999;
+      fit.lastChild.textContent = filled ? 'Fit all' : 'Fill';
+      fit.setAttribute('aria-label', filled ? 'Fit the whole photo in the frame' : 'Fill the frame');
+      $('pe-flip').setAttribute('aria-pressed', String(pe.flip));
+      [['b', '%'], ['c', '%'], ['s', '%']].forEach(([k, unit]) => {
+        $('pe-' + k).value = String(pe[k]);
+        $('pe-' + k + '-v').textContent = pe[k] + unit;
+      });
+      // Stretched more than twice its real size, the saved picture looks soft.
+      const stretch = (peCover() * pe.zoom * PIC_OUT) / pe.natScale;
+      $('pe-note').hidden = stretch <= 2.05;
+      $('pe-note').textContent = pe.zoom > 1.01
+        ? 'Zoomed in this far, the picture may look a little blurry. Zoom out a bit, or use a bigger photo.'
+        : 'This photo is small, so it may look a little blurry. A bigger one looks sharper.';
+      const look = PIC_LOOKS.find((l) => l.b === pe.b && l.c === pe.c && l.s === pe.s);
+      $('pe-looks').querySelectorAll('.chip').forEach((b) => b.setAttribute('aria-pressed', String(!!look && b.dataset.look === look.id)));
+      $('pe-bgs').querySelectorAll('.chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.bg === pe.bg)));
+    }
+    function peChanged() { if (!pe || !pe.src) return; peClamp(); peSync(); peRender(); }
+    function peRotate(deg) {
+      // Turning moves the whole picture around the frame's middle, so the
+      // part you lined up stays in view. Mirrored photos turn the other way inside.
+      const { x, y } = pe;
+      if (deg > 0) { pe.x = -y; pe.y = x; } else { pe.x = y; pe.y = -x; }
+      pe.rot = (pe.rot + (pe.flip ? -deg : deg) + 360) % 360;
+      OP.buzz();
+      peChanged();
+    }
+    function peToggleFit() {
+      if (peMinZoom() >= 0.999) return;
+      pe.zoom = pe.zoom >= 0.999 ? peMinZoom() : 1;
+      pe.x = 0;
+      pe.y = 0;
+      OP.buzz();
+      peChanged();
+    }
+    function peReset() {
+      Object.assign(pe, { rot: 0, flip: false, zoom: 1, x: 0, y: 0, b: 100, c: 100, s: 100, bg: 'white' });
+      peChanged();
+    }
+    function peError(text) {
+      const box = $('pe-error');
+      if (!box) return;
+      box.textContent = text || '';
+      box.classList.toggle('show', !!text);
+    }
+
+    function peBindStage(stage) {
+      const frameUnits = () => {
+        const rect = stage.getBoundingClientRect();
+        return { rect, D: pe.D * (rect.width / pe.S) };
+      };
+      const fromMiddle = (rect, D, x, y) => ({ x: (x - rect.left - rect.width / 2) / D, y: (y - rect.top - rect.height / 2) / D });
+      stage.addEventListener('pointerdown', (e) => {
+        if (!pe || !pe.src) return;
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        e.preventDefault();
+        stage.focus({ preventScroll: true });
+        try { stage.setPointerCapture(e.pointerId); } catch (err) { /* old browsers */ }
+        pe.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (pe.pointers.size === 1) pe.moved = 0;
+        pe.dragging = true;
+        stage.classList.add('dragging');
+        peRender();
+      });
+      stage.addEventListener('pointermove', (e) => {
+        if (!pe || !pe.pointers.has(e.pointerId)) return;
+        const before = [...pe.pointers.values()].map((p) => ({ x: p.x, y: p.y }));
+        pe.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        const after = [...pe.pointers.values()];
+        const { rect, D } = frameUnits();
+        if (after.length === 1) {
+          const dx = after[0].x - before[0].x;
+          const dy = after[0].y - before[0].y;
+          pe.moved += Math.abs(dx) + Math.abs(dy);
+          pe.x += dx / D;
+          pe.y += dy / D;
+        } else {
+          // two fingers: pinch to zoom around the point between them, and move with them
+          const [a0, b0] = before;
+          const [a1, b1] = after;
+          const d0 = Math.hypot(b0.x - a0.x, b0.y - a0.y) || 1;
+          const d1 = Math.hypot(b1.x - a1.x, b1.y - a1.y) || 1;
+          const m0 = fromMiddle(rect, D, (a0.x + b0.x) / 2, (a0.y + b0.y) / 2);
+          const m1 = fromMiddle(rect, D, (a1.x + b1.x) / 2, (a1.y + b1.y) / 2);
+          peZoomAt(pe.zoom * (d1 / d0), m0, m1);
+          pe.moved += 100;
+        }
+        peChanged();
+      });
+      const end = (e) => {
+        if (!pe || !pe.pointers.has(e.pointerId)) return;
+        pe.pointers.delete(e.pointerId);
+        if (pe.pointers.size) return;
+        pe.dragging = false;
+        stage.classList.remove('dragging');
+        // a double tap switches between filling the frame and fitting the whole photo
+        if (e.type === 'pointerup' && pe.moved < 8) {
+          const now = Date.now();
+          if (now - pe.lastTap < 330) { pe.lastTap = 0; peToggleFit(); } else pe.lastTap = now;
+        }
+        peRender();
+      };
+      stage.addEventListener('pointerup', end);
+      stage.addEventListener('pointercancel', end);
+      stage.addEventListener('lostpointercapture', end);
+      stage.addEventListener('wheel', (e) => {
+        if (!pe || !pe.src) return;
+        e.preventDefault();
+        const { rect, D } = frameUnits();
+        const at = fromMiddle(rect, D, e.clientX, e.clientY);
+        const delta = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+        peZoomAt(pe.zoom * Math.exp(-delta * 0.0015), at, at);
+        peChanged();
+      }, { passive: false });
+      // Safari's own pinch-to-zoom would zoom the whole page instead
+      stage.addEventListener('gesturestart', (e) => e.preventDefault());
+      stage.addEventListener('keydown', (e) => {
+        if (!pe || !pe.src) return;
+        const step = e.shiftKey ? 0.1 : 0.02;
+        const moves = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+        if (moves[e.key]) { pe.x += moves[e.key][0]; pe.y += moves[e.key][1]; }
+        else if (e.key === '+' || e.key === '=') peZoomAt(pe.zoom * 1.12, MID, MID);
+        else if (e.key === '-' || e.key === '_') peZoomAt(pe.zoom / 1.12, MID, MID);
+        else return;
+        e.preventDefault();
+        peChanged();
+      });
+    }
+
+    async function openPictureEditor(source) {
+      clearPicError();
+      closeSheet();
+      const back = el('div', 'sheet-backdrop');
+      const sheet = el('div', 'sheet pe-sheet');
+      sheet.setAttribute('role', 'dialog');
+      sheet.setAttribute('aria-modal', 'true');
+      sheet.setAttribute('aria-labelledby', 'pe-title');
+      sheet.innerHTML =
+        '<div class="sheet-handle"></div>' +
+        '<h2 id="pe-title">Crop your picture</h2>' +
+        '<p class="muted" style="margin:0;font-size:14px">' + (touchDevice() ? 'Drag to move it, pinch to zoom. Double-tap to fit the whole photo.' : 'Drag to move it, scroll to zoom. Double-click to fit the whole photo.') + '</p>' +
+        '<div class="pe-stage" id="pe-stage" tabindex="0" role="group" aria-label="Your picture in the frame. Arrow keys move it, plus and minus zoom.">' +
+          '<canvas id="pe-img"></canvas><canvas id="pe-over"></canvas><div class="pe-loading" id="pe-loading">Opening photo…</div>' +
+        '</div>' +
+        '<p class="hint center" id="pe-note" hidden></p>' +
+        '<div class="pe-zoom">' +
+          '<button class="btn icon secondary" type="button" id="pe-out" aria-label="Zoom out">−</button>' +
+          '<input class="pe-range" type="range" id="pe-zoom" min="0" max="1000" step="1" value="0" aria-label="Zoom">' +
+          '<button class="btn icon secondary" type="button" id="pe-in" aria-label="Zoom in">+</button>' +
+        '</div>' +
+        '<div class="pe-tools">' +
+          '<button class="pe-tool" type="button" id="pe-left" aria-label="Turn left">' + PE_ICONS.left + '<span>Turn left</span></button>' +
+          '<button class="pe-tool" type="button" id="pe-right" aria-label="Turn right">' + PE_ICONS.right + '<span>Turn right</span></button>' +
+          '<button class="pe-tool" type="button" id="pe-flip" aria-pressed="false" aria-label="Mirror">' + PE_ICONS.flip + '<span>Mirror</span></button>' +
+          '<button class="pe-tool" type="button" id="pe-fit">' + PE_ICONS.fit + '<span>Fit all</span></button>' +
+        '</div>' +
+        '<p class="pe-label">Look</p>' +
+        '<div class="pe-chips" id="pe-looks" role="group" aria-label="Look"></div>' +
+        '<details class="pe-fine" id="pe-fine"><summary>Fine-tune</summary>' +
+          '<div class="pe-slider"><label for="pe-b">Brightness <span id="pe-b-v">100%</span></label><input class="pe-range" type="range" id="pe-b" min="50" max="150" step="1" value="100"></div>' +
+          '<div class="pe-slider"><label for="pe-c">Contrast <span id="pe-c-v">100%</span></label><input class="pe-range" type="range" id="pe-c" min="50" max="150" step="1" value="100"></div>' +
+          '<div class="pe-slider"><label for="pe-s">Colour <span id="pe-s-v">100%</span></label><input class="pe-range" type="range" id="pe-s" min="0" max="200" step="1" value="100"></div>' +
+        '</details>' +
+        '<p class="pe-label">Background <span class="muted" style="font-weight:600">· behind see-through logos, or when zoomed out</span></p>' +
+        '<div class="pe-chips" id="pe-bgs" role="group" aria-label="Background"></div>' +
+        '<div class="pe-preview" id="pe-preview"><canvas id="pe-mini" width="168" height="168" aria-hidden="true"></canvas><div style="min-width:0"><b id="pe-mini-name"></b><small>How it looks on your store</small></div></div>' +
+        '<p class="error" id="pe-error" role="alert"></p>' +
+        '<div class="pe-actions">' +
+          '<button class="btn secondary" type="button" id="pe-cancel">Cancel</button>' +
+          '<button class="btn" type="button" id="pe-save" disabled>Save picture</button>' +
+        '</div>' +
+        '<button class="link" type="button" id="pe-reset" style="display:block;margin:12px auto 0">Start again</button>';
+      document.body.append(back, sheet);
+      state.sheet = [back, sheet];
+
+      const editor = {
+        src: null, w: 0, h: 0, natScale: 1, rot: 0, flip: false, zoom: 1, x: 0, y: 0,
+        b: 100, c: 100, s: 100, bg: 'white',
+        pointers: new Map(), dragging: false, moved: 0, lastTap: 0, raf: 0, saving: false,
+        S: 0, D: 0, m: 0, dpr: 1
+      };
+      pe = editor;
+      const onResize = () => { if (pe === editor) peLayout(); };
+      window.addEventListener('resize', onResize);
+      state.sheetClosed = () => {
+        window.removeEventListener('resize', onResize);
+        if (editor.raf) cancelAnimationFrame(editor.raf);
+        if (editor.src) editor.src.width = editor.src.height = 0;
+        if (pe === editor) pe = null;
+      };
+
+      const v = state.vendor;
+      $('pe-preview').dataset.store = v.storeTheme || 'green';
+      $('pe-mini-name').textContent = v.businessName;
+      PIC_LOOKS.forEach((l) => {
+        const b = el('button', 'chip', l.name);
+        b.type = 'button';
+        b.dataset.look = l.id;
+        b.setAttribute('aria-pressed', String(l.id === 'original'));
+        b.addEventListener('click', () => { Object.assign(pe, { b: l.b, c: l.c, s: l.s }); OP.buzz(); peChanged(); });
+        $('pe-looks').appendChild(b);
+      });
+      PIC_BGS.forEach((bg) => {
+        const b = el('button', 'chip');
+        b.type = 'button';
+        b.dataset.bg = bg.id;
+        const dot = el('span', 'dot');
+        dot.style.background = bg.hex();
+        b.append(dot, document.createTextNode(bg.name));
+        b.addEventListener('click', () => { pe.bg = bg.id; peChanged(); });
+        $('pe-bgs').appendChild(b);
+      });
+      ['b', 'c', 's'].forEach((k) => $('pe-' + k).addEventListener('input', (e) => { pe[k] = Number(e.target.value); peChanged(); }));
+      $('pe-zoom').addEventListener('input', (e) => { peZoomAt(peSliderToZoom(Number(e.target.value)), MID, MID); peClamp(); peRender(); peSync(); });
+      $('pe-in').addEventListener('click', () => { peZoomAt(pe.zoom * 1.25, MID, MID); peChanged(); });
+      $('pe-out').addEventListener('click', () => { peZoomAt(pe.zoom / 1.25, MID, MID); peChanged(); });
+      $('pe-left').addEventListener('click', () => peRotate(-90));
+      $('pe-right').addEventListener('click', () => peRotate(90));
+      $('pe-flip').addEventListener('click', () => { pe.flip = !pe.flip; pe.x = -pe.x; OP.buzz(); peChanged(); });
+      $('pe-fit').addEventListener('click', peToggleFit);
+      $('pe-reset').addEventListener('click', peReset);
+      $('pe-cancel').addEventListener('click', closeSheet);
+      $('pe-save').addEventListener('click', savePicture);
+      back.addEventListener('click', closeSheet);
+      sheet.querySelectorAll('.pe-tools button, .pe-zoom button, .pe-zoom input, .pe-fine input, #pe-reset').forEach((b) => { b.disabled = true; });
+      peBindStage($('pe-stage'));
+
+      let loaded;
+      try { loaded = await loadPictureSource(source); } catch (err) {
+        if (pe !== editor) return;
+        $('pe-loading').textContent = "Couldn't open this photo";
+        return peError("This photo can't be opened here. Try a JPG or PNG, or take a screenshot of it and pick that.");
+      }
+      if (pe !== editor) { loaded.canvas.width = loaded.canvas.height = 0; return; } // closed while it was opening
+      editor.src = loaded.canvas;
+      editor.w = loaded.canvas.width;
+      editor.h = loaded.canvas.height;
+      editor.natScale = loaded.scale; // the original photo's pixels per editing pixel
+      $('pe-loading').remove();
+      sheet.querySelectorAll('button, input').forEach((b) => { b.disabled = false; });
+      peLayout();
+      peChanged();
+      $('pe-stage').focus({ preventScroll: true });
+    }
+
+    async function savePicture() {
+      const editor = pe;
+      if (!editor || !editor.src || editor.saving) return;
+      peError('');
+      editor.saving = true;
+      const btn = $('pe-save');
+      busy(btn, true, 'Saving…');
+      let image;
+      try { image = peExport(); } catch (err) {
+        editor.saving = false;
+        busy(btn, false);
+        return peError("Couldn't get that picture ready. Try a smaller photo.");
+      }
+      setPicBusy(true);
+      const { ok, status, data } = await api('/api/me', { action: 'picture-set', image });
+      setPicBusy(false);
+      if (status === 401) { closeSheet(); return sessionLost(); }
+      if (!ok) {
+        editor.saving = false;
+        if (pe === editor) { busy(btn, false); return peError(data.error || 'Could not save your picture. Try again.'); }
+        return picError(data.error || 'Could not save your picture. Try again.');
+      }
+      state.vendor = data.vendor;
+      if (data.setup) state.setup = data.setup;
+      if (pe === editor) closeSheet();
+      renderPicture();
+      renderProfilePreview();
+      renderThemePicker();
+      OP.buzz(20);
+      toast('Profile picture saved', 'good');
+      $('pic-big').focus({ preventScroll: true });
+    }
+
+    $('pic-input').addEventListener('change', () => {
+      const file = $('pic-input').files && $('pic-input').files[0];
+      $('pic-input').value = '';
+      pickPictureFile(file);
+    });
+    $('pic-camera-input').addEventListener('change', () => {
+      const file = $('pic-camera-input').files && $('pic-camera-input').files[0];
+      $('pic-camera-input').value = '';
+      pickPictureFile(file);
+    });
+    $('pic-choose').addEventListener('click', () => $('pic-input').click());
+    $('pic-camera').addEventListener('click', () => $('pic-camera-input').click());
+    $('pic-big').addEventListener('click', () => {
+      const v = state.vendor;
+      if (v && isPicture(v.picture)) openPictureEditor(v.picture);
+      else $('pic-input').click();
+    });
+    $('pic-edit').addEventListener('click', () => { const v = state.vendor; if (v && isPicture(v.picture)) openPictureEditor(v.picture); });
+    $('pic-remove').addEventListener('click', async () => {
+      if (!confirm('Remove your profile picture? Your store shows your initials again.')) return;
+      clearPicError();
+      setPicBusy(true);
+      const { ok, status, data } = await api('/api/me', { action: 'picture-remove' });
+      setPicBusy(false);
+      if (status === 401) return sessionLost();
+      if (!ok) return picError(data.error || 'Could not remove your picture. Try again.');
+      state.vendor = data.vendor;
+      if (data.setup) state.setup = data.setup;
+      renderPicture();
+      renderProfilePreview();
+      renderThemePicker();
+      toast('Profile picture removed');
+    });
+    $('me-pic').addEventListener('click', () => { if (state.vendor) openProfile(); });
+    // Drag a photo onto the card (computers).
+    (function () {
+      const card = $('pic-card');
+      const hasFile = (e) => e.dataTransfer && [...(e.dataTransfer.types || [])].includes('Files');
+      ['dragenter', 'dragover'].forEach((t) => card.addEventListener(t, (e) => {
+        if (!hasFile(e)) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        card.classList.add('drag');
+      }));
+      card.addEventListener('dragleave', (e) => { if (!card.contains(e.relatedTarget)) card.classList.remove('drag'); });
+      card.addEventListener('drop', (e) => {
+        if (!hasFile(e)) return;
+        e.preventDefault();
+        card.classList.remove('drag');
+        const file = [...(e.dataTransfer.files || [])].find((f) => /^image\//.test(f.type));
+        if (file) pickPictureFile(file);
+        else picError('Drop a photo here (JPG or PNG).');
+      });
+    })();
+    // Paste a copied picture while on Store profile.
+    document.addEventListener('paste', (e) => {
+      if (!state.vendor || state.sheet || !$('view-profile').classList.contains('active')) return;
+      const t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      const item = [...((e.clipboardData && e.clipboardData.items) || [])].find((i) => i.kind === 'file' && /^image\//.test(i.type));
+      const file = item && item.getAsFile();
+      if (!file) return;
+      e.preventDefault();
+      pickPictureFile(file);
     });
 
     // ---------- resell ----------

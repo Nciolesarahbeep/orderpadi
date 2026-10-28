@@ -13,6 +13,7 @@
 //   POST /api/admin { action: "sign-out", id }            ends every login session
 //   POST /api/admin { action: "hide-review", id, reviewId }  takes a review off the store
 //   POST /api/admin { action: "show-review", id, reviewId }
+//   POST /api/admin { action: "remove-picture", id }       takes down a profile picture that breaks the rules
 //
 // Every action is written to billing_events as "admin.<action>" with who did it.
 const crypto = require('crypto');
@@ -22,6 +23,7 @@ const { HttpError, getSessionVendor, isAdmin, endAllSessions } = require('../lib
 const { FREE_MONTHLY_ORDERS, PRO_PRICE_KOBO, GRACE_DAYS, isPro } = require('../lib/plan');
 const { configured, paystack } = require('../lib/paystack');
 const { checkHealth } = require('../lib/health');
+const { pictureUrlOf, removePicture } = require('../lib/profilePicture');
 
 const PAGE_SIZE = 50;
 const FILTERS = ['all', 'pro', 'free', 'limit', 'suspended', 'unverified'];
@@ -168,6 +170,7 @@ async function sellerDetail(id) {
   return {
     seller: {
       ...sellerRow(v),
+      picture: pictureUrlOf(v),
       whatsappPhone: v.whatsapp_phone || null,
       hasBank: !!(v.bank_name && v.bank_account_number),
       paystackCustomer: v.paystack_customer_code || null,
@@ -319,6 +322,14 @@ async function setReviewHidden(admin, target, reviewId, hidden) {
   return {};
 }
 
+async function removeSellerPicture(admin, target) {
+  if (!pictureUrlOf(target)) throw new HttpError(400, 'They have no profile picture.');
+  await removePicture(target.id);
+  await logAction(admin, target.id, 'remove-picture');
+  await notify(target.id, 'picture_removed', 'Your profile picture was taken off your store because it breaks the OrderPadi rules. You can add a different one in More › Store profile.');
+  return {};
+}
+
 async function signOut(admin, target) {
   await endAllSessions(target.id);
   await logAction(admin, target.id, 'sign-out');
@@ -356,7 +367,8 @@ module.exports = async function handler(req, res) {
       unsuspend: (t) => unsuspend(admin, t),
       'sign-out': (t) => signOut(admin, t),
       'hide-review': (t) => setReviewHidden(admin, t, body.reviewId, true),
-      'show-review': (t) => setReviewHidden(admin, t, body.reviewId, false)
+      'show-review': (t) => setReviewHidden(admin, t, body.reviewId, false),
+      'remove-picture': (t) => removeSellerPicture(admin, t)
     };
     const run = actions[body.action];
     if (!run) return res.status(400).json({ error: 'Unknown action.' });

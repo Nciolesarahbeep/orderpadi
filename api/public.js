@@ -18,7 +18,7 @@
 //   GET  /api/public?ref=<code>                -> { referrer: { name } }   (sign-up invite banner)
 //   GET  /api/public?site=contact              -> { contact: { email, whatsapp } }
 //   GET  /api/public?render=home|store|invoice -> the page itself, with link-preview tags
-//   GET  /api/public?photo=<publicId>          -> a product photo (also at /p/<publicId>)
+//   GET  /api/public?photo=<publicId>          -> a product photo or profile picture (also at /p/<publicId>)
 //
 // Prices always come from the database, never from the browser. The order,
 // its items, the customer record and the seller's notification are written
@@ -30,6 +30,7 @@ const { createOrder, invoiceForCustomer } = require('../lib/orders');
 const { isPro, usage, noteUsage } = require('../lib/plan');
 const { renderPage } = require('../lib/pages');
 const { themeOf, photosForProducts, photoUrl, loadPhoto } = require('../lib/photos');
+const { pictureUrlOf, loadPicture } = require('../lib/profilePicture');
 const { optionsOf, lineKey, priceFor, stockRowsFor, stockShortfalls } = require('../lib/catalog');
 const { zonesOf } = require('../lib/storeSettings');
 const { findPromo, promoProblem, discountFor, promoLabel } = require('../lib/promos');
@@ -68,6 +69,7 @@ function storeForCustomer(v, { withBank = false } = {}) {
     bio: v.bio || null,
     category: v.store_category || null,
     place: [v.city, v.state].filter(Boolean).join(', ') || null,
+    picture: pictureUrlOf(v),       // the seller's profile picture, or null (show initials)
     branded: !isPro(v)
   };
   if (withBank) {
@@ -260,7 +262,7 @@ async function loadInvoice(publicId) {
   const rows = await sql`
     SELECT o.*, v.business_name, v.slug, v.whatsapp_phone, v.bank_name, v.bank_account_number,
            v.bank_account_name, v.default_delivery_fee_kobo, v.delivery_note, v.plan, v.plan_renews_at,
-           v.store_theme, v.away_message, v.bio, v.store_category, v.city, v.state
+           v.store_theme, v.away_message, v.bio, v.store_category, v.city, v.state, v.logo_url
     FROM orders o
     JOIN vendors v ON v.id = o.vendor_id
     WHERE o.public_id = ${id} AND v.is_suspended = FALSE
@@ -285,7 +287,8 @@ async function loadInvoice(publicId) {
     bank_name: order.bank_name, bank_account_number: order.bank_account_number, bank_account_name: order.bank_account_name,
     default_delivery_fee_kobo: order.default_delivery_fee_kobo, delivery_note: order.delivery_note, plan: order.plan,
     plan_renews_at: order.plan_renews_at, store_theme: order.store_theme, away_message: order.away_message,
-    bio: order.bio, store_category: order.store_category, city: order.city, state: order.state
+    bio: order.bio, store_category: order.store_category, city: order.city, state: order.state,
+    logo_url: order.logo_url
   };
   return { order, items, payments, review: reviews[0] || null, vendor: vendorShape };
 }
@@ -379,7 +382,7 @@ async function directory(req, res) {
   const page = Math.min(50, Math.max(0, Number(param(req, 'page')) || 0));
   const rows = await sql`
     WITH listed AS (
-      SELECT v.id, v.business_name, v.slug, v.store_theme, v.bio, v.store_category, v.state, v.city, v.created_at,
+      SELECT v.id, v.business_name, v.slug, v.store_theme, v.bio, v.store_category, v.state, v.city, v.created_at, v.logo_url,
              (SELECT count(*) FROM products p WHERE p.vendor_id = v.id AND p.is_active)::int AS products,
              (SELECT round(avg(r.rating)::numeric, 1) FROM reviews r WHERE r.vendor_id = v.id AND NOT r.is_hidden)::float AS rating,
              (SELECT count(*) FROM reviews r WHERE r.vendor_id = v.id AND NOT r.is_hidden)::int AS reviews
@@ -433,6 +436,7 @@ async function directory(req, res) {
       products: Number(r.products),
       rating: r.rating == null ? null : Number(r.rating),
       reviews: Number(r.reviews),
+      picture: pictureUrlOf(r),
       photos: pics.get(Number(r.id)) || []
     })),
     categories: CATEGORIES.map((c) => ({ name: c, count: byCat.get(c) || 0 })),
@@ -441,10 +445,10 @@ async function directory(req, res) {
   });
 }
 
-// A product photo. Its address changes whenever the photo does, so it can be
-// cached for a year by the phone and by Netlify's CDN.
+// A product photo or a seller's profile picture. Its address changes whenever
+// the picture does, so it can be cached for a year by the phone and by Netlify's CDN.
 async function servePhoto(publicId, res) {
-  const photo = await loadPhoto(publicId);
+  const photo = (await loadPhoto(publicId)) || (await loadPicture(publicId));
   if (!photo) {
     res.setHeader('Cache-Control', 'public, max-age=60');
     return res.status(404).json({ error: 'Photo not found' });
