@@ -319,7 +319,8 @@
     .tl-dot svg { width: 16px; height: 16px; }
     .tl-placed { background: var(--sky); } .tl-status { background: var(--lilac); } .tl-payment { background: var(--brand); }
     .tl-payment_removed { background: var(--card-2); color: var(--text); } .tl-customer_paid { background: var(--coral); }
-    .tl-note { background: var(--sun); } .tl-invoice_sent, .tl-quick_reply { background: var(--wa); }
+    .tl-note { background: var(--sun); } .tl-invoice_sent, .tl-quick_reply, .tl-tracking_sent { background: var(--wa); }
+    .tl-sent { background: var(--grape); color: #fff; } .tl-received { background: var(--brand); }
     .timeline .tl-text { min-width: 0; font-weight: 700; font-size: 15px; overflow-wrap: anywhere; }
     .timeline .tl-text small { display: block; color: var(--muted); font-weight: 600; font-size: 13px; }
     .timeline li.tl-is-note .tl-text { font-weight: 600; font-style: italic; }
@@ -327,6 +328,39 @@
     .note-add input { flex: 1; min-width: 0; }
     .order-links { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 12px; }
     .order-links .btn { width: auto; flex: 1; margin: 0; }
+
+    /* tracking: status steps, the delivery card and the "Sent out" sheet */
+    /* four steps: two rows on phones (so "Processing" fits), one row on wider screens */
+    #order-status { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @media (min-width: 480px) { #order-status { grid-auto-flow: column; grid-template-columns: none; } }
+    .deliv-head { display: flex; align-items: center; gap: 12px; }
+    .deliv-ico { flex: none; width: 42px; height: 42px; border-radius: 14px; border: 2px solid var(--ink); background: var(--grape); color: #fff; display: grid; place-items: center; }
+    .deliv-ico svg { width: 24px; height: 24px; }
+    .deliv-ico.done { background: var(--brand); color: #1B1530; }
+    .deliv-ico.big { width: 66px; height: 66px; border-radius: 20px; margin: 6px auto 10px; animation: op-pop .45s cubic-bezier(.2, .9, .3, 1.4) both; }
+    .deliv-ico.big svg { width: 38px; height: 38px; }
+    .deliv-head b { display: block; font-family: var(--display); font-size: 19px; line-height: 1.2; }
+    .deliv-head small { display: block; color: var(--muted); font-weight: 600; font-size: 14px; }
+    .deliv-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 2px solid var(--line); }
+    .deliv-row .muted { display: block; font-size: 13px; font-weight: 800; }
+    .deliv-row b { display: block; overflow-wrap: anywhere; }
+    .deliv-row .btn { flex: none; }
+    .deliv-photo { display: flex; align-items: center; gap: 10px; margin-top: 12px; color: var(--text); text-decoration: none; font-weight: 800; }
+    .deliv-photo img { width: 56px; height: 56px; object-fit: cover; border-radius: 12px; border: 2px solid var(--ink); background: var(--card-2); }
+    .deliv-note { margin: 12px 0 0; font-weight: 600; font-style: italic; overflow-wrap: anywhere; }
+    .deliv-got { margin: 12px 0 0; padding: 8px 12px; border-radius: 12px; border: 2px solid var(--ink); background: var(--brand-soft); color: var(--text); font-weight: 800; font-size: 14px; }
+    .send-sheet h2 { margin: 6px 0 0; }
+    .send-sheet > p.muted { margin: 4px 0 0; font-size: 15px; }
+    .send-sheet .seg { margin-top: 14px; }
+    .day-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .day-chips button { border: 2px solid var(--ink); background: var(--card-2); color: var(--text); border-radius: 999px; padding: 3px 12px; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+    .day-chips button[aria-pressed="true"] { background: var(--sun); color: #1B1530; }
+    .slip { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .slip img { width: 64px; height: 64px; object-fit: cover; border-radius: 14px; border: 2px solid var(--ink); background: var(--card-2); }
+    .slip .btn { width: auto; margin: 0; }
+    .send-done { text-align: center; padding: 4px 0 0; }
+    .send-done h2 { margin: 0; }
+    .send-done p { margin: 6px 0 0; }
 
     .card.tint-sun .muted { color: #1B1530; opacity: .75; }
     .alert-btn { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; box-shadow: var(--shadow-sm); }
@@ -838,6 +872,7 @@
         <button class="chip active" type="button" data-filter="all">All</button>
         <button class="chip" type="button" data-filter="new">New<span id="chip-new"></span></button>
         <button class="chip" type="button" data-filter="unpaid">Unpaid<span id="chip-unpaid"></span></button>
+        <button class="chip" type="button" data-filter="sent">Sent out<span id="chip-sent"></span></button>
         <button class="chip" type="button" data-filter="delivered">Delivered</button>
       </div>
       <button class="filter-chip" type="button" id="customer-filter" hidden></button>
@@ -887,8 +922,10 @@
       <div class="seg" id="order-status">
         <button type="button" data-status="new">New</button>
         <button type="button" data-status="processing">Processing</button>
+        <button type="button" data-status="sent">Sent out</button>
         <button type="button" data-status="delivered">Delivered</button>
       </div>
+      <div class="card" id="order-delivery" hidden></div>
       <p class="center"><button class="link" type="button" id="order-cancel">Cancel this order</button></p>
 
       <p class="section-title">Payments</p>
@@ -1873,7 +1910,7 @@
     // (an order, a product, customers…) are added on top and remember the
     // scroll position underneath.
     const TOP_VIEWS = ['home', 'orders', 'products', 'more', 'login', 'signup', 'forgot'];
-    const ORDER_FILTERS = ['all', 'new', 'unpaid', 'delivered'];
+    const ORDER_FILTERS = ['all', 'new', 'unpaid', 'sent', 'delivered'];
     let navMode = 'auto'; // how the next screen change treats history: 'auto', 'replace' or 'none'
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
@@ -3255,7 +3292,7 @@
     });
 
     // ---------- logged in: Orders ----------
-    const STATUS_LABEL = { new: 'New', processing: 'Processing', delivered: 'Delivered', cancelled: 'Cancelled' };
+    const STATUS_LABEL = { new: 'New', processing: 'Processing', sent: 'Sent out', delivered: 'Delivered', cancelled: 'Cancelled' };
     const PAY_LABEL = { unpaid: 'Unpaid', part_paid: 'Part paid', paid: 'Paid' };
     const METHOD_LABEL = { transfer: 'Transfer', cash: 'Cash', pos: 'POS', other: 'Other' };
 
@@ -3313,9 +3350,18 @@
 
     function renderOrders() {
       document.querySelectorAll('#order-filters .chip').forEach((c) => c.classList.toggle('active', c.dataset.filter === state.filter));
+      // Keep the chosen chip in view when the row is wider than the screen.
+      const bar = $('order-filters');
+      const chosen = bar.querySelector('.chip.active');
+      if (chosen) {
+        const b = bar.getBoundingClientRect();
+        const a = chosen.getBoundingClientRect();
+        if (b.width && (a.right > b.right || a.left < b.left)) bar.scrollLeft += a.left - b.left - 16;
+      }
       const c = state.counts || {};
       $('chip-new').textContent = c.new ? c.new : '';
       $('chip-unpaid').textContent = c.unpaid ? c.unpaid : '';
+      $('chip-sent').textContent = c.sent ? c.sent : '';
       const box = $('orders-list');
       box.textContent = '';
       $('orders-more').hidden = !state.hasMore;
@@ -3534,6 +3580,7 @@
         b.disabled = cancelled;
       });
       $('order-cancel').textContent = cancelled ? 'Restore this order' : 'Cancel this order';
+      renderDelivery(o);
 
       // payments
       const pays = $('order-payments');
@@ -3613,6 +3660,8 @@
     }
 
     document.querySelectorAll('#order-status button').forEach((b) => b.addEventListener('click', () => {
+      // "Sent out" asks how it's going (rider or waybill), also to change the details later.
+      if (b.dataset.status === 'sent') return openSendSheet();
       if (b.dataset.status === state.order.status) return;
       orderAction({ action: 'status', status: b.dataset.status }, 'Marked ' + STATUS_LABEL[b.dataset.status].toLowerCase());
     }));
@@ -5184,8 +5233,319 @@
       invoice_sent: '<path d="M4 5h16v11H9l-5 4z"/>',
       review: '<path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6L12 16.7l-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/>',
       review_asked: '<path d="M4 5h16v11H9l-5 4z"/>',
-      quick_reply: '<path d="M4 5h16v11H9l-5 4z"/>'
+      quick_reply: '<path d="M4 5h16v11H9l-5 4z"/>',
+      sent: '<path d="M3 6h11v10H3z"/><path d="M14 9h4l3 3v4h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>',
+      received: '<path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M8.5 12l2.5 2.5 4.5-4.5"/>',
+      tracking_sent: '<path d="M4 5h16v11H9l-5 4z"/>'
     };
+
+    // ---------- tracking: sent out with a rider or by waybill ----------
+    // The customer follows it on their invoice page (/i/<id>#track) and taps
+    // "I've got it" when it arrives, which marks it delivered.
+    const TRUCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + TL_ICONS.sent + '</svg>';
+    const GOT_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + TL_ICONS.received + '</svg>';
+    const WAYBILL_COMPANIES = ['GIG Logistics', 'GIGM', 'GUO Transport', 'Peace Mass Transit', 'ABC Transport', 'Young Shall Grow', 'Chisco Transport', 'Red Star Express', 'DHL'];
+
+    // A day in Lagos, offset days from today -> "2026-11-14".
+    function lagosDayPlus(offset) {
+      return new Date(Date.now() + offset * 86400000).toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' });
+    }
+    // "2026-11-14" -> "today", "tomorrow" or "on Friday 14 November"
+    function arriveWords(day) {
+      if (day === lagosDayPlus(0)) return 'today';
+      if (day === lagosDayPlus(1)) return 'tomorrow';
+      if (day === lagosDayPlus(-1)) return 'yesterday';
+      const [y, m, d] = String(day).split('-').map(Number);
+      return 'on ' + new Date(Date.UTC(y, m - 1, d, 12)).toLocaleDateString('en-NG', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+    }
+    function trackingUrl(o) { return invoiceUrl(o) + '#track'; }
+
+    // The WhatsApp message that tells the customer it's on its way.
+    function trackingMessage(o) {
+      const t = o.tracking || {};
+      const c = t.courier;
+      const lines = ['Hi ' + o.customerName.split(' ')[0] + ', your order #' + o.number + ' from ' + state.vendor.businessName + ' is on its way!'];
+      if (c && c.kind === 'rider' && (c.name || c.phone)) lines.push('Rider: ' + [c.name, c.phone ? formatPhone(c.phone) : ''].filter(Boolean).join(', '));
+      if (c && c.kind === 'waybill') lines.push('Sent by ' + (c.name || 'waybill') + (c.code ? ', waybill no. ' + c.code : ''));
+      if (t.expectedOn) lines.push('It should arrive ' + arriveWords(t.expectedOn) + '.');
+      if (t.message) lines.push(t.message);
+      lines.push('', 'Track it here: ' + trackingUrl(o));
+      if (o.balanceKobo > 0) lines.push('Still to pay: ' + formatNaira(o.balanceKobo));
+      return lines.join('\n');
+    }
+    function trackingLink(o) { return 'https://wa.me/' + o.customerPhone + '?text=' + encodeURIComponent(trackingMessage(o)); }
+
+    // The card under the status buttons once an order is out (or delivered).
+    function renderDelivery(o) {
+      const box = $('order-delivery');
+      const t = o.tracking || {};
+      const c = t.courier;
+      const show = o.status === 'sent' || (o.status === 'delivered' && !!(c || t.customerReceivedAt || t.message || t.photo));
+      box.hidden = !show;
+      box.textContent = '';
+      if (!show) return;
+      const out = o.status === 'sent';
+      const head = el('div', 'deliv-head');
+      const ico = el('span', 'deliv-ico' + (out ? '' : ' done'));
+      ico.innerHTML = out ? TRUCK_SVG : GOT_SVG;
+      const words = el('div', 'row-main');
+      words.appendChild(el('b', null, out ? 'On the way' : 'Delivered'));
+      const sub = [];
+      if (out && t.sentAt) sub.push('Sent ' + when(t.sentAt));
+      if (out && t.expectedOn) sub.push('arriving ' + arriveWords(t.expectedOn));
+      if (!out && t.deliveredAt) sub.push(when(t.deliveredAt));
+      if (sub.length) words.appendChild(el('small', null, sub.join(' · ')));
+      head.append(ico, words);
+      box.appendChild(head);
+      if (c) {
+        const row = el('div', 'deliv-row');
+        const text = el('div', 'row-main');
+        const parts = c.kind === 'rider' ? [c.name, c.phone ? formatPhone(c.phone) : ''] : [c.name, c.code ? 'No. ' + c.code : ''];
+        text.append(el('span', 'muted', c.kind === 'rider' ? 'Rider' : 'Waybill'), el('b', null, parts.filter(Boolean).join(' · ') || 'No details added'));
+        row.appendChild(text);
+        if (c.kind === 'rider' && c.phone) {
+          const call = el('a', 'btn small secondary', 'Call');
+          call.href = 'tel:+' + c.phone;
+          row.appendChild(call);
+        }
+        box.appendChild(row);
+      }
+      if (t.photo) {
+        const a = el('a', 'deliv-photo');
+        a.href = t.photo;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        const img = document.createElement('img');
+        img.alt = '';
+        img.src = t.photo;
+        a.append(img, el('span', null, 'Waybill slip'));
+        box.appendChild(a);
+      }
+      if (t.message) box.appendChild(el('p', 'deliv-note', '“' + t.message + '”'));
+      if (t.customerReceivedAt) box.appendChild(el('p', 'deliv-got', o.customerName.split(' ')[0] + ' confirmed they got it · ' + when(t.customerReceivedAt)));
+      const actions = el('div', 'order-links');
+      if (out) {
+        const wa = el('a', 'btn small wa', 'Send tracking');
+        wa.href = trackingLink(o);
+        wa.target = '_blank';
+        wa.rel = 'noopener';
+        wa.addEventListener('click', () => logOrder('tracking_sent'));
+        actions.appendChild(wa);
+      }
+      const edit = el('button', 'btn small secondary', c || t.expectedOn || t.message ? 'Edit details' : 'Add rider or waybill');
+      edit.type = 'button';
+      edit.addEventListener('click', openSendSheet);
+      actions.appendChild(edit);
+      box.appendChild(actions);
+    }
+
+    // "Sent out": how it's going, when it should arrive and a note, then a
+    // WhatsApp message with the tracking link. Opening it again changes the details.
+    function openSendSheet() {
+      const o = state.order;
+      if (!o) return;
+      if (o.status === 'cancelled') return toast('Restore this order first.');
+      closeSheet();
+      const t = o.tracking || {};
+      const c = t.courier;
+      const already = o.status === 'sent' || o.status === 'delivered';
+      const first = o.customerName.split(' ')[0];
+      const draft = { kind: c ? c.kind : 'rider', photo: null, photoUrl: t.photo || null, removePhoto: false };
+
+      const back = el('div', 'sheet-backdrop');
+      const sheet = el('div', 'sheet send-sheet');
+      sheet.setAttribute('role', 'dialog');
+      sheet.setAttribute('aria-modal', 'true');
+      sheet.setAttribute('aria-labelledby', 'send-title');
+      sheet.innerHTML =
+        '<div class="sheet-handle"></div>' +
+        '<h2 id="send-title"></h2>' +
+        '<p class="muted" id="send-sub"></p>' +
+        '<div class="seg" id="send-kind" role="group" aria-label="How it is going">' +
+          '<button type="button" data-kind="rider">Rider</button>' +
+          '<button type="button" data-kind="waybill">Waybill</button>' +
+          '<button type="button" data-kind="">No details</button>' +
+        '</div>' +
+        '<div id="send-rider">' +
+          '<label for="send-riderName">Rider\'s name <span class="muted">(optional)</span></label>' +
+          '<input id="send-riderName" type="text" maxlength="60" autocomplete="off" placeholder="e.g. Musa">' +
+          '<label for="send-courierPhone">Rider\'s phone <span class="muted">(optional)</span></label>' +
+          '<input id="send-courierPhone" type="tel" inputmode="tel" autocomplete="off" placeholder="0803 123 4567">' +
+        '</div>' +
+        '<div id="send-waybill">' +
+          '<label for="send-companyName">Bus company, park or courier</label>' +
+          '<input id="send-companyName" type="text" maxlength="60" autocomplete="off" list="send-companies" placeholder="e.g. GIG Logistics">' +
+          '<datalist id="send-companies"></datalist>' +
+          '<label for="send-trackingCode">Waybill number <span class="muted">(optional)</span></label>' +
+          '<input id="send-trackingCode" type="text" maxlength="40" autocomplete="off" autocapitalize="characters">' +
+          '<label>Photo of the waybill slip <span class="muted">(optional)</span></label>' +
+          '<div class="slip"><img id="send-slip-img" alt="Waybill slip" hidden>' +
+            '<button class="btn small secondary" type="button" id="send-slip-add">Add photo</button>' +
+            '<button class="link" type="button" id="send-slip-remove" hidden>Remove</button></div>' +
+          '<input id="send-slip-file" type="file" accept="image/*" hidden>' +
+        '</div>' +
+        '<label for="send-expectedOn">Should arrive <span class="muted">(optional)</span></label>' +
+        '<input id="send-expectedOn" type="date">' +
+        '<div class="day-chips" id="send-days"></div>' +
+        '<label for="send-message">Note for ' + '<span id="send-first"></span> <span class="muted">(optional)</span></label>' +
+        '<input id="send-message" type="text" maxlength="200" autocomplete="off" placeholder="e.g. The rider will call when he\'s close">' +
+        '<p class="error" id="send-error" role="alert"></p>' +
+        '<button class="btn" type="button" id="send-save" style="margin-top:18px"></button>' +
+        '<button class="link" type="button" id="send-cancel" style="display:block;margin:12px auto 0">Cancel</button>';
+      document.body.append(back, sheet);
+      state.sheet = [back, sheet];
+      back.addEventListener('click', closeSheet);
+
+      const q = (id) => sheet.querySelector('#' + id);
+      q('send-title').textContent = already ? 'Delivery details · #' + o.number : 'Send out order #' + o.number;
+      q('send-sub').textContent = first + ' sees this on their tracking page.';
+      q('send-first').textContent = first;
+      q('send-save').textContent = already ? 'Save details' : 'Mark sent out';
+      WAYBILL_COMPANIES.forEach((name) => q('send-companies').appendChild(Object.assign(document.createElement('option'), { value: name })));
+      q('send-riderName').value = c && c.kind === 'rider' ? c.name : '';
+      q('send-courierPhone').value = c && c.phone ? formatPhone(c.phone) : '';
+      q('send-companyName').value = c && c.kind === 'waybill' ? c.name : '';
+      q('send-trackingCode').value = c && c.code ? c.code : '';
+      q('send-expectedOn').value = t.expectedOn || '';
+      q('send-expectedOn').min = lagosDayPlus(-30);
+      q('send-message').value = t.message || '';
+
+      const DAYS = [['Today', 0], ['Tomorrow', 1], ['In 3 days', 3], ['In a week', 7]];
+      function paintDays() {
+        q('send-days').querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(q('send-expectedOn').value === b.dataset.day)));
+      }
+      DAYS.forEach(([label, offset]) => {
+        const b = el('button', null, label);
+        b.type = 'button';
+        b.dataset.day = lagosDayPlus(offset);
+        b.addEventListener('click', () => {
+          q('send-expectedOn').value = q('send-expectedOn').value === b.dataset.day ? '' : b.dataset.day;
+          paintDays();
+          hideErr();
+        });
+        q('send-days').appendChild(b);
+      });
+      q('send-expectedOn').addEventListener('change', paintDays);
+      paintDays();
+
+      function paintKind() {
+        q('send-kind').querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kind === draft.kind)));
+        q('send-rider').hidden = draft.kind !== 'rider';
+        q('send-waybill').hidden = draft.kind !== 'waybill';
+      }
+      q('send-kind').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+        draft.kind = b.dataset.kind;
+        paintKind();
+        hideErr();
+        OP.buzz();
+      }));
+      paintKind();
+
+      function paintSlip() {
+        const src = draft.photo || (draft.removePhoto ? null : draft.photoUrl);
+        q('send-slip-img').hidden = !src;
+        if (src) q('send-slip-img').src = src;
+        q('send-slip-add').textContent = src ? 'Change photo' : 'Add photo';
+        q('send-slip-remove').hidden = !src;
+      }
+      q('send-slip-add').addEventListener('click', () => q('send-slip-file').click());
+      q('send-slip-file').addEventListener('change', async () => {
+        const file = q('send-slip-file').files[0];
+        q('send-slip-file').value = '';
+        if (!file) return;
+        const btn = q('send-slip-add');
+        busy(btn, true, 'Opening…');
+        try {
+          draft.photo = await shrinkImage(file);
+          draft.removePhoto = false;
+          hideErr();
+        } catch (e) {
+          showErr("Couldn't open that photo. Try another one, or a screenshot of it.");
+        }
+        busy(btn, false);
+        paintSlip();
+      });
+      q('send-slip-remove').addEventListener('click', () => {
+        draft.photo = null;
+        draft.removePhoto = true;
+        paintSlip();
+      });
+      paintSlip();
+
+      const FIELD_IDS = { courierPhone: 'send-courierPhone', trackingCode: 'send-trackingCode', expectedOn: 'send-expectedOn', message: 'send-message' };
+      function showErr(text, field) {
+        const box = q('send-error');
+        box.textContent = text;
+        box.classList.add('show');
+        const id = field === 'courierName' ? (draft.kind === 'waybill' ? 'send-companyName' : 'send-riderName') : FIELD_IDS[field];
+        if (id && q(id)) { q(id).classList.add('invalid'); q(id).focus(); }
+        box.scrollIntoView({ block: 'nearest', behavior: OP.reducedMotion ? 'auto' : 'smooth' });
+      }
+      function hideErr() {
+        q('send-error').classList.remove('show');
+        q('send-error').textContent = '';
+        sheet.querySelectorAll('.invalid').forEach((i) => i.classList.remove('invalid'));
+      }
+      sheet.addEventListener('input', hideErr);
+      q('send-cancel').addEventListener('click', closeSheet);
+
+      q('send-save').addEventListener('click', async () => {
+        hideErr();
+        const body = { action: 'send', id: o.id, kind: draft.kind, expectedOn: q('send-expectedOn').value, message: q('send-message').value };
+        if (draft.kind === 'rider') {
+          body.courierName = q('send-riderName').value;
+          body.courierPhone = q('send-courierPhone').value;
+        } else if (draft.kind === 'waybill') {
+          body.courierName = q('send-companyName').value;
+          body.trackingCode = q('send-trackingCode').value;
+          if (draft.photo) body.photo = draft.photo;
+          else if (draft.removePhoto) body.removePhoto = true;
+        }
+        const btn = q('send-save');
+        busy(btn, true, 'Saving…');
+        const { ok, status, data } = await api('/api/orders', body);
+        const open = !!state.sheet && state.sheet[1] === sheet; // the sheet may have been closed meanwhile
+        busy(btn, false);
+        if (status === 401) { closeSheet(); return sessionLost(); }
+        if (!ok) {
+          const text = data.error || 'Could not save. Check your internet and try again.';
+          return open ? showErr(text, data.field) : toast(text);
+        }
+        if (state.order && state.order.id === data.order.id) renderOrder(data.order);
+        loadOrders(true, { quiet: true });
+        OP.buzz(15);
+        if (open) showDone(data.order); else toast('Delivery details saved', 'good');
+      });
+
+      // After saving: one tap to tell the customer.
+      function showDone(order) {
+        const delivered = order.status === 'delivered';
+        sheet.innerHTML =
+          '<div class="sheet-handle"></div>' +
+          '<div class="send-done"><span class="deliv-ico big' + (delivered ? ' done' : '') + '">' + (delivered ? GOT_SVG : TRUCK_SVG) + '</span>' +
+          '<h2 id="send-title"></h2><p class="muted" id="send-done-text"></p></div>';
+        q('send-title').textContent = delivered ? 'Details saved' : already ? 'Details updated' : 'Order #' + order.number + ' is on its way';
+        q('send-done-text').textContent = delivered
+          ? 'They show on ' + first + "'s receipt."
+          : 'Let ' + first + ' know. The link shows them where it is, and they can tell you when it arrives.';
+        if (!delivered) {
+          const wa = el('a', 'btn wa', already ? 'Send the update on WhatsApp' : 'Tell ' + first + ' on WhatsApp');
+          wa.href = trackingLink(order);
+          wa.target = '_blank';
+          wa.rel = 'noopener';
+          wa.style.marginTop = '16px';
+          wa.addEventListener('click', () => { logOrder('tracking_sent'); setTimeout(closeSheet, 300); });
+          sheet.appendChild(wa);
+        }
+        const done = el('button', delivered ? 'btn' : 'link', delivered ? 'Done' : 'Not now');
+        done.type = 'button';
+        done.style.cssText = delivered ? 'margin-top:16px' : 'display:block;margin:12px auto 0';
+        done.addEventListener('click', closeSheet);
+        sheet.appendChild(done);
+        if (!delivered && !already) OP.confetti(q('send-title'));
+      }
+      setTimeout(() => (draft.kind === 'waybill' ? q('send-companyName') : draft.kind === 'rider' ? q('send-riderName') : q('send-save')).focus({ preventScroll: true }), 350);
+    }
     function renderTimeline(o) {
       const box = $('order-timeline');
       box.textContent = '';

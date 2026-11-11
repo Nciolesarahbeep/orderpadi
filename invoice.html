@@ -79,6 +79,42 @@
     .seller-reply b { display: block; font-size: 14px; }
     .seller-reply p { margin: 2px 0 0; font-weight: 600; white-space: pre-line; overflow-wrap: anywhere; }
     .review-card .fine { font-size: 13px; color: var(--muted); text-align: center; margin: 10px 0 0; font-weight: 600; }
+    /* tracking: where the order is up to */
+    .track { margin: 0 0 16px; }
+    .track-head { display: flex; align-items: center; gap: 12px; }
+    .track-ico { flex: none; width: 50px; height: 50px; border-radius: 16px; border: var(--bw) solid var(--ink); background: var(--theme); color: var(--theme-ink); display: grid; place-items: center; }
+    .track-ico svg { width: 28px; height: 28px; }
+    .track-title { margin: 0; font-family: var(--display); font-size: 23px; font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
+    .track-sub { margin: 2px 0 0; color: var(--muted); font-weight: 700; font-size: 15px; }
+    .steps { list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 18px 0 0; padding: 0; }
+    .steps li { position: relative; text-align: center; font-size: 13px; line-height: 1.25; font-weight: 800; color: var(--muted); padding: 0 2px; }
+    .steps li::before { content: ''; position: absolute; top: 12px; right: 50%; width: 100%; height: 4px; background: var(--line); }
+    .steps li:first-child::before { display: none; }
+    .steps li.done::before, .steps li.now::before { background: var(--text); }
+    .steps .dot { position: relative; z-index: 1; display: grid; place-items: center; width: 28px; height: 28px; margin: 0 auto 6px; border-radius: 50%; border: 3px solid var(--line); background: var(--card); color: var(--theme-ink); }
+    .steps .dot svg { width: 15px; height: 15px; }
+    .steps li.done, .steps li.now { color: var(--text); }
+    .steps li.done .dot, .steps li.now .dot { background: var(--theme); border-color: var(--ink); }
+    .steps li.now .dot { animation: track-pulse 1.8s ease-out infinite; }
+    .steps small { display: block; margin-top: 1px; font-weight: 600; font-size: 12px; color: var(--muted); }
+    @keyframes track-pulse { 0% { box-shadow: 0 0 0 0 rgba(27, 21, 48, .35); } 70%, 100% { box-shadow: 0 0 0 10px rgba(27, 21, 48, 0); } }
+    @media (prefers-reduced-motion: reduce) { .steps li.now .dot { animation: none; } }
+    .track-rows { margin-top: 14px; }
+    .track-rows .row .muted { font-weight: 700; }
+    .track-rows .row > span:last-child { display: flex; align-items: center; justify-content: flex-end; gap: 0; min-width: 0; }
+    .call { display: inline-block; border: 2px solid var(--ink); background: var(--sun); color: #1B1530; font-size: 13px; font-weight: 800; padding: 3px 10px; border-radius: 9px; margin-left: 8px; text-decoration: none; white-space: nowrap; }
+    .slip-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 0 0; margin-top: 2px; border: 0; border-top: 2px solid var(--line); background: none; color: var(--text); font: inherit; font-weight: 800; text-align: left; cursor: pointer; }
+    .slip-btn img { width: 58px; height: 58px; object-fit: cover; border-radius: 12px; border: 2px solid var(--ink); background: var(--card-2); }
+    .slip-btn small { display: block; color: var(--muted); font-weight: 600; font-size: 13px; }
+    .seller-note { margin-top: 12px; padding: 10px 12px; border-radius: 14px; border: 2px solid var(--ink); background: var(--card-2); }
+    .seller-note b { display: block; font-size: 14px; }
+    .seller-note p { margin: 2px 0 0; font-weight: 600; overflow-wrap: anywhere; }
+    .track .btn.theme { margin-top: 16px; }
+    .track .fine { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 0; font-weight: 600; }
+    .lightbox { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 20px; background: rgba(27, 21, 48, .86); }
+    .lightbox img { max-width: 100%; max-height: 78vh; border-radius: 16px; border: var(--bw) solid var(--ink); background: #fff; }
+    .lightbox .btn { width: auto; min-width: 140px; }
+
     .missing { text-align: center; margin-top: 60px; }
     .missing svg { width: 110px; height: 110px; margin-bottom: 8px; }
     footer { margin-top: 30px; text-align: center; }
@@ -107,6 +143,18 @@
     </section>
 
     <section class="view" id="view-invoice">
+      <div class="card track no-print" id="track" hidden>
+        <div class="track-head">
+          <span class="track-ico" id="track-ico"></span>
+          <div style="min-width:0"><p class="track-title" id="track-title"></p><p class="track-sub" id="track-sub"></p></div>
+        </div>
+        <ol class="steps" id="track-steps" aria-label="Order progress"></ol>
+        <div class="track-rows" id="track-rows"></div>
+        <button class="btn theme" type="button" id="got-btn" hidden>I've got it</button>
+        <p class="fine" id="got-fine" hidden>Tap when your order arrives, so the seller knows.</p>
+        <p class="error" id="got-error" hidden></p>
+      </div>
+
       <div class="paper">
         <div class="stamp" id="stamp" hidden>PAID</div>
         <div class="paper-top">
@@ -166,6 +214,11 @@
         <button class="btn secondary" type="button" id="print-btn">Save as PDF or print</button>
       </div>
     </section>
+
+    <div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Waybill slip">
+      <img id="lightbox-img" alt="Waybill slip">
+      <button class="btn secondary" type="button" id="lightbox-close">Close</button>
+    </div>
 
     <footer id="branding" hidden><a class="made-with" href="/">Made with Order<b>Padi</b></a></footer>
   </main>
@@ -339,11 +392,16 @@
         $('chat-btn').hidden = false;
       }
       $('branding').hidden = !store.branded;
+      renderTrack();
       renderReview();
       switchView('invoice');
       if (!state.scrolled && location.hash === '#review' && !$('review').hidden) {
         state.scrolled = true;
         setTimeout(() => $('review').scrollIntoView({ block: 'center', behavior: OP.reducedMotion ? 'auto' : 'smooth' }), 150);
+      }
+      if (!state.scrolled && location.hash === '#track' && !$('track').hidden) {
+        state.scrolled = true;
+        setTimeout(() => $('track').scrollIntoView({ block: 'start', behavior: OP.reducedMotion ? 'auto' : 'smooth' }), 150);
       }
       // Celebrate when the receipt turns paid while it's open.
       if (state.wasPaid === false && paid) OP.confetti($('stamp'));
@@ -370,6 +428,164 @@
     });
 
     $('print-btn').addEventListener('click', () => window.print());
+
+    // ---------- tracking ----------
+    // Shown once the seller starts on the order: getting it ready, on the
+    // way (with the rider or waybill details), delivered.
+    const ICON = (paths) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
+    const TRACK_ICONS = {
+      processing: ICON('<path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/>'),
+      sent: ICON('<path d="M3 6h11v10H3z"/><path d="M14 9h4l3 3v4h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>'),
+      delivered: ICON('<path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M8.5 12l2.5 2.5 4.5-4.5"/>')
+    };
+    const TICK = ICON('<path d="M5 12l5 5L20 7"/>').replace('stroke-width="2.3"', 'stroke-width="3.4"');
+    const STEP_ORDER = ['placed', 'processing', 'sent', 'delivered'];
+    const STEP_NAMES = { placed: 'Order placed', processing: 'Getting ready', sent: 'On the way', delivered: 'Delivered' };
+
+    // Days in Lagos time, as the seller's phone sees them.
+    const lagosDay = (date) => new Date(date).toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' });
+    function shortDate(iso) { return new Date(iso).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', timeZone: 'Africa/Lagos' }); }
+    // "2026-11-14" -> "today", "tomorrow" or "on Friday 14 November"
+    function dayWords(day) {
+      const today = lagosDay(Date.now());
+      if (day === today) return 'today';
+      if (day === lagosDay(Date.now() + 86400000)) return 'tomorrow';
+      if (day === lagosDay(Date.now() - 86400000)) return 'yesterday';
+      const [y, m, d] = String(day).split('-').map(Number);
+      return 'on ' + new Date(Date.UTC(y, m - 1, d, 12)).toLocaleDateString('en-NG', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+    }
+    // An ISO time -> "today", "yesterday" or "on Tuesday 11 November"
+    const timeWords = (iso) => dayWords(lagosDay(iso));
+    function localPhone(p) {
+      const local = String(p || '').replace(/^234/, '0');
+      return local.length === 11 ? local.slice(0, 4) + ' ' + local.slice(4, 7) + ' ' + local.slice(7) : local;
+    }
+    function copyButton(value) {
+      const copy = el('button', 'copy', 'Copy');
+      copy.type = 'button';
+      copy.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(value); copy.textContent = 'Copied'; }
+        catch (e) { copy.textContent = 'Hold to copy'; }
+        setTimeout(() => { copy.textContent = 'Copy'; }, 2000);
+      });
+      return copy;
+    }
+    function trackRow(label, value, extra) {
+      const row = el('div', 'row');
+      row.appendChild(el('span', 'muted', label));
+      const right = el('span');
+      right.appendChild(el('b', null, value));
+      if (extra) right.appendChild(extra);
+      row.appendChild(right);
+      return row;
+    }
+
+    function renderTrack() {
+      const inv = state.invoice;
+      const t = inv.tracking;
+      const box = $('track');
+      box.hidden = !t || inv.status === 'cancelled';
+      if (box.hidden) return;
+      const store = state.store.businessName;
+      $('track-ico').innerHTML = TRACK_ICONS[t.step];
+      if (t.step === 'processing') {
+        $('track-title').textContent = 'Getting your order ready';
+        $('track-sub').textContent = t.processingAt ? store + ' started on it ' + timeWords(t.processingAt) + '.' : store + ' is preparing it.';
+      } else if (t.step === 'sent') {
+        $('track-title').textContent = 'Your order is on its way';
+        $('track-sub').textContent = t.expectedOn ? 'It should arrive ' + dayWords(t.expectedOn) + '.' : (t.sentAt ? 'Sent out ' + timeWords(t.sentAt) + '.' : 'Sent out.');
+      } else {
+        $('track-title').textContent = 'Delivered';
+        $('track-sub').textContent = (t.deliveredAt ? 'It arrived ' + timeWords(t.deliveredAt) : 'Your order arrived') + (t.youConfirmed ? '. You confirmed it.' : '.');
+      }
+
+      // The four steps, done up to where it is now.
+      const at = STEP_ORDER.indexOf(t.step);
+      const dates = { placed: t.placedAt, processing: t.processingAt, sent: t.sentAt, delivered: t.deliveredAt };
+      const steps = $('track-steps');
+      steps.textContent = '';
+      STEP_ORDER.forEach((name, i) => {
+        const li = el('li', i < at ? 'done' : i === at ? (name === 'delivered' ? 'done' : 'now') : '');
+        if (i === at) li.setAttribute('aria-current', 'step');
+        const dot = el('span', 'dot');
+        if (i < at || (i === at && name === 'delivered')) dot.innerHTML = TICK;
+        li.append(dot, document.createTextNode(STEP_NAMES[name]));
+        if (i <= at && dates[name]) li.appendChild(el('small', null, shortDate(dates[name])));
+        steps.appendChild(li);
+      });
+
+      // How it's travelling.
+      const rows = $('track-rows');
+      rows.textContent = '';
+      const c = t.courier;
+      if (c && c.kind === 'rider') {
+        if (c.name || c.phone) {
+          let call = null;
+          if (c.phone) {
+            call = el('a', 'call', 'Call');
+            call.href = 'tel:+' + c.phone;
+          }
+          rows.appendChild(trackRow('Rider', [c.name, c.phone ? localPhone(c.phone) : ''].filter(Boolean).join(' · '), call));
+        }
+      } else if (c && c.kind === 'waybill') {
+        rows.appendChild(trackRow('Sent by', c.name || 'Waybill'));
+        if (c.code) rows.appendChild(trackRow('Waybill no.', c.code, copyButton(c.code)));
+      }
+      if (t.photo) {
+        const slip = el('button', 'slip-btn');
+        slip.type = 'button';
+        const img = document.createElement('img');
+        img.alt = '';
+        img.src = t.photo;
+        const words = el('span', null, 'Waybill slip');
+        words.appendChild(el('small', null, 'Tap to see it bigger'));
+        slip.append(img, words);
+        slip.addEventListener('click', () => openLightbox(t.photo));
+        rows.appendChild(slip);
+      }
+      if (t.message) {
+        const note = el('div', 'seller-note');
+        note.append(el('b', null, 'Note from ' + store), el('p', null, t.message));
+        rows.appendChild(note);
+      }
+
+      const out = t.step === 'sent';
+      $('got-btn').hidden = !out;
+      $('got-fine').hidden = !out;
+      if (!out) $('got-error').hidden = true;
+    }
+
+    $('got-btn').addEventListener('click', async () => {
+      if (!confirm('Has your order arrived? We\'ll let ' + state.store.businessName + ' know.')) return;
+      const btn = $('got-btn');
+      btn.disabled = true;
+      btn.textContent = 'Letting the seller know…';
+      const { ok, data } = await api('/api/public', { action: 'received', invoice: publicId });
+      btn.disabled = false;
+      btn.textContent = "I've got it";
+      if (!ok) {
+        $('got-error').textContent = data.error || 'Could not reach the seller. Please message them on WhatsApp.';
+        $('got-error').hidden = false;
+        return;
+      }
+      $('got-error').hidden = true;
+      state.invoice = data.invoice;
+      state.store = data.store;
+      render();
+      OP.confetti($('track-ico'));
+      OP.buzz(20);
+      // Now they can rate it.
+      if (!$('review').hidden) setTimeout(() => $('review').scrollIntoView({ block: 'center', behavior: OP.reducedMotion ? 'auto' : 'smooth' }), 700);
+    });
+
+    function openLightbox(src) {
+      $('lightbox-img').src = src;
+      $('lightbox').hidden = false;
+      $('lightbox-close').focus();
+    }
+    function closeLightbox() { $('lightbox').hidden = true; }
+    $('lightbox').addEventListener('click', (e) => { if (e.target !== $('lightbox-img')) closeLightbox(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('lightbox').hidden) closeLightbox(); });
 
     // ---------- rating the order ----------
     function starsShow(n) {
@@ -458,14 +674,17 @@
       OP.buzz(15);
     });
 
-    // While money is owed, check now and then so the receipt appears as soon
-    // as the seller confirms the payment.
+    // While money is owed or the order is still coming, check now and then,
+    // so the receipt and the tracker update as soon as the seller does something.
     setInterval(async () => {
       const inv = state.invoice;
-      if (!inv || document.hidden || inv.status === 'cancelled' || inv.paymentStatus === 'paid') return;
+      if (!inv || document.hidden || inv.status === 'cancelled') return;
+      if (inv.paymentStatus === 'paid' && inv.status === 'delivered') return;
+      if (!$('lightbox').hidden) return;
       const { ok, data } = await api('/api/public?invoice=' + encodeURIComponent(publicId));
       if (!ok) return;
-      const changed = data.invoice.paymentStatus !== inv.paymentStatus || data.invoice.amountPaidKobo !== inv.amountPaidKobo || data.invoice.status !== inv.status;
+      const changed = data.invoice.paymentStatus !== inv.paymentStatus || data.invoice.amountPaidKobo !== inv.amountPaidKobo || data.invoice.status !== inv.status ||
+        JSON.stringify(data.invoice.tracking) !== JSON.stringify(inv.tracking);
       if (changed) { state.invoice = data.invoice; state.store = data.store; render(); }
     }, 20000);
 

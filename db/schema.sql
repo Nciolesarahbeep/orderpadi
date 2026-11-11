@@ -222,9 +222,22 @@ CREATE TABLE orders (
 
   payment_status           TEXT NOT NULL DEFAULT 'unpaid'
                              CHECK (payment_status IN ('unpaid', 'part_paid', 'paid')),
-  status                   TEXT NOT NULL DEFAULT 'new'
-                             CHECK (status IN ('new', 'processing', 'delivered', 'cancelled')),
+  status                   TEXT NOT NULL DEFAULT 'new',
+  CONSTRAINT orders_status_check CHECK (status IN ('new', 'processing', 'sent', 'delivered', 'cancelled')),
   customer_marked_paid_at  TIMESTAMPTZ,       -- buyer tapped "I've paid" on the invoice; vendor still confirms
+
+  -- tracking: when each step happened, and how the order is travelling
+  -- (courier_kind 'rider': name + phone; 'waybill': company or park + tracking_code)
+  processing_at            TIMESTAMPTZ,
+  sent_at                  TIMESTAMPTZ,
+  delivered_at             TIMESTAMPTZ,
+  customer_received_at     TIMESTAMPTZ,       -- buyer tapped "I've got it" on the invoice
+  courier_kind             TEXT CHECK (courier_kind IN ('rider', 'waybill')),
+  courier_name             TEXT,
+  courier_phone            TEXT,
+  tracking_code            TEXT,
+  expected_on              DATE,
+  delivery_message         TEXT,              -- the seller's note to the customer
   delivery_zone            TEXT,              -- the delivery area picked, if the seller has areas
   promo_code               TEXT,              -- the promo code used, if any (discount_kobo has the amount)
   stock_state              TEXT NOT NULL DEFAULT 'none',  -- 'taken' once stock came off, 'returned' after a cancel
@@ -290,6 +303,21 @@ CREATE TABLE order_events (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX order_events_order ON order_events (order_id, created_at, id);
+
+-- A photo of the waybill slip for an order that went by bus, park or courier.
+-- Served at /p/<public_id> but never cached by the CDN (it shows the
+-- customer's details). Photos of orders finished over 30 days ago are
+-- removed when the seller adds a new one.
+CREATE TABLE waybill_photos (
+  order_id    BIGINT PRIMARY KEY REFERENCES orders(id) ON DELETE CASCADE,
+  vendor_id   BIGINT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+  public_id   TEXT NOT NULL UNIQUE DEFAULT encode(gen_random_bytes(8), 'hex'),
+  mime        TEXT NOT NULL CHECK (mime IN ('image/jpeg', 'image/webp')),
+  size_bytes  INTEGER NOT NULL CHECK (size_bytes BETWEEN 1 AND 400000),
+  data        BYTEA NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX waybill_photos_vendor ON waybill_photos (vendor_id);
 
 
 -- ---------------------------------------------------------------------
