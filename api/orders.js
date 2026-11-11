@@ -1,5 +1,5 @@
 // The logged-in seller's orders, customers, payments and notifications.
-//   GET  /api/orders?filter=all|new|unpaid|delivered&before=<number>&q=<search> -> { orders, counts, unread, hasMore }
+//   GET  /api/orders?filter=all|new|unpaid|sent|delivered&before=<number>&q=<search> -> { orders, counts, unread, hasMore }
 //        q finds a name, phone number, order number (#12) or item name
 //   GET  /api/orders?id=<id>                    -> { order }   (items, payments, timeline)
 //   GET  /api/orders?view=notifications         -> { notifications, unread }
@@ -13,12 +13,18 @@
 //   GET  /api/orders?customer=<id>              -> the list, for one customer
 //   POST /api/orders { action: "create", customer, items, zone?, deliveryFee, discount, note } -> { order }
 //   POST /api/orders { action: "status", id, status }                    -> { order }
+//        status: new | processing | sent | delivered | cancelled
 //        cancelling puts counted stock back; restoring a cancelled order takes it again
+//   POST /api/orders { action: "send", id, kind?, courierName?, courierPhone?, trackingCode?,
+//                      expectedOn?, message?, photo?, removePhoto? }      -> { order }
+//        marks it sent out with how it's travelling (lib/tracking.js); on an order that's
+//        already sent or delivered it just updates the details
+//        kind: rider (name, phone) | waybill (company or park, waybill number, photo of the slip)
 //   POST /api/orders { action: "payment", id, amount, method, note }     -> { order }
 //   POST /api/orders { action: "undo-payment", id, paymentId }           -> { order }
 //   POST /api/orders { action: "note", id, message }                     -> { order }   a note in the order's history
 //   POST /api/orders { action: "log", id, kind, title? }                 -> { order }
-//        kind: invoice_sent | invoice_copied | quick_reply (title = the reply's title) | review_asked
+//        kind: invoice_sent | invoice_copied | quick_reply (title = the reply's title) | review_asked | tracking_sent
 //   POST /api/orders { action: "customer", id, name?, address?, notes?, tags?, noMessages? } -> customer page
 //        noMessages: true leaves them out of messages to many customers (Customers › Message customers)
 //   POST /api/orders { action: "notifications-read" }                    -> { unread: 0 }
@@ -32,13 +38,14 @@ const { loadSellable, resaleLine, RESALE_TEXT } = require('../lib/resell');
 const { isPro, usage, noteUsage, FREE_MONTHLY_ORDERS } = require('../lib/plan');
 const { flushPush } = require('../lib/push');
 const { periodRange, csvCell } = require('../lib/expenses');
+const { readTracking, sentLine, stampStatus, needsUpdate, waybillFor, saveWaybill, removeWaybill, localPhone } = require('../lib/tracking');
 
 const PAGE_SIZE = 50;
-const FILTERS = ['all', 'new', 'unpaid', 'delivered'];
-const STATUSES = ['new', 'processing', 'delivered', 'cancelled'];
+const FILTERS = ['all', 'new', 'unpaid', 'sent', 'delivered'];
+const STATUSES = ['new', 'processing', 'sent', 'delivered', 'cancelled'];
 const METHODS = ['transfer', 'cash', 'pos', 'other'];
 const METHOD_TEXT = { transfer: 'bank transfer', cash: 'cash', pos: 'POS', other: 'other' };
-const STATUS_TEXT = { new: 'Marked as new', processing: 'Marked as processing', delivered: 'Marked as delivered', cancelled: 'Order cancelled' };
+const STATUS_TEXT = { new: 'Marked as new', processing: 'Marked as processing', sent: 'Marked as sent out', delivered: 'Marked as delivered', cancelled: 'Order cancelled' };
 const CUSTOMER_SORTS = ['owing', 'recent', 'top', 'name'];
 const MAX_TAGS = 8;
 
@@ -69,7 +76,7 @@ async function unreadCount(vendorId) {
 async function loadOrder(vendorId, id) {
   const [order] = await sql`SELECT * FROM orders WHERE id = ${id} AND vendor_id = ${vendorId} LIMIT 1`;
   if (!order) throw new HttpError(404, "That order doesn't exist.");
-  const [items, payments, events, reviews, supply] = await Promise.all([
+  const [items, payments, events, reviews, supply, waybill] = await Promise.all([
     sql`SELECT * FROM order_items WHERE order_id = ${id} ORDER BY id`,
     sql`SELECT * FROM payments WHERE order_id = ${id} ORDER BY paid_at, id`,
     sql`SELECT kind, message, created_at FROM order_events WHERE order_id = ${id} ORDER BY created_at, id LIMIT 200`,
@@ -79,9 +86,10 @@ async function loadOrder(vendorId, id) {
       FROM supply_orders so JOIN vendors v ON v.id = so.supplier_vendor_id
       WHERE so.order_id = ${id} AND so.reseller_vendor_id = ${vendorId}
       ORDER BY so.id
-    `
+    `,
+    waybillFor(id)
   ]);
-  const detail = orderDetail(order, items, payments, events, reviews[0] || null);
+  const detail = orderDetail(order, items, payments, events, reviews[0] || null, waybill);
   // Resold items: who sends them, where it's up to, and what's owed to them.
   detail.supply = supply.map((so) => ({
     id: Number(so.id), status: so.status, totalKobo: Number(so.total_kobo), paid: !!so.paid_at,
@@ -112,6 +120,7 @@ async function list(vendor, params) {
         ${filter} = 'all'
         OR (${filter} = 'new' AND o.status = 'new')
         OR (${filter} = 'unpaid' AND o.payment_status <> 'paid' AND o.status <> 'cancelled')
+        OR (${filter} = 'sent' AND o.status = 'sent')
         OR (${filter} = 'delivered' AND o.status = 'delivered')
       )
       AND (${before} = 0 OR o.order_number < ${before})
@@ -130,6 +139,7 @@ async function list(vendor, params) {
     SELECT
       count(*)::int AS total,
       count(*) FILTER (WHERE status = 'new')::int AS new,
+      count(*) FILTER (WHERE status = 'sent')::int AS sent,
       count(*) FILTER (WHERE payment_status <> 'paid' AND status <> 'cancelled')::int AS unpaid,
       coalesce(sum(total_kobo - amount_paid_kobo) FILTER (WHERE payment_status <> 'paid' AND status <> 'cancelled'), 0)::bigint AS owing,
       count(*) FILTER (WHERE customer_marked_paid_at IS NOT NULL AND payment_status <> 'paid' AND status <> 'cancelled')::int AS says_paid
@@ -141,6 +151,7 @@ async function list(vendor, params) {
     counts: {
       total: Number(counts.total),
       new: Number(counts.new),
+      sent: Number(counts.sent),
       unpaid: Number(counts.unpaid),
       owingKobo: Number(counts.owing),
       saysPaid: Number(counts.says_paid)
@@ -444,7 +455,7 @@ async function report(vendor, params) {
 
 const CSV_LABELS = {
   unpaid: 'Unpaid', part_paid: 'Part paid', paid: 'Paid',
-  new: 'New', processing: 'Processing', delivered: 'Delivered', cancelled: 'Cancelled',
+  new: 'New', processing: 'Processing', sent: 'Sent out', delivered: 'Delivered', cancelled: 'Cancelled',
   link: 'Store link', manual: 'Added by you'
 };
 
@@ -463,7 +474,16 @@ async function exportCsv(vendor, res) {
   const naira = (k) => (Number(k) / 100).toFixed(2);
   // 2348031234567 -> 0803 123 4567 (spaces stop spreadsheets turning it into a number)
   const phone = (p) => (/^234\d{10}$/.test(p || '') ? `0${p.slice(3, 6)} ${p.slice(6, 9)} ${p.slice(9)}` : p || '');
-  const header = ['Order', 'Date', 'Customer', 'Phone', 'Items', 'Total (NGN)', 'Paid (NGN)', 'Balance (NGN)', 'Payment', 'Status', 'Source', 'Delivery area', 'Address', 'Note', 'Delivery fee (NGN)', 'Discount (NGN)', 'Item cost (NGN)'];
+  const header = ['Order', 'Date', 'Customer', 'Phone', 'Items', 'Total (NGN)', 'Paid (NGN)', 'Balance (NGN)', 'Payment', 'Status', 'Source', 'Delivery area', 'Address', 'Note', 'Delivery fee (NGN)', 'Discount (NGN)', 'Item cost (NGN)', 'Sent with', 'Waybill no.'];
+  // "Rider Musa, 0803 123 4567" or "GIG Logistics" (empty before the tracking update)
+  const sentWith = (o) => {
+    if (o.courier_kind === 'rider') {
+      const who = o.courier_name ? 'Rider ' + o.courier_name : 'Rider';
+      return o.courier_phone ? who + ', ' + localPhone(o.courier_phone) : who;
+    }
+    if (o.courier_kind === 'waybill') return o.courier_name || 'Waybill';
+    return '';
+  };
   const lines = [header.map(csvCell).join(',')];
   rows.forEach((o) => {
     lines.push([
@@ -471,7 +491,8 @@ async function exportCsv(vendor, res) {
       naira(o.total_kobo), naira(o.amount_paid_kobo), naira(Math.max(0, Number(o.total_kobo) - Number(o.amount_paid_kobo))),
       CSV_LABELS[o.payment_status] || o.payment_status, CSV_LABELS[o.status] || o.status,
       CSV_LABELS[o.source] || o.source, o.delivery_zone || '', o.delivery_address || '', o.note || '',
-      naira(o.delivery_fee_kobo), naira(o.discount_kobo), o.item_cost == null ? '' : naira(o.item_cost)
+      naira(o.delivery_fee_kobo), naira(o.discount_kobo), o.item_cost == null ? '' : naira(o.item_cost),
+      sentWith(o), o.courier_kind === 'waybill' ? o.tracking_code || '' : ''
     ].map(csvCell).join(','));
   });
   const date = new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' });
@@ -699,13 +720,55 @@ async function setStatus(vendor, body) {
     if (isStockError(err)) {
       throw new HttpError(409, 'There isn\'t enough stock left to bring this order back. Update your stock count, then try again.', { stock: true });
     }
-    throw err;
+    throw needsUpdate(err); // "sent" before db/migrations/010_order_tracking.sql
   }
+  // The day it reached this step, for the customer's tracker.
+  await stampStatus(id, vendor.id, status);
   // Suppliers of resold items were told to stop (or start again): alert their phones.
   if (status === 'cancelled' || before.status === 'cancelled') {
     const suppliers = await sql`SELECT DISTINCT supplier_vendor_id FROM supply_orders WHERE order_id = ${id}`;
     if (suppliers.length) await flushPush(suppliers.map((r) => r.supplier_vendor_id));
   }
+  return { order: await loadOrder(vendor.id, id) };
+}
+
+// "Sent out": the order leaves with a rider or by waybill. The details show
+// on the customer's invoice page. Saving again on an order that's already
+// sent (or delivered) just updates the details.
+async function sendOut(vendor, body) {
+  const id = readId(body.id);
+  const t = readTracking(body); // checks everything (and the photo) before anything is saved
+  const [cur] = await sql`SELECT status FROM orders WHERE id = ${id} AND vendor_id = ${vendor.id} LIMIT 1`;
+  if (!cur) throw new HttpError(404, "That order doesn't exist.");
+  if (cur.status === 'cancelled') throw new HttpError(409, 'This order is cancelled. Restore it first, then mark it sent out.');
+  const already = cur.status === 'sent' || cur.status === 'delivered';
+  const status = cur.status === 'delivered' ? 'delivered' : 'sent';
+  try {
+    const rows = await sql`
+      WITH upd AS (
+        UPDATE orders SET
+          status = ${status},
+          sent_at = CASE WHEN orders.status IN ('sent', 'delivered') THEN coalesce(orders.sent_at, now()) ELSE now() END,
+          courier_kind = ${t.kind},
+          courier_name = ${t.name},
+          courier_phone = ${t.phone},
+          tracking_code = ${t.code},
+          expected_on = ${t.expectedOn}::date,
+          delivery_message = ${t.message},
+          updated_at = now()
+        WHERE id = ${id} AND vendor_id = ${vendor.id} AND status <> 'cancelled'
+        RETURNING id
+      )
+      INSERT INTO order_events (order_id, vendor_id, kind, message)
+      SELECT id, ${vendor.id}, 'sent', ${sentLine(t, already)} FROM upd
+      RETURNING order_id
+    `;
+    if (!rows.length) throw new HttpError(409, 'This order changed while you were saving. Check it and try again.');
+  } catch (err) {
+    throw needsUpdate(err);
+  }
+  if (t.photo) await saveWaybill(vendor.id, id, t.photo);
+  else if (t.removePhoto) await removeWaybill(vendor.id, id);
   return { order: await loadOrder(vendor.id, id) };
 }
 
@@ -810,7 +873,8 @@ const LOG_TEXT = {
   invoice_sent: () => 'Invoice sent on WhatsApp',
   invoice_copied: () => 'Invoice link copied',
   quick_reply: (title) => `Sent "${title}" on WhatsApp`,
-  review_asked: () => 'Asked for a review on WhatsApp'
+  review_asked: () => 'Asked for a review on WhatsApp',
+  tracking_sent: () => 'Tracking link sent on WhatsApp'
 };
 
 async function logAction(vendor, body) {
@@ -840,6 +904,7 @@ async function markNotificationsRead(vendor) {
 const ACTIONS = {
   create,
   status: setStatus,
+  send: sendOut,
   payment: recordPayment,
   'undo-payment': undoPayment,
   note: addNote,

@@ -11,6 +11,8 @@
 //   POST /api/public { action: "promo", store, code, items } -> { promo: { code, label, discountKobo } }
 //   GET  /api/public?invoice=<publicId>        -> { invoice, store }   (invoice.review, invoice.canReview)
 //   POST /api/public { action: "paid", invoice } -> customer says they've paid
+//   POST /api/public { action: "received", invoice } -> customer says the order arrived:
+//                    marks a sent-out order delivered and tells the seller (lib/tracking.js)
 //   POST /api/public { action: "review", invoice, rating, body } -> { invoice, store }
 //   POST /api/public { action: "stock-alert", store, productId, name, phone, choiceId? } -> { ok }
 //                    "Tell me when it's back" on a sold-out product (lib/broadcasts.js)
@@ -18,7 +20,7 @@
 //   GET  /api/public?ref=<code>                -> { referrer: { name } }   (sign-up invite banner)
 //   GET  /api/public?site=contact              -> { contact: { email, whatsapp } }
 //   GET  /api/public?render=home|store|invoice -> the page itself, with link-preview tags
-//   GET  /api/public?photo=<publicId>          -> a product photo or profile picture (also at /p/<publicId>)
+//   GET  /api/public?photo=<publicId>          -> a product photo, profile picture or waybill photo (also at /p/<publicId>)
 //
 // Prices always come from the database, never from the browser. The order,
 // its items, the customer record and the seller's notification are written
@@ -40,6 +42,7 @@ const { withResale, loadSellable, resaleLine } = require('../lib/resell');
 const { findReferrer } = require('../lib/referrals');
 const { flushPush } = require('../lib/push');
 const { requestStock } = require('../lib/broadcasts');
+const { waybillFor, loadWaybill, needsUpdate } = require('../lib/tracking');
 
 const MAX_LINES = 50;
 const MAX_QUANTITY = 99;
@@ -270,7 +273,7 @@ async function loadInvoice(publicId) {
   `;
   const order = rows[0];
   if (!order) return null;
-  const [items, payments, reviews] = await Promise.all([
+  const [items, payments, reviews, waybill] = await Promise.all([
     sql`
       SELECT oi.*, (
         SELECT ph.public_id FROM product_photos ph
@@ -280,7 +283,8 @@ async function loadInvoice(publicId) {
       FROM order_items oi WHERE oi.order_id = ${order.id} ORDER BY oi.id
     `,
     sql`SELECT amount_kobo, paid_at FROM payments WHERE order_id = ${order.id} ORDER BY paid_at, id`,
-    sql`SELECT * FROM reviews WHERE order_id = ${order.id} LIMIT 1`
+    sql`SELECT * FROM reviews WHERE order_id = ${order.id} LIMIT 1`,
+    waybillFor(order.id)
   ]);
   const vendorShape = {
     business_name: order.business_name, slug: order.slug, whatsapp_phone: order.whatsapp_phone,
@@ -290,13 +294,13 @@ async function loadInvoice(publicId) {
     bio: order.bio, store_category: order.store_category, city: order.city, state: order.state,
     logo_url: order.logo_url
   };
-  return { order, items, payments, review: reviews[0] || null, vendor: vendorShape };
+  return { order, items, payments, review: reviews[0] || null, waybill, vendor: vendorShape };
 }
 
 async function getInvoice(publicId, res) {
   const found = await loadInvoice(publicId);
   if (!found) throw new HttpError(404, "This invoice doesn't exist. Check the link with the seller.");
-  const invoice = invoiceForCustomer(found.order, found.items, found.payments);
+  const invoice = invoiceForCustomer(found.order, found.items, found.payments, found.waybill);
   invoice.items.forEach((item, i) => {
     item.photo = found.items[i].photo_id ? photoUrl(found.items[i].photo_id) : null;
   });
@@ -331,6 +335,43 @@ async function markPaid(body, res) {
              id
       FROM marked
     `;
+    await flushPush([o.vendor_id]);
+  }
+  return getInvoice(body.invoice, res);
+}
+
+// Customer taps "I've got it" on a sent-out order: it's delivered. Only the
+// first tap tells the seller (with what's still owed, if anything).
+async function markReceived(body, res) {
+  const found = await loadInvoice(body.invoice);
+  if (!found) throw new HttpError(404, "This invoice doesn't exist. Check the link with the seller.");
+  const o = found.order;
+  if (o.status === 'cancelled') throw new HttpError(409, 'This order was cancelled.');
+  if (o.status !== 'sent' && o.status !== 'delivered') {
+    throw new HttpError(409, found.vendor.business_name + " hasn't sent this order out yet. Message them if you have it already.");
+  }
+  if (o.status === 'sent') {
+    const balance = Math.max(0, Number(o.total_kobo) - Number(o.amount_paid_kobo));
+    const owes = balance > 0 ? ' They still owe ' + formatNaira(balance) + '.' : '';
+    try {
+      await sql`
+        WITH upd AS (
+          UPDATE orders SET status = 'delivered', delivered_at = now(), customer_received_at = now(), updated_at = now()
+          WHERE id = ${o.id} AND status = 'sent'
+          RETURNING id
+        ),
+        history AS (
+          INSERT INTO order_events (order_id, vendor_id, kind, message)
+          SELECT id, ${o.vendor_id}, 'received', ${o.customer_name + ' confirmed they got it'} FROM upd
+          RETURNING 1
+        )
+        INSERT INTO notifications (vendor_id, type, message, order_id)
+        SELECT ${o.vendor_id}, 'received', ${o.customer_name + ' got order #' + o.order_number + ' and marked it delivered.' + owes}, id
+        FROM upd
+      `;
+    } catch (err) {
+      throw needsUpdate(err);
+    }
     await flushPush([o.vendor_id]);
   }
   return getInvoice(body.invoice, res);
@@ -447,8 +488,10 @@ async function directory(req, res) {
 
 // A product photo or a seller's profile picture. Its address changes whenever
 // the picture does, so it can be cached for a year by the phone and by Netlify's CDN.
+// Waybill photos show the customer's details, so only the phone keeps them
+// (for a day), never the CDN.
 async function servePhoto(publicId, res) {
-  const photo = (await loadPhoto(publicId)) || (await loadPicture(publicId));
+  const photo = (await loadPhoto(publicId)) || (await loadPicture(publicId)) || (await loadWaybill(publicId));
   if (!photo) {
     res.setHeader('Cache-Control', 'public, max-age=60');
     return res.status(404).json({ error: 'Photo not found' });
@@ -456,8 +499,14 @@ async function servePhoto(publicId, res) {
   const forever = 'public, max-age=31536000, immutable';
   res.setHeader('Content-Type', photo.mime);
   res.setHeader('Content-Length', String(photo.bytes.length));
-  res.setHeader('Cache-Control', forever);
-  res.setHeader('Netlify-CDN-Cache-Control', forever);
+  if (photo.private) {
+    res.setHeader('Cache-Control', 'private, max-age=86400');
+    res.setHeader('Netlify-CDN-Cache-Control', 'no-store');
+    res.setHeader('X-Robots-Tag', 'noindex');
+  } else {
+    res.setHeader('Cache-Control', forever);
+    res.setHeader('Netlify-CDN-Cache-Control', forever);
+  }
   res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
   return res.status(200).send(photo.bytes);
 }
@@ -527,6 +576,7 @@ module.exports = async function handler(req, res) {
     const body = req.body && typeof req.body === 'object' ? req.body : {};
     if (body.action === 'order') return await placeOrder(req, res, body);
     if (body.action === 'paid') return await markPaid(body, res);
+    if (body.action === 'received') return await markReceived(body, res);
     if (body.action === 'promo') return await checkPromo(body, res);
     if (body.action === 'review') return await leaveReview(body, res);
     if (body.action === 'stock-alert') return res.status(200).json(await requestStock(body, getClientIp(req)));

@@ -212,6 +212,7 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .badge.b-new { background: var(--sky); color: #1B1530; }
 .badge.b-processing { background: var(--lilac); color: #1B1530; }
+.badge.b-sent { background: var(--grape); color: #fff; }
 .badge.b-delivered, .badge.b-paid { background: var(--brand); color: #1B1530; }
 .badge.b-unpaid { background: var(--sun); color: #1B1530; }
 .badge.b-part_paid { background: var(--sun-soft); color: var(--text); }
